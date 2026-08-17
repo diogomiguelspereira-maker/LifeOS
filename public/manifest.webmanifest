@@ -1,0 +1,10 @@
+{
+  "name": "LifeOS",
+  "short_name": "LifeOS",
+  "description": "O teu centro de comando pessoal — dinheiro, tarefas, hábitos e objetivos num só lugar.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#08080c",
+  "theme_color": "#08080c",
+  "lang": "pt"
+}
