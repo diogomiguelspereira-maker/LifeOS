@@ -16,7 +16,7 @@ import type { Currency, Lang, Profile } from "@/lib/types";
 interface AppContextValue {
   profile: Profile | null;
   refreshProfile: () => Promise<void>;
-  updateProfile: (patch: Partial<Profile>) => Promise<void>;
+  updateProfile: (patch: Partial<Profile>) => Promise<boolean>;
   lang: Lang;
   t: Dict;
   currency: Currency;
@@ -38,11 +38,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       return;
     }
-    const { data } = await supabase
+    let { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .maybeSingle();
+    // Self-heal: accounts created before the schema was applied have no
+    // profile row yet — seed it (profile + accounts + categories) on the fly.
+    if (!data) {
+      await supabase.rpc("seed_new_user", { uid: user.id });
+      const retry = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      data = retry.data;
+    }
     if (data) setProfile(data as Profile);
   }, [supabase]);
 
@@ -69,9 +80,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = useCallback(
     async (patch: Partial<Profile>) => {
-      if (!profile) return;
+      const uid = profile?.id ?? (await supabase.auth.getUser()).data.user?.id;
+      if (!uid) return false;
       setProfile((p) => (p ? { ...p, ...patch } : p));
-      await supabase.from("profiles").update(patch).eq("id", profile.id);
+      const { error } = await supabase.from("profiles").update(patch).eq("id", uid);
+      if (error) {
+        console.error("Falha ao atualizar perfil:", error.message);
+        return false;
+      }
+      return true;
     },
     [profile, supabase]
   );

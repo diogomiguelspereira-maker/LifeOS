@@ -30,6 +30,7 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
 
 1. Cria um projeto em [supabase.com](https://supabase.com) (ou usa o existente).
 2. Abre **Dashboard → SQL Editor → New query**, cola o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e executa.
+   - **Pode ser re-executado sem problema**: remove as tabelas LifeOS antigas e recria tudo de raiz (todas as tabelas estão vazias até haver registos).
    - Cria todas as tabelas (perfis, contas, movimentos, orçamentos, objetivos, tarefas, hábitos, notas, calendário, etc.)
    - Ativa **RLS** em todas as tabelas (cada utilizador vê apenas os seus dados)
    - Cria o trigger que, ao registar, gera perfil + contas + categorias por defeito

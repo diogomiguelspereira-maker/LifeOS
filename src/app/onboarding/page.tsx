@@ -51,9 +51,24 @@ function OnboardingInner() {
     }
   }, [profile]);
 
+  // already finished onboarding → never show the wizard again
+  useEffect(() => {
+    if (profile?.onboarding_completed) {
+      router.replace("/app");
+    }
+  }, [profile, router]);
+
+  if (!profile) {
+    return (
+      <div className="app-bg flex min-h-dvh items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+      </div>
+    );
+  }
+
   async function finish() {
     setSaving(true);
-    await updateProfile({
+    const ok = await updateProfile({
       name,
       age_range: ageRange || null,
       country: country || null,
@@ -65,13 +80,19 @@ function OnboardingInner() {
       language,
       onboarding_completed: true,
     });
+    if (!ok) {
+      setSaving(false);
+      alert("Não foi possível guardar o teu perfil. Tenta novamente.");
+      return;
+    }
     if (goalName && goalAmount) {
-      await supabase.from("savings_goals").insert({
+      const { error } = await supabase.from("savings_goals").insert({
         name: goalName,
         icon: GOAL_ICONS.find((g) => g.name === goalName)?.icon ?? "🎯",
         target_amount: parseFloat(goalAmount.replace(",", ".")) || 0,
         current_amount: parseFloat(savings.replace(",", ".")) || 0,
       });
+      if (error) console.error("Falha ao criar objetivo:", error.message);
     }
     await refreshProfile();
     router.push("/app");
