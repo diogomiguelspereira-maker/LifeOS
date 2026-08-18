@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
@@ -178,6 +178,7 @@ function MoneyPageInner() {
         <Card>
           <CardHeader
             title={t.money.accounts}
+            subtitle={`${accounts.length} ${accounts.length === 1 ? "conta" : "contas"} · ${formatMoney(accounts.reduce((s, a) => s + a.balance, 0), currency)}`}
             action={
               <Button variant="ghost" size="sm" onClick={() => { setEditingAccount(null); setAccountOpen(true); }}>
                 <Plus className="h-3.5 w-3.5" />
@@ -187,37 +188,45 @@ function MoneyPageInner() {
           />
           <div className="space-y-2">
             {accounts.map((a) => (
-              <div key={a.id} className="group flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg">{a.icon ?? "🏦"}</span>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-200">{a.name}</p>
-                    <p className="text-[11px] text-zinc-500">
-                      {ACCOUNT_TYPES.find((x) => x.value === a.type)?.label.replace(/^[^\s]+\s/, "") ?? a.type}
-                    </p>
-                  </div>
+              <div
+                key={a.id}
+                className="group flex items-center gap-3 rounded-xl border border-white/6 bg-white/4 px-3 py-3 transition hover:border-white/10 hover:bg-white/6"
+              >
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                  style={{ background: `${a.color ?? "#6366f1"}22` }}
+                >
+                  {a.icon ?? "🏦"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-zinc-100">{a.name}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    {ACCOUNT_TYPES.find((x) => x.value === a.type)?.label.replace(/^[^\s]+\s/, "") ?? a.type}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-zinc-100">{formatMoney(a.balance, currency)}</p>
+                <p className="shrink-0 text-sm font-bold tabular-nums tracking-tight text-zinc-100">
+                  {formatMoney(a.balance, currency)}
+                </p>
+                <div className="flex shrink-0 items-center gap-1.5">
                   <button
                     onClick={() => {
                       setEditingAccount(a);
                       setAccountOpen(true);
                     }}
-                    className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-zinc-200 group-hover:opacity-100"
+                    className="rounded-lg border border-white/10 p-1.5 text-zinc-400 transition hover:border-indigo-400/40 hover:text-indigo-300"
                     title={t.common.edit}
                   >
-                    ✏️
+                    <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={async () => {
                       await supabase.from("accounts").delete().eq("id", a.id);
                       load();
                     }}
-                    className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
+                    className="rounded-lg border border-white/10 p-1.5 text-zinc-400 transition hover:border-red-400/40 hover:text-red-400"
                     title={t.common.delete}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
