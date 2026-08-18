@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
+import { Check, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
@@ -44,6 +44,7 @@ function MoneyPageInner() {
   const [loading, setLoading] = useState(true);
   const [txOpen, setTxOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
   const load = useCallback(async () => {
     const [tx, acc, cats] = await Promise.all([
@@ -178,7 +179,7 @@ function MoneyPageInner() {
           <CardHeader
             title={t.money.accounts}
             action={
-              <Button variant="ghost" size="sm" onClick={() => setAccountOpen(true)}>
+              <Button variant="ghost" size="sm" onClick={() => { setEditingAccount(null); setAccountOpen(true); }}>
                 <Plus className="h-3.5 w-3.5" />
                 {t.money.addAccount}
               </Button>
@@ -186,7 +187,7 @@ function MoneyPageInner() {
           />
           <div className="space-y-2">
             {accounts.map((a) => (
-              <div key={a.id} className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
+              <div key={a.id} className="group flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
                 <div className="flex items-center gap-2.5">
                   <span className="text-lg">{a.icon ?? "🏦"}</span>
                   <div>
@@ -196,7 +197,29 @@ function MoneyPageInner() {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm font-semibold text-zinc-100">{formatMoney(a.balance, currency)}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-zinc-100">{formatMoney(a.balance, currency)}</p>
+                  <button
+                    onClick={() => {
+                      setEditingAccount(a);
+                      setAccountOpen(true);
+                    }}
+                    className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-zinc-200 group-hover:opacity-100"
+                    title={t.common.edit}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await supabase.from("accounts").delete().eq("id", a.id);
+                      load();
+                    }}
+                    className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
+                    title={t.common.delete}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -269,8 +292,8 @@ function MoneyPageInner() {
         currency={currency}
       />
 
-      {/* Add account modal */}
-      <AddAccountModal open={accountOpen} onClose={() => setAccountOpen(false)} onSaved={load} />
+      {/* Add/edit account modal */}
+      <AccountModal open={accountOpen} account={editingAccount} onClose={() => { setAccountOpen(false); setEditingAccount(null); }} onSaved={load} />
     </div>
   );
 }
@@ -445,12 +468,17 @@ function TransactionModal({
   );
 }
 
-function AddAccountModal({
+const ACCOUNT_ICONS = ["🏦", "💵", "🐷", "📈", "💳", "🪙", "🏠", "🚗", "✈️", "🎓", "🛒", "🎯"];
+const ACCOUNT_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"];
+
+function AccountModal({
   open,
+  account,
   onClose,
   onSaved,
 }: {
   open: boolean;
+  account: Account | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -459,29 +487,49 @@ function AddAccountModal({
   const [name, setName] = useState("");
   const [type, setType] = useState("bank");
   const [balance, setBalance] = useState("");
+  const [icon, setIcon] = useState("🏦");
+  const [color, setColor] = useState(ACCOUNT_COLORS[0]);
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setType("bank");
-      setBalance("");
+      setName(account?.name ?? "");
+      setType(account?.type ?? "bank");
+      setBalance(account ? String(account.balance ?? 0) : "");
+      setIcon(account?.icon ?? "🏦");
+      setColor(account?.color ?? ACCOUNT_COLORS[0]);
     }
-  }, [open]);
+  }, [open, account]);
 
   async function save() {
-    if (!name) return;
-    await supabase
-      .from("accounts")
-      .insert({ name, type, balance: parseFloat(balance.replace(",", ".")) || 0 });
+    if (!name.trim()) return;
+    const payload = {
+      name: name.trim(),
+      type,
+      balance: parseFloat(balance.replace(",", ".")) || 0,
+      icon,
+      color,
+    };
+    if (account) {
+      await supabase.from("accounts").update(payload).eq("id", account.id);
+    } else {
+      await supabase.from("accounts").insert(payload);
+    }
+    onSaved();
+    onClose();
+  }
+
+  async function remove() {
+    if (!account) return;
+    await supabase.from("accounts").delete().eq("id", account.id);
     onSaved();
     onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.money.addAccount}>
+    <Modal open={open} onClose={onClose} title={account ? t.money.editAccount : t.money.addAccount}>
       <div className="space-y-4">
         <Field label={t.common.name}>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Conta à ordem" />
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Conta à ordem" autoFocus />
         </Field>
         <Field label={t.money.type}>
           <Select value={type} onChange={(e) => setType(e.target.value)}>
@@ -492,7 +540,7 @@ function AddAccountModal({
             ))}
           </Select>
         </Field>
-        <Field label={t.common.amount}>
+        <Field label={t.money.balance}>
           <Input
             type="number"
             inputMode="decimal"
@@ -502,9 +550,48 @@ function AddAccountModal({
             placeholder="0,00"
           />
         </Field>
-        <Button className="w-full" onClick={save} disabled={!name}>
-          {t.common.save}
-        </Button>
+        <Field label={t.money.icon}>
+          <div className="flex flex-wrap gap-1.5">
+            {ACCOUNT_ICONS.map((ic) => (
+              <button
+                key={ic}
+                type="button"
+                onClick={() => setIcon(ic)}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-xl text-lg transition hover:scale-110",
+                  icon === ic ? "bg-white/12 ring-2 ring-indigo-400" : "bg-white/4"
+                )}
+              >
+                {ic}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label={t.money.color}>
+          <div className="flex flex-wrap gap-2">
+            {ACCOUNT_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:scale-110"
+                style={{ background: c }}
+              >
+                {color === c && <Check className="h-4 w-4 text-white" />}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <div className="flex gap-2">
+          <Button className="flex-1" onClick={save} disabled={!name.trim()}>
+            {t.common.save}
+          </Button>
+          {account && (
+            <Button variant="danger" onClick={remove}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </Modal>
   );
