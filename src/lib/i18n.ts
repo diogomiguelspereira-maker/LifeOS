@@ -20,6 +20,9 @@ export const pt = {
     habits: "Hábitos",
     ai: "Nova",
     notes: "Notas",
+    people: "Pessoas",
+    stats: "Estatísticas",
+    settings: "Definições",
     more: "Mais",
   },
   common: {
@@ -734,6 +737,9 @@ export const en: Dict = {
     habits: "Habits",
     ai: "Nova",
     notes: "Notes",
+    people: "People",
+    stats: "Statistics",
+    settings: "Settings",
     more: "More",
   },
   common: {
@@ -1448,6 +1454,9 @@ export const es: Dict = {
     habits: "Hábitos",
     ai: "Nova",
     notes: "Notas",
+    people: "Personas",
+    stats: "Estadísticas",
+    settings: "Ajustes",
     more: "Más",
   },
   common: {
@@ -2162,6 +2171,9 @@ export const fr: Dict = {
     habits: "Habitudes",
     ai: "Nova",
     notes: "Notes",
+    people: "Personnes",
+    stats: "Statistiques",
+    settings: "Paramètres",
     more: "Plus",
   },
   common: {

@@ -93,13 +93,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="mt-4 space-y-1 border-t border-white/6 pt-3 dark:border-white/6">
-          <Link
-            href="/app/settings"
-            className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
-          >
-            <Settings className="h-[18px] w-[18px]" />
-            {t.settings.title}
-          </Link>
           <button
             onClick={signOut}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 transition hover:bg-white/5 hover:text-red-400"
