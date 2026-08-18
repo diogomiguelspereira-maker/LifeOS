@@ -185,7 +185,7 @@ function CalendarPageInner() {
 
   // free-time detection (current day, 8h-22h)
   const freeTime = useMemo(() => {
-    const key = cursor.toISOString().slice(0, 10);
+    const key = localDayKey(cursor);
     const list = (dayEvents.get(key) ?? []).filter((e) => !e.all_day);
     const busy: [number, number][] = list.map((e) => {
       const s = new Date(e.start_at);
@@ -691,7 +691,7 @@ function EventModal({
     if (open) {
       const base = event ? new Date(event.start_at) : defaultDate;
       setTitle(event?.title ?? "");
-      setDate(base.toISOString().slice(0, 10));
+      setDate(localDayKey(base));
       setStart(event ? `${String(base.getHours()).padStart(2, "0")}:${String(base.getMinutes()).padStart(2, "0")}` : "09:00");
       const endD = event?.end_at ? new Date(event.end_at) : new Date(base.getTime() + 3600000);
       setEnd(`${String(endD.getHours()).padStart(2, "0")}:${String(endD.getMinutes()).padStart(2, "0")}`);
