@@ -19,7 +19,7 @@ export function Button({
 }) {
   const variants: Record<ButtonVariant, string> = {
     primary:
-      "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-violet-400 active:scale-[0.98]",
+      "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-violet-400 hover:shadow-indigo-500/40",
     secondary:
       "bg-white/8 text-zinc-100 border border-white/10 hover:bg-white/12 dark:bg-white/8 dark:text-zinc-100 dark:border-white/10 dark:hover:bg-white/12",
     ghost:
@@ -39,7 +39,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-all disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap",
+        "inline-flex items-center justify-center font-medium transition-all active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap",
         variants[variant],
         sizes[size],
         className
@@ -303,7 +303,7 @@ export function Modal({
     >
       <div
         className={cn(
-          "w-full rounded-t-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-slide-up sm:rounded-3xl dark:bg-zinc-950",
+          "w-full rounded-t-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-slide-up sm:animate-scale-in sm:rounded-3xl dark:bg-zinc-950",
           maxWidth
         )}
         onClick={(e) => e.stopPropagation()}

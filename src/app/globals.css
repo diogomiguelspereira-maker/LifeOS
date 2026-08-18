@@ -164,6 +164,10 @@
 
 html {
   color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
 }
 html.light {
   color-scheme: light;
@@ -174,6 +178,9 @@ body {
   color: #f4f4f5;
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
 }
 
 html.light body {
@@ -209,7 +216,9 @@ html.light .app-bg {
   border-radius: 8px;
 }
 
-/* animations */
+/* animations
+   All entrance animations use transform/opacity only so they run on the
+   compositor (GPU) and never cause layout thrash on low-end phones. */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -228,6 +237,26 @@ html.light .app-bg {
     transform: translateY(0);
   }
 }
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @keyframes pulseSoft {
   0%,
   100% {
@@ -238,14 +267,33 @@ html.light .app-bg {
   }
 }
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.25s ease-out both;
 }
 .animate-slide-up {
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.3s ease-out both;
+}
+.animate-scale-in {
+  animation: scaleIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-page-in {
+  animation: pageIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .animate-pulse-soft {
   animation: pulseSoft 2s ease-in-out infinite;
 }
+
+/* stagger children in lists/cards for a springy, layered entrance */
+.stagger > * {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 35ms; }
+.stagger > *:nth-child(3) { animation-delay: 70ms; }
+.stagger > *:nth-child(4) { animation-delay: 105ms; }
+.stagger > *:nth-child(5) { animation-delay: 140ms; }
+.stagger > *:nth-child(6) { animation-delay: 175ms; }
+.stagger > *:nth-child(7) { animation-delay: 210ms; }
+.stagger > *:nth-child(8) { animation-delay: 245ms; }
 
 /* shimmer for loading */
 @keyframes shimmer {
@@ -261,6 +309,39 @@ html.light .app-bg {
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: 0.75rem;
+}
+
+/* mobile compatibility */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+summary {
+  touch-action: manipulation;
+}
+
+/* iOS auto-zooms into focused inputs smaller than 16px — bump them on touch
+   screens only so the desktop design keeps its compact 14px type. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* number input spinners off */

@@ -114,7 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-black/40 px-4 py-3 backdrop-blur-xl lg:hidden dark:border-white/6 dark:bg-black/40">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden dark:border-white/6 dark:bg-black/40">
         <Link href="/app" onClick={() => router.push("/app")}>
           <Wordmark />
         </Link>
@@ -133,7 +133,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Content */}
       <main className="lg:pl-60">
-        <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12 lg:pt-8">{children}</div>
+        <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12 lg:pt-8">
+          <div key={pathname} className="animate-page-in">
+            {children}
+          </div>
+        </div>
       </main>
 
       {/* Mobile bottom nav */}
