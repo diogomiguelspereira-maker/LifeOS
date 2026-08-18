@@ -26,8 +26,13 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
 - **Notas + Diário** — segundo cérebro com favoritos, etiquetas e humor
 - **Pessoas** — aniversários e "não falas com X há N dias"
 - **Estatísticas** — rendimento vs despesas, taxas de conclusão
-- **Nova (IA)** — chatbot com contexto real (finanças, tarefas, calendário, hábitos, carreira, aprendizagem, viagens), **memória controlável** (ver/editar/apagar), **5 personalidades** e **revisão semanal** automática; ações **confirmadas pelo utilizador**
+- **Nova (IA)** — chatbot com contexto real (finanças, tarefas, calendário, hábitos, carreira, aprendizagem, viagens), **memória controlável**, **5 personalidades**, **revisão semanal** e **planos com aprovação + Undo** (criar vários eventos/tarefas de uma vez, revertíveis)
+- **Sistema NOW** — banner "Agora" (🟢 livre / 🔴 ocupado / 🚗 sair em X), **"O que devo fazer?"** com sugestões realistas pelo tempo livre, gaps de tempo livre
+- **Captura rápida** — `Ctrl/Cmd + K` ou botão flutuante (📱): escreve "€14,50 almoço", "20 café", "comprar leite amanhã" → guarda em 1 toque (despesa com categoria, tarefa, evento, objetivo, viagem)
 - **Command Palette + pesquisa global** — `Ctrl/Cmd + K` pesquisa tarefas, notas, eventos, movimentos, metas, pessoas, viagens, documentos e subscrições
+- **Timeline de dinheiro** — próximos 30 dias de cash flow (salário, contas, poupança automática)
+- **Can I afford this?** — análise em cada item da wishlist (sim/não + porquê + criar objetivo)
+- **Life Admin** — tarefas atrasadas, contas a vencer, documentos a expirar, subscrições a cancelar e aniversários num só sítio
 - **Privacidade** — autenticação, Row Level Security, exportação de dados, PT/EN/ES/FR, tema escuro/claro, EUR/USD/GBP/CHF/CAD/BRL/JPY
 
 ---
@@ -44,6 +49,8 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - Cria o trigger que, ao registar, gera perfil + contas + categorias por defeito
 3. **Expansão (Finance Hub, Foco, Bem-estar, Carreira, Viagens, Memória da Nova…):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-2.sql`](supabase/migration-2.sql) e executa.
    - **Aditivo e seguro**: apenas adiciona tabelas novas (+1 coluna em `subscriptions`) — não apaga nem altera dados existentes. Pode ser corrido em qualquer altura, mesmo depois de já usares a app.
+4. **Google Calendar + Undo (Life Admin, NOW, captura rápida):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-3.sql`](supabase/migration-3.sql) e executa.
+   - Adiciona `google_tokens` (tokens encriptados com RLS) e `ai_action_log` (histórico de ações da IA para reverter).
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 
@@ -81,11 +88,23 @@ npm run dev      # http://localhost:3000
 
 Ou liga o repositório GitHub na Vercel — cada push publica automaticamente.
 
-## 🔗 5. Google Calendar (opcional, em preparação)
+## 🔗 5. Google Calendar (opcional)
 
-A UI já mostra o estado da integração. Para ativar:
-1. Google Cloud Console → cria um **OAuth 2.0 Client ID** (Web) com redirect `https://<dominio>/auth/callback/google`.
-2. Adiciona as variáveis `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` na Vercel.
+Integração **completa** (OAuth 2.0 com encriptação dos tokens): ligar, sincronizar, desligar, badge nos eventos e push de novos eventos. Para ativar:
+
+1. **Google Cloud Console** → cria um **OAuth 2.0 Client ID** (Web):
+   - **Authorized redirect URIs**: `https://<dominio>/api/google/callback` (ex: `https://lifeos-eosin-phi.vercel.app/api/google/callback`)
+   - Ativa a API **Google Calendar** (APIs & Services → Library → Google Calendar API → Enable)
+2. Adiciona na Vercel (**Project → Settings → Environment Variables**):
+   ```env
+   GOOGLE_CLIENT_ID=XXXX.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=GOCSPX-...
+   GOOGLE_TOKEN_KEY=qualquer-string-secreta-longa   # encripta os tokens na BD
+   NEXT_PUBLIC_APP_URL=https://<dominio>            # já definido nesta app
+   ```
+3. Na app: **Definições → Integrações → Ligar Google Calendar** → autoriza → os eventos aparecem no calendário (sincronização automática ao abrir + botão manual).
+
+> Os tokens nunca vão para o browser: são encriptados (AES-256-GCM) e guardados na tabela `google_tokens` com RLS (só o dono).
 
 ## 🔒 Segurança
 
