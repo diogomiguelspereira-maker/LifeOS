@@ -2,11 +2,11 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarPlus, ChevronLeft, ChevronRight, MapPin, Pencil, Trash2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardPaste, MapPin, Pencil, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
 import { dontForgetHints } from "@/lib/dontforget";
-import { scheduleToEvents } from "@/lib/schedule-import";
+import { parseScheduleText, SCHEDULE_EXAMPLE } from "@/lib/schedule-import";
 import {
   Button,
   Card,
@@ -69,8 +69,7 @@ function CalendarPageInner() {
   const [google, setGoogle] = useState<{ configured: boolean; connected: boolean; email: string | null } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const range = useMemo(() => {
     const start = new Date(cursor);
@@ -136,45 +135,6 @@ function CalendarPageInner() {
     if (params.get("new") === "1") setAddOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function importSchedule() {
-    setImporting(true);
-    setImportMsg(null);
-    try {
-      const slots = scheduleToEvents();
-      // skip entries that already exist on the same day with the same title
-      const { data: existing } = await supabase
-        .from("calendar_events")
-        .select("id, title, start_at")
-        .gte("start_at", "2026-08-10T00:00:00.000Z")
-        .lte("start_at", "2026-09-01T00:00:00.000Z");
-      const have = new Set(
-        ((existing as { title: string; start_at: string }[] | null) ?? []).map(
-          (e) => `${localDayKey(new Date(e.start_at))}|${e.title}`
-        )
-      );
-      const fresh = slots.filter((s) => !have.has(s.key));
-      if (fresh.length === 0) {
-        setImportMsg(t.calendar.importDone);
-      } else {
-        const { error } = await supabase.from("calendar_events").insert(
-          fresh.map((s) => ({
-            title: s.title,
-            start_at: s.startAt.toISOString(),
-            end_at: s.endAt ? s.endAt.toISOString() : null,
-            all_day: s.allDay,
-            color: s.color,
-          }))
-        );
-        if (error) throw error;
-        setImportMsg(`${t.calendar.importDone} +${fresh.length}`);
-        load();
-      }
-    } catch {
-      setImportMsg(t.calendar.importFailed);
-    }
-    setImporting(false);
-  }
 
   function shift(dir: number) {
     const d = new Date(cursor);
@@ -259,8 +219,9 @@ function CalendarPageInner() {
         title={t.calendar.title}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={importSchedule} disabled={importing}>
-              {importing ? t.common.loading : t.calendar.importSchedule}
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <ClipboardPaste className="h-4 w-4" />
+              {t.calendar.importSchedule}
             </Button>
             <Button onClick={() => { setEditing(null); setAddOpen(true); }}>
               <CalendarPlus className="h-4 w-4" />
@@ -341,7 +302,6 @@ function CalendarPageInner() {
             )}
           </p>
           <div className="flex items-center gap-2">
-            {importMsg && <span className="text-[11px] text-emerald-400">{importMsg}</span>}
             {syncMsg && <span className="text-[11px] text-emerald-400">{syncMsg}</span>}
             {google?.connected && (
               <Button variant="outline" size="sm" disabled={syncing} onClick={syncGoogle}>
@@ -358,6 +318,12 @@ function CalendarPageInner() {
         event={editing}
         defaultDate={cursor}
         onSaved={() => { load(); }}
+      />
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        fallbackDate={cursor}
+        onImported={() => { load(); }}
       />
       <EventDetailsModal
         event={details}
@@ -565,6 +531,138 @@ function DayView({
 }
 
 /* ---------- Modals ---------- */
+function ImportModal({
+  open,
+  onClose,
+  fallbackDate,
+  onImported,
+}: {
+  open: boolean;
+  onClose: () => void;
+  fallbackDate: Date;
+  onImported: () => void;
+}) {
+  const { t } = useApp();
+  const supabase = useSupabase();
+  const [text, setText] = useState(SCHEDULE_EXAMPLE);
+  const [defaultTitle, setDefaultTitle] = useState("Trabalho");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const parsed = useMemo(
+    () => parseScheduleText(text, fallbackDate.getFullYear(), fallbackDate.getMonth() + 1),
+    [text, fallbackDate]
+  );
+
+  const preview = useMemo(
+    () => parsed.slots.map((s) => ({ ...s, title: s.title || defaultTitle.trim() || "—" })),
+    [parsed, defaultTitle]
+  );
+
+  async function addAll() {
+    const slots = parsed.slots.map((s) => ({ ...s, title: s.title || defaultTitle.trim() }));
+    if (slots.length === 0) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const events = slots.map((s) => {
+        const [y, m, d] = s.date.split("-").map(Number);
+        const startAt = s.start
+          ? new Date(y, m - 1, d, ...s.start.split(":").map(Number))
+          : new Date(y, m - 1, d, 0, 0, 0, 0);
+        const endAt = s.end ? new Date(y, m - 1, d, ...s.end.split(":").map(Number)) : null;
+        return {
+          key: `${s.date}|${s.title}`,
+          title: s.title,
+          startAt,
+          endAt,
+          allDay: !s.start,
+          color: "#6366f1",
+        };
+      });
+      const min = events.reduce<Date>((a, b) => (b.startAt < a ? b.startAt : a), events[0].startAt);
+      const max = events.reduce<Date>((a, b) => (b.startAt > a ? b.startAt : a), events[0].startAt);
+      min.setDate(min.getDate() - 1);
+      max.setDate(max.getDate() + 1);
+      // skip entries that already exist on the same day with the same title
+      const { data: existing } = await supabase
+        .from("calendar_events")
+        .select("id, title, start_at")
+        .gte("start_at", min.toISOString())
+        .lte("start_at", max.toISOString());
+      const have = new Set(
+        ((existing as { title: string; start_at: string }[] | null) ?? []).map(
+          (e) => `${localDayKey(new Date(e.start_at))}|${e.title}`
+        )
+      );
+      const fresh = events.filter((e) => !have.has(e.key));
+      if (fresh.length === 0) {
+        setMsg(t.calendar.importDone);
+      } else {
+        const { error } = await supabase.from("calendar_events").insert(
+          fresh.map((s) => ({
+            title: s.title,
+            start_at: s.startAt.toISOString(),
+            end_at: s.endAt ? s.endAt.toISOString() : null,
+            all_day: s.allDay,
+            color: s.color,
+          }))
+        );
+        if (error) throw error;
+        setMsg(`${t.calendar.importDone} +${fresh.length}`);
+        onImported();
+      }
+    } catch {
+      setMsg(t.calendar.importFailed);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title={t.calendar.importModal} maxWidth="max-w-lg">
+      <div className="space-y-4">
+        <p className="text-xs leading-relaxed text-zinc-400">{t.calendar.importPasteHint}</p>
+        <Field label={t.calendar.importTitle}>
+          <Input value={defaultTitle} onChange={(e) => setDefaultTitle(e.target.value)} />
+        </Field>
+        <Field label={`${t.calendar.importSchedule} — Data | Dia | Horário`}>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} className="font-mono text-xs" />
+        </Field>
+        <div className="rounded-xl bg-white/5 p-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
+            {t.calendar.importPreview}
+            {parsed.month ? ` · ${parsed.month.year}-${String(parsed.month.month).padStart(2, "0")}` : ""}
+          </p>
+          {preview.length === 0 ? (
+            <p className="text-xs text-zinc-500">{t.calendar.importNone}</p>
+          ) : (
+            <ul className="max-h-40 space-y-1 overflow-y-auto">
+              {preview.slice(0, 60).map((s, i) => (
+                <li key={i} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="shrink-0 tabular-nums text-zinc-400">{s.date}</span>
+                  <span className="flex-1 truncate text-zinc-200">{s.title}</span>
+                  <span className="shrink-0 tabular-nums text-zinc-500">
+                    {s.start ? `${s.start}–${s.end}` : t.calendar.allDay}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {parsed.skipped > 0 && (
+            <p className="mt-2 text-[11px] text-amber-400">
+              ⚠ {parsed.skipped} {t.calendar.importSkipped}
+            </p>
+          )}
+          {msg && <p className="mt-2 text-[11px] text-emerald-400">{msg}</p>}
+        </div>
+        <Button className="w-full" onClick={addAll} disabled={busy || preview.length === 0}>
+          {busy ? t.common.loading : t.calendar.importAddAll}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
 function EventModal({
   open,
   onClose,
