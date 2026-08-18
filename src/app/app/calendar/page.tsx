@@ -33,6 +33,22 @@ function fmtMin(min: number): string {
   return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 }
 
+/** Local YYYY-MM-DD key. Using toISOString() here shifts days in UTC± timezones. */
+function localDayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Relative day label: Hoje / Amanhã / Ontem (null for other days). */
+function relDayLabel(d: Date, today: string, tomorrow: string, yesterday: string): string | null {
+  const k = localDayKey(d);
+  const t = localDayKey(new Date());
+  if (k === t) return today;
+  const diff = Math.round((new Date(`${t}T00:00:00`).getTime() - new Date(`${k}T00:00:00`).getTime()) / 86400000);
+  if (diff === 1) return yesterday;
+  if (diff === -1) return tomorrow;
+  return null;
+}
+
 function CalendarPageInner() {
   const { t } = useApp();
   const supabase = useSupabase();
@@ -126,18 +142,18 @@ function CalendarPageInner() {
     setCursor(d);
   }
 
+  const relLabel = view === "day" ? relDayLabel(cursor, t.common.today, t.common.tomorrow, t.common.yesterday) : null;
   const title =
     view === "day"
-      ? cursor.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })
+      ? `${relLabel ? `${relLabel} · ` : ""}${cursor.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}`
       : view === "week"
         ? `${cursor.toLocaleDateString("pt-PT", { month: "short" })} ${cursor.getFullYear()}`
         : cursor.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
   const dayEvents = useMemo(() => {
-    const key = (d: Date) => d.toISOString().slice(0, 10);
     const map = new Map<string, CalendarEvent[]>();
     for (const ev of events) {
-      const k = key(new Date(ev.start_at));
+      const k = localDayKey(new Date(ev.start_at));
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(ev);
     }
@@ -212,7 +228,7 @@ function CalendarPageInner() {
           <Button variant="outline" size="icon" onClick={() => shift(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setCursor(new Date())} className="capitalize">
+          <Button variant="ghost" size="sm" onClick={() => setCursor(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })} className="capitalize">
             {t.common.today}
           </Button>
           <Button variant="outline" size="icon" onClick={() => shift(1)}>
@@ -332,7 +348,7 @@ function MonthGrid({
   }, [cursor]);
 
   const weekdayLabels = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localDayKey(new Date());
 
   return (
     <Card className="p-2 sm:p-3">
@@ -343,7 +359,7 @@ function MonthGrid({
           </div>
         ))}
         {cells.map((d) => {
-          const key = d.toISOString().slice(0, 10);
+          const key = localDayKey(d);
           const evs = dayEvents.get(key) ?? [];
           const inMonth = d.getMonth() === cursor.getMonth();
           const isToday = key === todayKey;
@@ -404,12 +420,12 @@ function WeekView({
     start.setDate(start.getDate() + diff);
     return Array.from({ length: 7 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
   }, [cursor]);
-  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = localDayKey(new Date());
 
   return (
     <div className="grid grid-cols-7 gap-2">
       {days.map((d) => {
-        const key = d.toISOString().slice(0, 10);
+        const key = localDayKey(d);
         const evs = dayEvents.get(key) ?? [];
         const isToday = key === todayKey;
         return (
@@ -449,7 +465,7 @@ function DayView({
   dayEvents: Map<string, CalendarEvent[]>;
   onEvent: (e: CalendarEvent) => void;
 }) {
-  const key = cursor.toISOString().slice(0, 10);
+  const key = localDayKey(cursor);
   const evs = dayEvents.get(key) ?? [];
 
   return (
