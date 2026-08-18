@@ -38,6 +38,7 @@ const NAV = [
   { href: "/app/notes", labelKey: "notes", icon: StickyNote },
   { href: "/app/people", labelKey: "people", icon: Users },
   { href: "/app/stats", labelKey: "stats", icon: BarChart3 },
+  { href: "/app/more", labelKey: "more", icon: LayoutGrid },
   { href: "/app/settings", labelKey: "settings", icon: Settings },
 ] as const;
 
