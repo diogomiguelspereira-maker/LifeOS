@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CalendarPlus, ChevronLeft, ChevronRight, MapPin, Pencil, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
+import { dontForgetHints } from "@/lib/dontforget";
 import {
   Button,
   Card,
@@ -662,6 +663,21 @@ function EventDetailsModal({
             {event.description}
           </p>
         )}
+        {(() => {
+          const hints = dontForgetHints(ev.title, ev.location);
+          return hints.length ? (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">🧳 Não te esqueças</p>
+              <ul className="mt-1.5 space-y-1">
+                {hints.map((h, i) => (
+                  <li key={i} className="text-xs text-zinc-300">
+                    {h}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null;
+        })()}
         <div className="flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={() => onEdit(ev)}>
             <Pencil className="h-4 w-4" />

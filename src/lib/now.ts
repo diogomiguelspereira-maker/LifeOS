@@ -135,9 +135,20 @@ function tasksFor(minutes: number, tasks: Task[], overdue: Task[]): Suggestion[]
 }
 
 /** The signature free-time engine: what should I do with N free minutes? */
-export function whatShouldIDo(ctx: NowContext, minutes: number | null = null): Suggestion[] {
+export function whatShouldIDo(ctx: NowContext, minutes: number | null = null, opts: { budgetMode?: boolean } = {}): Suggestion[] {
   const free = minutes ?? (ctx.now.gapUntilNext ?? ctx.now.gaps[0]?.minutes ?? 30);
   const out: Suggestion[] = [];
+
+  // Low-budget mode (#29): zero-cost options first.
+  if (opts.budgetMode) {
+    out.push({
+      icon: "🏠",
+      title: "Dia de poupar: fica em casa",
+      duration: Math.min(free, 60),
+      kind: "break",
+      reason: "custo zero, recarregas energias",
+    });
+  }
 
   // 1. Overdue/today tasks that fit
   out.push(...tasksFor(Math.max(10, free), ctx.todayTasks, ctx.overdueTasks));
@@ -185,6 +196,64 @@ export function whatShouldIDo(ctx: NowContext, minutes: number | null = null): S
   });
 
   return out.slice(0, 5);
+}
+
+/* ------------------------------------------------------------------ */
+/* Boredom mode (#28): "Estou aborrecido" -> mood -> ideas             */
+/* ------------------------------------------------------------------ */
+
+export type BoredomMood = "fun" | "productive" | "active" | "cheap" | "outside" | "social" | "relax";
+
+/** Rule-based ideas for each mood, grounded in the user's real data. */
+export function boredomIdeas(mood: BoredomMood, ctx: NowContext): Suggestion[] {
+  const free = ctx.now.gapUntilNext ?? ctx.now.gaps[0]?.minutes ?? 60;
+  const open = [...ctx.overdueTasks, ...ctx.todayTasks].filter((t) => t.status !== "done");
+  const top = open[0];
+  const out: Suggestion[] = [];
+
+  switch (mood) {
+    case "productive": {
+      if (top) {
+        out.push({
+          icon: "🎯",
+          title: top.title,
+          duration: Math.min(45, free),
+          kind: "task",
+          reason: top.due_date && top.due_date < new Date().toISOString().slice(0, 10) ? "está atrasada — bónus duplo" : "produtivo e encaixa no tempo livre",
+          id: top.id,
+        });
+      }
+      out.push({ icon: "🧹", title: "Tarefa rápida de casa", duration: 15, kind: "chore", reason: "descarrega a mente e dá sensação de progresso" });
+      break;
+    }
+    case "fun":
+      out.push({ icon: "🎮", title: "Jogar um bocado", duration: Math.min(60, free), kind: "break", reason: "descanso ativo" });
+      out.push({ icon: "📺", title: "Ver um episódio", duration: 30, kind: "break", reason: "pausa leve e sem compromisso" });
+      break;
+    case "active":
+      out.push({ icon: "🏃", title: "Treino ou caminhada", duration: Math.min(45, free), kind: "habit", reason: "movimento = energia" });
+      out.push({ icon: "🚶", title: "Passear a pé", duration: 20, kind: "break", reason: "ar fresco e passos no dia" });
+      break;
+    case "cheap":
+      out.push({ icon: "🏠", title: "Atividade em casa", duration: Math.min(60, free), kind: "break", reason: "custo zero" });
+      out.push({ icon: "🍳", title: "Cozinhar algo novo", duration: 40, kind: "chore", reason: "poupas dinheiro e aprendes" });
+      break;
+    case "outside":
+      out.push({ icon: "🌳", title: "Parque / ar livre", duration: Math.min(60, free), kind: "break", reason: "muda de cenário" });
+      out.push({ icon: "📚", title: "Ler ao ar livre", duration: 30, kind: "learning", reason: "livro + sol" });
+      break;
+    case "social":
+      out.push({ icon: "👥", title: "Chamar um amigo", duration: 20, kind: "break", reason: "reconexão faz bem" });
+      out.push({ icon: "💬", title: "Responder mensagens", duration: 10, kind: "chore", reason: "despacha pendências sociais" });
+      break;
+    case "relax":
+      out.push({ icon: "😴", title: "Sesta de 20 min", duration: 20, kind: "break", reason: "recupera energia" });
+      out.push({ icon: "🛁", title: "Momento sem ecrãs", duration: 30, kind: "break", reason: "relaxamento a sério" });
+      break;
+  }
+
+  out.push({ icon: "☕", title: "Fazer uma pausa", duration: Math.min(15, free), kind: "break", reason: "às vezes o tédio é só cansaço" });
+  return out.slice(0, 4);
 }
 
 /** NOW banner text + color for the dashboard. */

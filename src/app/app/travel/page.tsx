@@ -18,6 +18,7 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { packingList } from "@/lib/dontforget";
 import type { Trip, TripItem } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -201,6 +202,19 @@ export default function TravelPage() {
               <Button size="sm" variant="secondary" onClick={() => setItemOpenFor(tr.id)}>
                 <Plus className="h-3.5 w-3.5" />
                 {t.travel.addItem}
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={(items[tr.id] ?? []).some((i) => i.type === "packing")}
+                onClick={async () => {
+                  await supabase.from("trip_items").insert(
+                    packingList(days).map((title) => ({ trip_id: tr.id, type: "packing", title, checked: false }))
+                  );
+                  load();
+                }}
+              >
+                🎒 {t.travel.packing}
               </Button>
             </div>
           </Card>

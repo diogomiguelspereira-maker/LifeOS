@@ -15,6 +15,7 @@ import {
   Modal,
   Segmented,
   Select,
+  Switch,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
 import type { Currency, Lang } from "@/lib/types";
@@ -159,6 +160,16 @@ function SettingsPageInner() {
           <Field label={t.onboarding.country}>
             <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Portugal" />
           </Field>
+        </div>
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
+          <div>
+            <p className="text-sm font-medium text-zinc-200">🐷 {t.settings.saveMode}</p>
+            <p className="text-[11px] text-zinc-500">{t.settings.saveModeHint}</p>
+          </div>
+          <Switch
+            checked={((profile.preferences ?? {}) as Record<string, unknown>).save_mode === true}
+            onChange={(v) => updateProfile({ preferences: { ...(profile.preferences as Record<string, unknown>), save_mode: v } })}
+          />
         </div>
         <div className="mt-4">
           <Button onClick={saveProfile}>{t.common.save}</Button>

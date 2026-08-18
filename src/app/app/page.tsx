@@ -19,7 +19,7 @@ import {
   Switch,
 } from "@/components/ui";
 import { formatDate, formatMoney, formatTime, greeting, monthKey, percent } from "@/lib/format";
-import { nowBanner, whatShouldIDo, nowStatus, type Suggestion } from "@/lib/now";
+import { boredomIdeas, nowBanner, whatShouldIDo, nowStatus, type BoredomMood, type Suggestion } from "@/lib/now";
 import {
   activityTimeline,
   computeDayStats,
@@ -81,9 +81,12 @@ export default function DashboardPage() {
   const [mode, setMode] = useState<Mode>("all");
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [boredOpen, setBoredOpen] = useState(false);
+  const [boredIdeas, setBoredIdeas] = useState<Suggestion[]>([]);
   const [focus, setFocus] = useState<FocusSession[]>([]);
 
   const now = new Date();
+  const saveMode = ((profile?.preferences ?? {}) as Record<string, unknown>).save_mode === true;
 
   const load = useCallback(async () => {
     const dayStart = new Date();
@@ -217,8 +220,13 @@ export default function DashboardPage() {
     .join(" · ");
 
   function openSuggestions() {
-    setSuggestions(whatShouldIDo(nowCtx));
+    setSuggestions(whatShouldIDo(nowCtx, null, { budgetMode: saveMode }));
     setSuggestOpen(true);
+  }
+
+  function openBored(mood: BoredomMood) {
+    setBoredIdeas(boredomIdeas(mood, nowCtx));
+    setBoredOpen(true);
   }
 
   async function doSuggestion(s: Suggestion) {
@@ -234,6 +242,7 @@ export default function DashboardPage() {
       router.push("/app/digital");
     }
     setSuggestOpen(false);
+    setBoredOpen(false);
   }
 
   const briefing = buildBriefing(t, currency, profile?.name ?? "", todayTasks.length, totals, monthTx, categories, goals, todayHabits.length);
@@ -321,6 +330,10 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-zinc-400">{contextLine}</p>
         </div>
         <div className="flex items-center gap-2">
+          {saveMode && <Badge color="green">🐷 {t.settings.saveMode}</Badge>}
+          <Button variant="outline" size="sm" onClick={() => setBoredOpen(true)}>
+            😅 <span className="hidden sm:inline">{t.now.bored}</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={openSuggestions}>
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">{t.now.whatShouldIDo}</span>
@@ -350,9 +363,14 @@ export default function DashboardPage() {
             <p className="mt-0.5 truncate text-xs text-zinc-400">{banner.sub}</p>
             {daySummaryLine && <p className="mt-1.5 text-[11px] text-zinc-500">{daySummaryLine}</p>}
           </div>
-          <Button size="sm" variant="secondary" onClick={openSuggestions} className="shrink-0">
-            {t.now.ideas}
-          </Button>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Button size="sm" variant="secondary" onClick={() => setBoredOpen(true)}>
+              😅 {t.now.bored}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={openSuggestions}>
+              {t.now.ideas}
+            </Button>
+          </div>
         </div>
       </Card>
 
@@ -407,6 +425,56 @@ export default function DashboardPage() {
             </button>
           ))}
         </div>
+      </Modal>
+
+      {/* Boredom modal (#28) */}
+      <Modal open={boredOpen} onClose={() => setBoredOpen(false)} title={t.now.boredQuestion}>
+        {boredIdeas.length === 0 ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {(
+              [
+                ["fun", "🎮", t.now.moodFun],
+                ["productive", "🧠", t.now.moodProductive],
+                ["active", "🏃", t.now.moodActive],
+                ["cheap", "💰", t.now.moodCheap],
+                ["outside", "🌳", t.now.moodOutside],
+                ["social", "👥", t.now.moodSocial],
+                ["relax", "😴", t.now.moodRelax],
+              ] as [BoredomMood, string, string][]
+            ).map(([m, icon, label]) => (
+              <button
+                key={m}
+                onClick={() => setBoredIdeas(boredomIdeas(m, nowCtx))}
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-white/8 bg-white/4 px-3 py-4 text-sm text-zinc-200 transition hover:bg-white/10"
+              >
+                <span className="text-2xl">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {boredIdeas.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => doSuggestion(s)}
+                className="flex w-full items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
+              >
+                <span className="text-xl">{s.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-zinc-200">{s.title}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    {s.duration ? `${s.duration} min · ` : ""}
+                    {s.reason}
+                  </p>
+                </div>
+              </button>
+            ))}
+            <Button variant="secondary" className="w-full" onClick={() => setBoredIdeas([])}>
+              ← {t.now.moodBack}
+            </Button>
+          </div>
+        )}
       </Modal>
 
       {/* Customize modal */}

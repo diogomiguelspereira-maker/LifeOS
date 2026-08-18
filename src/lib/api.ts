@@ -24,6 +24,7 @@ import type {
   NetWorthSnapshot,
   Note,
   Profile,
+  Project,
   Routine,
   SavingsGoal,
   SharedExpense,
@@ -101,6 +102,15 @@ export const api = {
       .eq("is_active", true)
       .order("created_at");
     return (data as Subscription[]) ?? [];
+  },
+
+  async projects(sb: SB): Promise<Project[]> {
+    const { data } = await sb
+      .from("projects")
+      .select("*")
+      .eq("status", "active")
+      .order("created_at");
+    return (data as Project[]) ?? [];
   },
 
   async tasks(sb: SB): Promise<Task[]> {

@@ -53,6 +53,8 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - Adiciona `google_tokens` (tokens encriptados com RLS) e `ai_action_log` (histórico de ações da IA para reverter).
 5. **Inteligência de prazos (subtarefas, breakdown automático):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-4.sql`](supabase/migration-4.sql) e executa.
    - Adiciona a coluna `parent_task_id` à tabela `tasks` (permite dividir tarefas em subtarefas).
+6. **Projetos ligados (orçamentos, despesas e metas):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-5.sql`](supabase/migration-5.sql) e executa.
+   - Adiciona `projects.budget` e liga despesas (`transactions.project_id`) e metas de poupança (`savings_goals.project_id`) a projetos.
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 

@@ -55,6 +55,7 @@ export interface Transaction {
   user_id: string;
   account_id: string | null;
   category_id: string | null;
+  project_id: string | null;
   amount: number;
   description: string;
   merchant: string | null;
@@ -84,6 +85,7 @@ export interface SavingsGoal {
   icon: string;
   color: string;
   category: string | null;
+  project_id: string | null;
 }
 
 export interface Subscription {
@@ -106,6 +108,7 @@ export interface Project {
   name: string;
   description: string | null;
   color: string;
+  budget: number | null;
   status: "active" | "completed" | "archived";
 }
 
