@@ -240,14 +240,6 @@ export default function DashboardPage() {
   const timeline = activityTimeline(events, tx, focus, tasks, categories, now);
   const stats = computeDayStats(tasks, tx, focus, completions, habits, goals, now);
   const tomorrow = tomorrowPrep(events, tasks, subs, now);
-  const daySummaryLine = [
-    todayTasks.length ? `${todayTasks.length} ${t.dashboard.tasks}` : "",
-    todayEvents.length ? `${todayEvents.length} ${t.dashboard.events}` : "",
-    totals.available > 0 ? `${formatMoney(totals.available, currency)} ${t.dashboard.available}` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
   function openSuggestions() {
     setSuggestions(whatShouldIDo(nowCtx, null, { budgetMode: saveMode }));
     setSuggestOpen(true);
@@ -401,35 +393,6 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
-
-      {/* NOW banner */}
-      <Card
-        className={cn(
-          "relative overflow-hidden",
-          banner.tone === "red" && "border-red-500/25 bg-gradient-to-r from-red-500/10 to-transparent",
-          banner.tone === "amber" && "border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-transparent",
-          banner.tone === "green" && "border-emerald-500/25 bg-gradient-to-r from-emerald-500/10 to-transparent"
-        )}
-      >
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">{banner.emoji}</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-zinc-100">
-              {t.now.title}: {banner.headline}
-            </p>
-            <p className="mt-0.5 truncate text-xs text-zinc-400">{banner.sub}</p>
-            {daySummaryLine && <p className="mt-1.5 text-[11px] text-zinc-500">{daySummaryLine}</p>}
-          </div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <Button size="sm" variant="secondary" onClick={() => setBoredOpen(true)}>
-              😅 {t.now.bored}
-            </Button>
-            <Button size="sm" variant="secondary" onClick={openSuggestions}>
-              {t.now.ideas}
-            </Button>
-          </div>
-        </div>
-      </Card>
 
       {/* Mode selector */}
       <div className="flex flex-wrap gap-1.5">
