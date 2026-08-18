@@ -87,7 +87,7 @@ create table public.categories (
   icon text,
   color text not null default '#a5b4fc',
   monthly_budget numeric(12,2),
-  budget_type text not null default 'wants', -- needs | wants
+  budget_type text, -- needs | wants (NULL para categorias de rendimento)
   is_custom boolean not null default false,
   created_at timestamptz not null default now()
 );
