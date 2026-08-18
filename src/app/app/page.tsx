@@ -18,17 +18,32 @@ import {
   Skeleton,
   Switch,
 } from "@/components/ui";
-import { formatDate, formatMoney, greeting, monthKey, percent } from "@/lib/format";
+import { formatDate, formatMoney, formatTime, greeting, monthKey, percent } from "@/lib/format";
 import { nowBanner, whatShouldIDo, nowStatus, type Suggestion } from "@/lib/now";
-import type { Account, CalendarEvent, Category, Habit, HabitCompletion, SavingsGoal, Subscription, Task, Transaction, WidgetDef } from "@/lib/types";
+import {
+  activityTimeline,
+  computeDayStats,
+  timeOfDay,
+  tomorrowPrep,
+  topPriorities,
+  type DayStats,
+  type Priority,
+  type TimelineEntry,
+  type TomorrowPrep,
+} from "@/lib/daily";
+import type { Account, CalendarEvent, Category, FocusSession, Habit, HabitCompletion, SavingsGoal, Subscription, Task, Transaction, WidgetDef } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const DEFAULT_WIDGETS: WidgetDef[] = [
   { id: "briefing", visible: true },
+  { id: "top3", visible: true },
   { id: "next", visible: true },
   { id: "money", visible: true },
   { id: "tasks", visible: true },
   { id: "events", visible: true },
+  { id: "timeline", visible: true },
+  { id: "summary", visible: true },
+  { id: "tomorrow", visible: true },
   { id: "goals", visible: true },
   { id: "habits", visible: true },
   { id: "bills", visible: true },
@@ -37,12 +52,12 @@ const DEFAULT_WIDGETS: WidgetDef[] = [
 
 // Modes: which widgets are shown per mode (progressive disclosure)
 const MODE_WIDGETS: Record<string, string[]> = {
-  all: ["briefing", "next", "money", "tasks", "events", "goals", "habits", "bills", "chart"],
-  work: ["briefing", "next", "tasks", "events"],
-  finance: ["briefing", "next", "money", "bills", "chart", "goals"],
-  study: ["briefing", "next", "tasks", "goals"],
-  weekend: ["briefing", "next", "events", "habits"],
-  travel: ["briefing", "next", "money", "goals"],
+  all: ["briefing", "top3", "next", "money", "tasks", "events", "timeline", "summary", "tomorrow", "goals", "habits", "bills", "chart"],
+  work: ["briefing", "top3", "next", "tasks", "events", "timeline"],
+  finance: ["briefing", "top3", "next", "money", "bills", "chart", "goals"],
+  study: ["briefing", "top3", "next", "tasks", "goals", "timeline"],
+  weekend: ["briefing", "top3", "next", "events", "habits", "timeline", "tomorrow"],
+  travel: ["briefing", "top3", "next", "money", "goals", "tomorrow"],
 };
 
 type Mode = "all" | "work" | "finance" | "study" | "weekend" | "travel";
@@ -66,6 +81,7 @@ export default function DashboardPage() {
   const [mode, setMode] = useState<Mode>("all");
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [focus, setFocus] = useState<FocusSession[]>([]);
 
   const now = new Date();
 
@@ -74,7 +90,7 @@ export default function DashboardPage() {
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(dayStart.getTime() + 86400000);
     const weekEnd = new Date(dayStart.getTime() + 7 * 86400000);
-    const [tx_, acc, cats, tasks_, evs, goals_, subs_, habs_, comps_] = await Promise.all([
+    const [tx_, acc, cats, tasks_, evs, goals_, subs_, habs_, comps_, foc_] = await Promise.all([
       api.allTransactions(supabase, 300),
       api.accounts(supabase),
       api.categories(supabase),
@@ -84,6 +100,7 @@ export default function DashboardPage() {
       api.subscriptions(supabase),
       api.habits(supabase),
       api.completions(supabase),
+      api.focusSessions(supabase),
     ]);
     setTx(tx_);
     setAccounts(acc);
@@ -94,12 +111,19 @@ export default function DashboardPage() {
     setSubs(subs_);
     setHabits(habs_);
     setCompletions(comps_);
+    setFocus(foc_);
     setLoading(false);
   }, [supabase]);
 
   useEffect(() => {
     load();
-    if (profile?.widget_layout?.length) setLayout(profile.widget_layout);
+    if (profile?.widget_layout?.length) {
+      // merge: keep the saved layout but surface newly added widgets
+      const ids = new Set(profile.widget_layout.map((w) => w.id));
+      setLayout([...profile.widget_layout, ...DEFAULT_WIDGETS.filter((w) => !ids.has(w.id))]);
+    } else {
+      setLayout(DEFAULT_WIDGETS);
+    }
   }, [load, profile?.widget_layout]);
 
   // generate smart notifications (deduped per day)
@@ -173,6 +197,17 @@ export default function DashboardPage() {
     money: { safeToSpend: Math.round(totals.available), nextPayday: null, paydayDays: null },
   };
   const banner = nowBanner(nowCtx);
+  const tod = timeOfDay(now);
+  const contextLine = {
+    morning: t.dashboard.contextMorning,
+    afternoon: t.dashboard.contextAfternoon,
+    evening: t.dashboard.contextEvening,
+    night: t.dashboard.contextNight,
+  }[tod];
+  const priorities = topPriorities(tasks, goals, subs, now);
+  const timeline = activityTimeline(events, tx, focus, tasks, categories, now);
+  const stats = computeDayStats(tasks, tx, focus, completions, habits, goals, now);
+  const tomorrow = tomorrowPrep(events, tasks, subs, now);
   const daySummaryLine = [
     todayTasks.length ? `${todayTasks.length} ${t.dashboard.tasks}` : "",
     todayEvents.length ? `${todayEvents.length} ${t.dashboard.events}` : "",
@@ -206,7 +241,11 @@ export default function DashboardPage() {
 
   const widgets: Record<string, { visible: boolean; render: () => React.ReactNode }> = {
     briefing: { visible: true, render: () => <BriefingWidget t={t} briefing={briefing} /> },
+    top3: { visible: true, render: () => <PrioritiesWidget t={t} items={priorities} /> },
     next: { visible: true, render: () => <NextWidget t={t} items={nextItems} /> },
+    timeline: { visible: true, render: () => <TimelineWidget t={t} currency={currency} items={timeline} /> },
+    summary: { visible: true, render: () => <SummaryWidget t={t} currency={currency} stats={stats} tod={tod} /> },
+    tomorrow: { visible: true, render: () => <TomorrowWidget t={t} currency={currency} prep={tomorrow} /> },
     money: { visible: true, render: () => <MoneyWidget t={t} currency={currency} totals={totals} /> },
     tasks: { visible: true, render: () => <TasksWidget t={t} tasks={todayTasks} onToggle={toggleTask} /> },
     events: { visible: true, render: () => <EventsWidget t={t} events={events} /> },
@@ -279,6 +318,7 @@ export default function DashboardPage() {
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
             {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]} 👋
           </h1>
+          <p className="mt-1 text-sm text-zinc-400">{contextLine}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={openSuggestions}>
@@ -643,6 +683,127 @@ function ChartWidget({ t, currency, byCat }: { t: (typeof import("@/lib/i18n"))[
   );
 }
 
+function PrioritiesWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; items: Priority[] }) {
+  const toneCls = {
+    red: "border-red-500/25 bg-red-500/8",
+    amber: "border-amber-500/25 bg-amber-500/8",
+    green: "border-emerald-500/25 bg-emerald-500/8",
+  };
+  return (
+    <Card>
+      <CardHeader title={t.dashboard.priorities} />
+      {items.length === 0 ? (
+        <p className="py-2 text-sm text-zinc-500">{t.dashboard.noPriorities}</p>
+      ) : (
+        <div className="space-y-2">
+          {items.map((p, i) => {
+            const row = (
+              <div className={cn("flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 transition", toneCls[p.tone])}>
+                <span className="text-lg">{p.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-zinc-200">{p.title}</p>
+                  <p className="text-[11px] text-zinc-500">{p.reason}</p>
+                </div>
+                {p.href && <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />}
+              </div>
+            );
+            return p.href ? (
+              <Link key={i} href={p.href} className="block">
+                {row}
+              </Link>
+            ) : (
+              <div key={i}>{row}</div>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function TimelineWidget({ t, currency, items }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; items: TimelineEntry[] }) {
+  return (
+    <Card>
+      <CardHeader title={t.dashboard.timeline} />
+      {items.length === 0 ? (
+        <p className="py-2 text-sm text-zinc-500">{t.dashboard.emptyTimeline}</p>
+      ) : (
+        <div className="space-y-1.5">
+          {items.slice(0, 8).map((it, i) => (
+            <div key={i} className="flex items-center gap-3 text-sm">
+              <span className="w-10 shrink-0 font-mono text-[11px] text-zinc-500">{it.time}</span>
+              <span className="shrink-0 text-base">{it.icon}</span>
+              <span className="truncate text-zinc-300">
+                {it.kind === "money" && it.amount != null
+                  ? `${it.amount > 0 ? "+" : "−"}${formatMoney(Math.abs(it.amount), currency)} ${it.text}`
+                  : it.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; stats: DayStats; tod: ReturnType<typeof timeOfDay> }) {
+  const isNight = tod === "evening" || tod === "night";
+  const verdict = {
+    great: t.dashboard.verdictGreat,
+    ok: t.dashboard.verdictOk,
+    quiet: t.dashboard.verdictQuiet,
+    empty: t.dashboard.verdictEmpty,
+  }[stats.verdict];
+  return (
+    <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/8 to-transparent">
+      <CardHeader title={isNight ? t.dashboard.daySummaryTitle : t.dashboard.daySoFar} />
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <MiniStat label={t.dashboard.tasks} value={`✅ ${stats.tasksDone}`} tone="text-emerald-400" />
+        <MiniStat label="€" value={formatMoney(stats.spent, currency)} tone="text-rose-400" />
+        <MiniStat label="🎯" value={`${stats.focusMinutes}m`} tone="text-sky-400" />
+        <MiniStat label="🔥" value={`${stats.habitsDone}/${stats.habitsTotal}`} tone="text-amber-400" />
+      </div>
+      <p className="mt-2.5 text-xs text-zinc-400">{verdict}</p>
+    </Card>
+  );
+}
+
+function TomorrowWidget({ t, currency, prep }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; prep: TomorrowPrep }) {
+  const total = prep.events.length + prep.tasks.length + prep.bills.length;
+  return (
+    <Card>
+      <CardHeader
+        title={t.dashboard.tomorrow}
+        action={<Link href="/app/calendar" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+      />
+      {total === 0 ? (
+        <p className="py-2 text-sm text-zinc-500">{t.dashboard.nothingPlanned} 🎉</p>
+      ) : (
+        <div className="space-y-2 text-sm">
+          {prep.events.slice(0, 3).map((ev) => (
+            <div key={ev.id} className="flex items-center gap-2.5">
+              <span className="h-6 w-1 shrink-0 rounded-full" style={{ background: ev.color }} />
+              <span className="truncate text-zinc-200">{ev.title}</span>
+              {!ev.all_day && <span className="ml-auto shrink-0 font-mono text-[11px] text-zinc-500">{formatTime(ev.start_at)}</span>}
+            </div>
+          ))}
+          {prep.tasks.length > 0 && (
+            <p className="text-zinc-400">📌 {prep.tasks.length} tarefa(s) com prazo amanhã</p>
+          )}
+          {prep.bills.length > 0 && (
+            <p className="truncate text-zinc-400">💳 {prep.bills.map((b) => `${b.name} ${formatMoney(b.amount, currency)}`).join(" · ")}</p>
+          )}
+          {prep.leaveHint && (
+            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs text-zinc-400">
+              🚗 Sai às <b className="text-zinc-200">{prep.leaveHint.time}</b> para {prep.leaveHint.location} (estimativa ~20 min)
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function NextWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; items: { text: string; href?: string }[] }) {
   return (
     <Card className="border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/8 to-transparent">
@@ -752,7 +913,11 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
 function widgetLabel(t: (typeof import("@/lib/i18n"))["pt"], id: string): string {
   const map: Record<string, string> = {
     briefing: t.widgets.briefing,
+    top3: t.widgets.top3,
     next: t.next.title,
+    timeline: t.widgets.timeline,
+    summary: t.widgets.summary,
+    tomorrow: t.widgets.tomorrow,
     money: t.widgets.money,
     tasks: t.widgets.tasks,
     events: t.widgets.events,
