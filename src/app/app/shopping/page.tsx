@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Lightbulb, Plus, Trash2 } from "lucide-react";
+import { Check, Lightbulb, Pencil, Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals } from "@/lib/api";
 import { canAfford, costPerUse, safeToSpend, avgDailySpend, nextPayday, type AffordResult } from "@/lib/finance";
@@ -45,6 +45,8 @@ export default function ShoppingPage() {
   const [listOpen, setListOpen] = useState(false);
   const [itemOpen, setItemOpen] = useState(false);
   const [wishOpen, setWishOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
+  const [editingWish, setEditingWish] = useState<WishlistItem | null>(null);
   const [activeList, setActiveList] = useState<string>("");
   const [affordItem, setAffordItem] = useState<WishlistItem | null>(null);
   const [affordResult, setAffordResult] = useState<AffordResult | null>(null);
@@ -151,12 +153,12 @@ export default function ShoppingPage() {
         title={t.shopping.title}
         action={
           tab === "lists" ? (
-            <Button onClick={() => setItemOpen(true)}>
+            <Button onClick={() => { setEditingItem(null); setItemOpen(true); }}>
               <Plus className="h-4 w-4" />
               {t.shopping.addItem}
             </Button>
           ) : (
-            <Button onClick={() => setWishOpen(true)}>
+            <Button onClick={() => { setEditingWish(null); setWishOpen(true); }}>
               <Plus className="h-4 w-4" />
               {t.shopping.addWish}
             </Button>
@@ -237,12 +239,25 @@ export default function ShoppingPage() {
                         <div className="min-w-0 flex-1">
                           <p className={cn("text-sm", item.checked ? "text-zinc-500 line-through" : "text-zinc-100")}>{item.name}</p>
                           <p className="text-[11px] text-zinc-500">
-                            ×{item.quantity}
-                            {item.price ? ` · ${formatMoney(item.price, currency)}` : ""}
+                            ×{item.quantity} ·{" "}
+                            <InlinePrice
+                              value={item.price}
+                              currency={currency}
+                              onSave={async (v) => {
+                                await supabase.from("shopping_items").update({ price: v }).eq("id", item.id);
+                                load();
+                              }}
+                            />
                           </p>
                         </div>
                         <Badge color={PRIORITY_COLORS[item.priority]}>{t.shopping[item.priority]}</Badge>
-                        <button onClick={() => removeItem(item.id)} className="rounded-lg p-1 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100">
+                        <button
+                          onClick={() => { setEditingItem(item); setItemOpen(true); }}
+                          className="rounded-lg p-1 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => removeItem(item.id)} className="rounded-lg p-1 text-zinc-600 transition hover:text-red-400">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -275,8 +290,22 @@ export default function ShoppingPage() {
                   <Badge color={PRIORITY_COLORS[w.priority]}>{t.shopping[w.priority]}</Badge>
                 </div>
                 <div className="mt-2 flex items-center justify-between">
-                  <p className="text-sm font-bold text-zinc-100">{w.price ? formatMoney(w.price, currency) : "—"}</p>
+                  <InlinePrice
+                    value={w.price}
+                    currency={currency}
+                    className="text-sm font-bold text-zinc-100"
+                    onSave={async (v) => {
+                      await supabase.from("wishlist_items").update({ price: v }).eq("id", w.id);
+                      load();
+                    }}
+                  />
                   <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => { setEditingWish(w); setWishOpen(true); }}
+                      className="rounded-lg p-1 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
                     <button
                       onClick={async () => {
                         await supabase.from("wishlist_items").update({ purchased: !w.purchased }).eq("id", w.id);
@@ -312,8 +341,22 @@ export default function ShoppingPage() {
       )}
 
       <ListModal open={listOpen} onClose={() => setListOpen(false)} onSaved={load} />
-      <ItemModal open={itemOpen} onClose={() => setItemOpen(false)} lists={lists} activeList={activeList} onSaved={load} currency={currency} />
-      <WishModal open={wishOpen} onClose={() => setWishOpen(false)} onSaved={load} currency={currency} />
+      <ItemModal
+        open={itemOpen}
+        item={editingItem}
+        onClose={() => { setItemOpen(false); setEditingItem(null); }}
+        lists={lists}
+        activeList={activeList}
+        onSaved={load}
+        currency={currency}
+      />
+      <WishModal
+        open={wishOpen}
+        wish={editingWish}
+        onClose={() => { setWishOpen(false); setEditingWish(null); }}
+        onSaved={load}
+        currency={currency}
+      />
 
       {/* Can I afford this? */}
       <Modal
@@ -418,7 +461,74 @@ function ListModal({ open, onClose, onSaved }: { open: boolean; onClose: () => v
   );
 }
 
-function ItemModal({ open, onClose, lists, activeList, onSaved, currency }: { open: boolean; onClose: () => void; lists: ShoppingList[]; activeList: string; onSaved: () => void; currency: string }) {
+/** Click a price to edit it inline (Enter/blur saves, Esc cancels). */
+function InlinePrice({
+  value,
+  currency,
+  onSave,
+  className,
+}: {
+  value: number | null;
+  currency: string;
+  onSave: (v: number | null) => Promise<void>;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState("");
+
+  async function commit() {
+    setEditing(false);
+    const n = parseFloat(val.replace(",", "."));
+    await onSave(Number.isFinite(n) && n > 0 ? n : null);
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => {
+          setVal(value != null ? String(value) : "");
+          setEditing(true);
+        }}
+        className={cn("rounded px-1 -mx-1 transition hover:bg-white/8 hover:text-indigo-300", className)}
+      >
+        {value != null ? formatMoney(value, currency) : "—"}
+      </button>
+    );
+  }
+  return (
+    <input
+      type="number"
+      inputMode="decimal"
+      autoFocus
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+        if (e.key === "Escape") setEditing(false);
+      }}
+      className="h-7 w-24 rounded-lg border border-white/15 bg-white/8 px-2 text-xs tabular-nums text-zinc-100 outline-none focus:border-indigo-400/60"
+    />
+  );
+}
+
+function ItemModal({
+  open,
+  item,
+  onClose,
+  lists,
+  activeList,
+  onSaved,
+  currency,
+}: {
+  open: boolean;
+  item: ShoppingItem | null;
+  onClose: () => void;
+  lists: ShoppingList[];
+  activeList: string;
+  onSaved: () => void;
+  currency: string;
+}) {
   const { t } = useApp();
   const supabase = useSupabase();
   const [name, setName] = useState("");
@@ -428,27 +538,32 @@ function ItemModal({ open, onClose, lists, activeList, onSaved, currency }: { op
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setListId(activeList || lists[0]?.id || "");
-      setPrice("");
-      setPriority("medium");
+      setName(item?.name ?? "");
+      setListId(item?.list_id ?? (activeList || lists[0]?.id || ""));
+      setPrice(item?.price != null ? String(item.price) : "");
+      setPriority(item?.priority ?? "medium");
     }
-  }, [open, activeList, lists]);
+  }, [open, item, activeList, lists]);
 
   async function save() {
     if (!name.trim() || !listId) return;
-    await supabase.from("shopping_items").insert({
+    const payload = {
       name: name.trim(),
       list_id: listId,
       price: price ? parseFloat(price.replace(",", ".")) : null,
       priority,
-    });
+    };
+    if (item) {
+      await supabase.from("shopping_items").update(payload).eq("id", item.id);
+    } else {
+      await supabase.from("shopping_items").insert(payload);
+    }
     onSaved();
     onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.shopping.addItem}>
+    <Modal open={open} onClose={onClose} title={item ? t.common.edit : t.shopping.addItem}>
       <div className="space-y-4">
         <Field label={t.common.name}>
           <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
@@ -484,7 +599,19 @@ function ItemModal({ open, onClose, lists, activeList, onSaved, currency }: { op
   );
 }
 
-function WishModal({ open, onClose, onSaved, currency }: { open: boolean; onClose: () => void; onSaved: () => void; currency: string }) {
+function WishModal({
+  open,
+  wish,
+  onClose,
+  onSaved,
+  currency,
+}: {
+  open: boolean;
+  wish: WishlistItem | null;
+  onClose: () => void;
+  onSaved: () => void;
+  currency: string;
+}) {
   const { t } = useApp();
   const supabase = useSupabase();
   const [name, setName] = useState("");
@@ -495,29 +622,34 @@ function WishModal({ open, onClose, onSaved, currency }: { open: boolean; onClos
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setPrice("");
-      setUrl("");
-      setCategory("");
-      setPriority("medium");
+      setName(wish?.name ?? "");
+      setPrice(wish?.price != null ? String(wish.price) : "");
+      setUrl(wish?.url ?? "");
+      setCategory(wish?.category ?? "");
+      setPriority(wish?.priority ?? "medium");
     }
-  }, [open]);
+  }, [open, wish]);
 
   async function save() {
     if (!name.trim()) return;
-    await supabase.from("wishlist_items").insert({
+    const payload = {
       name: name.trim(),
       price: price ? parseFloat(price.replace(",", ".")) : null,
       url: url || null,
       category: category || null,
       priority,
-    });
+    };
+    if (wish) {
+      await supabase.from("wishlist_items").update(payload).eq("id", wish.id);
+    } else {
+      await supabase.from("wishlist_items").insert(payload);
+    }
     onSaved();
     onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.shopping.addWish}>
+    <Modal open={open} onClose={onClose} title={wish ? t.common.edit : t.shopping.addWish}>
       <div className="space-y-4">
         <Field label={t.common.name}>
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="MacBook, ténis…" autoFocus />
