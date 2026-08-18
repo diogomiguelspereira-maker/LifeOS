@@ -36,6 +36,30 @@ const TABLES = [
   "notifications",
   "ai_conversations",
   "ai_messages",
+  "net_worth_snapshots",
+  "income_schedule",
+  "financial_challenges",
+  "shopping_lists",
+  "shopping_items",
+  "wishlist_items",
+  "focus_sessions",
+  "routines",
+  "sleep_logs",
+  "water_logs",
+  "exercise_logs",
+  "wellness_logs",
+  "career_goals",
+  "skills",
+  "job_applications",
+  "books",
+  "courses",
+  "study_sessions",
+  "trips",
+  "trip_items",
+  "shared_expenses",
+  "digital_assets",
+  "documents",
+  "ai_memory",
 ];
 
 export default function SettingsPage() {
@@ -142,6 +166,8 @@ export default function SettingsPage() {
             <Select value={profile.language} onChange={(e) => updateProfile({ language: e.target.value as Lang })}>
               <option value="pt">Português 🇵🇹</option>
               <option value="en">English 🇬🇧</option>
+              <option value="es">Español 🇪🇸</option>
+              <option value="fr">Français 🇫🇷</option>
             </Select>
           </Field>
           <Field label={t.settings.currency}>

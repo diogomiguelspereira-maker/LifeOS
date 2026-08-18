@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   try {
     // ---- gather user context (RLS-scoped to this user) ----
-    const [profile, tx, accounts, cats, tasks, events, goals, subs] = await Promise.all([
+    const [profile, tx, accounts, cats, tasks, events, goals, subs, habits, memory, trips, careerGoals, skills, books, courses, study] = await Promise.all([
       api.profile(supabase),
       api.allTransactions(supabase, 200),
       api.accounts(supabase),
@@ -35,11 +35,23 @@ export async function POST(request: Request) {
       })(),
       api.goals(supabase),
       api.subscriptions(supabase),
+      api.habits(supabase),
+      api.aiMemory(supabase),
+      api.trips(supabase),
+      api.careerGoals(supabase),
+      api.skills(supabase),
+      api.books(supabase),
+      api.courses(supabase),
+      api.studySessions(supabase, 30),
     ]);
 
     const monthTx = currentMonthTransactions(tx);
     const totals = moneyTotals(accounts, monthTx, profile);
     const byCat = spendingByCategory(monthTx, cats).slice(0, 6);
+
+    const prefs = (profile?.preferences as Record<string, unknown>) ?? {};
+    const memoryEnabled = prefs.ai_memory !== false;
+    const personality = (prefs.nova_personality as string) ?? "friendly";
 
     const context = {
       user: profile?.name ?? user.email,
@@ -54,9 +66,21 @@ export async function POST(request: Request) {
         spendingByCategory: byCat.map((c) => ({ [c.category]: c.value })),
       },
       goals: goals.map((g) => ({ name: g.name, current: g.current_amount, target: g.target_amount, deadline: g.deadline, monthlyContribution: g.monthly_contribution })),
-      subscriptions: subs.map((s) => ({ name: s.name, amount: s.amount, next: s.next_billing_date })),
+      subscriptions: subs.map((s) => ({ name: s.name, amount: s.amount, cycle: s.billing_cycle, next: s.next_billing_date, unused: s.is_unused, toCancel: (s as { to_cancel?: boolean }).to_cancel === true })),
       upcomingEvents: events.slice(0, 5).map((e) => ({ title: e.title, start: e.start_at })),
       openTasks: tasks.filter((x) => x.status !== "done").slice(0, 10).map((x) => ({ title: x.title, due: x.due_date })),
+      habits: habits.map((h) => ({ name: h.name, targetPerWeek: h.target_per_week })),
+      memory: memoryEnabled ? memory.map((m) => ({ [m.category]: m.key + ": " + m.value })) : "desativada pelo utilizador",
+      travel: trips.slice(0, 5).map((tr) => ({ destination: tr.destination, start: tr.start_date, end: tr.end_date, budget: tr.budget })),
+      career: {
+        goals: careerGoals.slice(0, 5).map((g) => ({ title: g.title, status: g.status })),
+        skills: skills.slice(0, 10).map((s) => ({ name: s.name, level: s.level })),
+      },
+      learning: {
+        books: books.slice(0, 5).map((b) => ({ title: b.title, status: b.status })),
+        courses: courses.slice(0, 5).map((c) => ({ name: c.name, progress: c.progress })),
+        studyHoursLast30d: Math.round(study.reduce((s, x) => s + x.minutes, 0) / 60),
+      },
     };
 
     // conversation history
@@ -84,13 +108,24 @@ export async function POST(request: Request) {
       convId = (data as { id: string } | null)?.id ?? null;
     }
 
-    const systemPrompt = `És a Nova, a assistente pessoal de IA da LifeOS — o centro de comando pessoal do utilizador (dinheiro, tarefas, calendário, hábitos, objetivos).
+    const personalityMap: Record<string, string> = {
+      friendly: "Amigável, calorosa e encorajadora — tom casual.",
+      professional: "Direta e eficiente — sem rodeios.",
+      coach: "Motivacional e orientada a ação — puxa pelo utilizador.",
+      minimal: "Extremamente concisa — respostas curtas.",
+      analytical: "Orientada a dados — cita números sempre que possível.",
+    };
+
+    const systemPrompt = `És a Nova, a assistente pessoal de IA da LifeOS — o centro de comando pessoal do utilizador (dinheiro, tarefas, calendário, hábitos, objetivos, carreira, aprendizagem, viagens).
+Personalidade atual: ${personalityMap[personality] ?? personalityMap.friendly}
 Regras:
 - Responde sempre no idioma do utilizador (campo language do contexto: pt ou en).
 - Responde de forma curta, calorosa e prática, como uma assistente de confiança. Usa emojis com moderação.
 - Quando o utilizador pedir para CRIAR algo (tarefa, evento, objetivo de poupança, nota, movimento financeiro), devolve JSON com campo "reply" (texto a mostrar) e campo "action" com {kind, payload}. Kinds válidos: create_task {title, due_date?, notes?}, create_event {title, start_at?, end_at?}, create_goal {name, target_amount?, deadline?}, create_note {title, content}, create_transaction {amount, description?, type: "expense"|"income"}.
 - Para operações destrutivas (apagar, alterar) NUNCA devolvas action: apenas confirma o que encontraste e pergunta se quer que avance (o utilizador confirma na UI).
 - Usa os dados do contexto para responder com números reais. Para "can I afford it" / "posso comprar": analisa dinheiro disponível, rendimento, despesas, objetivos e respondes com recomendação educacional clara, distinguindo-a de aconselhamento financeiro profissional.
+- Usa a secção memory do contexto para personalizar respostas (ex: preferências, datas importantes, rotinas). Nunca inventes memórias.
+- Para decisões tipo "devo mudar de casa / comprar X / aceitar emprego": organiza em Prós, Contras, Custos, Riscos e Perguntas a investigar. Não pretendas saber factos que não tens.
 - Não inventes dados que não estejam no contexto.
 Contexto do utilizador: ${JSON.stringify(context)}
 Responde APENAS com JSON válido: {"reply": string, "action"?: object}.`;
@@ -148,7 +183,18 @@ Responde APENAS com JSON válido: {"reply": string, "action"?: object}.`;
 }
 
 /* ---------- offline fallback (no OpenAI key) ---------- */
-function localNova(message: string, ctx: { language: string; money: Record<string, unknown>; goals: { name: string; current: number; target: number }[]; openTasks: { title: string; due: string | null }[] }): NovaResponse {
+function localNova(
+  message: string,
+  ctx: {
+    language: string;
+    money: Record<string, unknown>;
+    goals: { name: string; current: number; target: number }[];
+    openTasks: { title: string; due: string | null }[];
+    habits?: { name: string }[];
+    travel?: { destination: string; start: string | null }[];
+    learning?: { studyHoursLast30d?: number };
+  }
+): NovaResponse {
   const m = message.toLowerCase();
   const money = ctx.money as { available: number; monthlyIncome: number; monthlyExpenses: number };
   const fmt = (v: number) => `${Math.round(v).toLocaleString("pt-PT")} €`;
@@ -205,6 +251,27 @@ function localNova(message: string, ctx: { language: string; money: Record<strin
         ? `📊 Resumo: tens ${fmt(money.available)} disponíveis, ${ctx.goals.length} objetivo(s) ativo(s) e ${ctx.openTasks.length} tarefa(s) em aberto.`
         : `📊 Summary: ${fmt(money.available)} available, ${ctx.goals.length} active goal(s), ${ctx.openTasks.length} open task(s).`,
     };
+  }
+  if (/(viagem|viagens|travel|próxima viagem|next trip)/.test(m)) {
+    const next = (ctx.travel ?? []).find((tr) => !tr.start || tr.start >= new Date().toISOString().slice(0, 10));
+    if (next) {
+      return { reply: pt ? `✈️ A tua próxima viagem é ${next.destination} (${next.start ?? "sem data"}).` : `✈️ Your next trip is ${next.destination} (${next.start ?? "no date"}).` };
+    }
+  }
+  if (/(estudo|estudar|study|aprendizagem)/.test(m)) {
+    const hours = ctx.learning?.studyHoursLast30d ?? 0;
+    return { reply: pt ? `📚 Estudaste ${hours}h nos últimos 30 dias.` : `📚 You studied ${hours}h in the last 30 days.` };
+  }
+  if (/(hábito|habit)/.test(m)) {
+    const list = (ctx.habits ?? []).map((h) => h.name).join(", ") || "—";
+    return { reply: pt ? `✅ Os teus hábitos: ${list}.` : `✅ Your habits: ${list}.` };
+  }
+  if (/(o que fazer|what should i do|foco|focus|sugere|suggest)/.test(m)) {
+    const tasks = ctx.openTasks.filter((x) => x.due).sort((a, b) => (a.due! < b.due! ? -1 : 1)).slice(0, 3);
+    if (tasks.length) {
+      return { reply: pt ? `🎯 Começa por: ${tasks.map((x) => `${x.title} (${x.due})`).join("; ")}.` : `🎯 Start with: ${tasks.map((x) => `${x.title} (${x.due})`).join("; ")}.` };
+    }
+    return { reply: pt ? "Estás em dia! Considera avançar um objetivo ou criar um hábito novo. ✨" : "You're caught up! Consider pushing a goal or starting a new habit. ✨" };
   }
   return {
     reply: pt

@@ -32,12 +32,30 @@ export function formatTime(date: string | Date): string {
   return new Intl.DateTimeFormat("pt-PT", { hour: "2-digit", minute: "2-digit" }).format(d);
 }
 
-export function greeting(date = new Date(), lang: "pt" | "en" = "pt"): string {
+export function greeting(date = new Date(), lang: string = "pt"): string {
   const h = date.getHours();
-  if (h < 6) return lang === "pt" ? "Boa noite" : "Good night";
-  if (h < 12) return lang === "pt" ? "Bom dia" : "Good morning";
-  if (h < 20) return lang === "pt" ? "Boa tarde" : "Good afternoon";
-  return lang === "pt" ? "Boa noite" : "Good evening";
+  if (lang === "en") {
+    if (h < 6) return "Good night";
+    if (h < 12) return "Good morning";
+    if (h < 20) return "Good afternoon";
+    return "Good evening";
+  }
+  if (lang === "es") {
+    if (h < 6) return "Buenas noches";
+    if (h < 12) return "Buenos días";
+    if (h < 20) return "Buenas tardes";
+    return "Buenas noches";
+  }
+  if (lang === "fr") {
+    if (h < 6) return "Bonne nuit";
+    if (h < 12) return "Bonjour";
+    if (h < 20) return "Bon après-midi";
+    return "Bonsoir";
+  }
+  if (h < 6) return "Boa noite";
+  if (h < 12) return "Bom dia";
+  if (h < 20) return "Boa tarde";
+  return "Boa noite";
 }
 
 export function daysUntil(dateStr: string): number {

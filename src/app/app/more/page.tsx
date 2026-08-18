@@ -3,17 +3,38 @@
 import Link from "next/link";
 import {
   BarChart3,
+  Brain,
+  Briefcase,
   Flame,
+  FolderOpen,
+  GraduationCap,
+  HeartPulse,
+  Plane,
   Settings,
+  ShoppingBag,
+  Sparkles,
   StickyNote,
   Target,
+  Timer,
   Users,
+  Wallet,
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { Card } from "@/components/ui";
 import type { Dict } from "@/lib/i18n";
 
 const ITEMS: { href: string; icon: typeof Target; label: (t: Dict) => string }[] = [
+  { href: "/app/finance", icon: Wallet, label: (t) => t.finance.title },
+  { href: "/app/subscriptions", icon: Sparkles, label: (t) => t.subs.title },
+  { href: "/app/shopping", icon: ShoppingBag, label: (t) => t.shopping.title },
+  { href: "/app/focus", icon: Timer, label: (t) => t.focus.title },
+  { href: "/app/wellness", icon: HeartPulse, label: (t) => t.wellness.title },
+  { href: "/app/learning", icon: GraduationCap, label: (t) => t.learning.title },
+  { href: "/app/career", icon: Briefcase, label: (t) => t.career.title },
+  { href: "/app/travel", icon: Plane, label: (t) => t.travel.title },
+  { href: "/app/social", icon: Users, label: (t) => t.social.title },
+  { href: "/app/digital", icon: FolderOpen, label: (t) => t.digital.title },
+  { href: "/app/aimemory", icon: Brain, label: (t) => t.aimemory.title },
   { href: "/app/goals", icon: Target, label: (t) => t.goals.title },
   { href: "/app/habits", icon: Flame, label: (t) => t.habits.title },
   { href: "/app/notes", icon: StickyNote, label: (t) => t.notes.title },

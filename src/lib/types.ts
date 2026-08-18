@@ -1,5 +1,5 @@
-export type Currency = "EUR" | "USD" | "GBP" | "BRL" | "JPY";
-export type Lang = "pt" | "en";
+export type Currency = "EUR" | "USD" | "GBP" | "BRL" | "JPY" | "CHF" | "CAD";
+export type Lang = "pt" | "en" | "es" | "fr";
 
 export interface Profile {
   id: string;
@@ -96,6 +96,7 @@ export interface Subscription {
   category: string | null;
   is_active: boolean;
   is_unused: boolean;
+  to_cancel: boolean;
   notes: string | null;
 }
 
@@ -220,6 +221,247 @@ export interface NovaAction {
     | "create_reminder"
     | "create_transaction";
   payload: Record<string, unknown>;
+}
+
+export interface NetWorthSnapshot {
+  id: string;
+  user_id: string;
+  date: string;
+  net_worth: number;
+}
+
+export interface IncomeSchedule {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  day_of_month: number;
+  type: "salary" | "freelance" | "bonus" | "other";
+  active: boolean;
+}
+
+export interface FinancialChallenge {
+  id: string;
+  user_id: string;
+  name: string;
+  kind: "no_purchases" | "save_amount" | "cook_home" | "no_delivery" | "custom";
+  target: number;
+  unit: string;
+  start_date: string;
+  end_date: string;
+  completed: boolean;
+}
+
+export interface ShoppingList {
+  id: string;
+  user_id: string;
+  name: string;
+  category: string;
+}
+
+export interface ShoppingItem {
+  id: string;
+  user_id: string;
+  list_id: string | null;
+  name: string;
+  quantity: number;
+  checked: boolean;
+  price: number | null;
+  priority: "critical" | "high" | "medium" | "low";
+}
+
+export interface WishlistItem {
+  id: string;
+  user_id: string;
+  name: string;
+  price: number | null;
+  url: string | null;
+  priority: "critical" | "high" | "medium" | "low";
+  category: string | null;
+  desired_date: string | null;
+  notes: string | null;
+  purchased: boolean;
+}
+
+export interface FocusSession {
+  id: string;
+  user_id: string;
+  task_id: string | null;
+  kind: string;
+  started_at: string;
+  minutes: number;
+  notes: string | null;
+}
+
+export interface Routine {
+  id: string;
+  user_id: string;
+  name: string;
+  time_of_day: string;
+  icon: string;
+  color: string;
+  items: { text: string; minutes: number }[];
+  active: boolean;
+}
+
+export interface SleepLog {
+  id: string;
+  user_id: string;
+  date: string;
+  hours: number;
+  quality: number | null;
+  bedtime: string | null;
+  wake_time: string | null;
+}
+
+export interface WaterLog {
+  id: string;
+  user_id: string;
+  date: string;
+  glasses: number;
+}
+
+export interface ExerciseLog {
+  id: string;
+  user_id: string;
+  date: string;
+  type: string;
+  duration_minutes: number;
+  calories: number | null;
+  notes: string | null;
+}
+
+export interface WellnessLog {
+  id: string;
+  user_id: string;
+  date: string;
+  mood: number | null;
+  energy: number | null;
+  notes: string | null;
+}
+
+export interface CareerGoal {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  timeline: string | null;
+  status: string;
+}
+
+export interface Skill {
+  id: string;
+  user_id: string;
+  name: string;
+  level: number;
+  target_level: number;
+  category: string | null;
+}
+
+export interface JobApplication {
+  id: string;
+  user_id: string;
+  company: string;
+  position: string;
+  applied_date: string;
+  status: "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+  interview_date: string | null;
+  salary: number | null;
+  notes: string | null;
+}
+
+export interface Book {
+  id: string;
+  user_id: string;
+  title: string;
+  author: string | null;
+  status: "want" | "reading" | "finished";
+  rating: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+  notes: string | null;
+}
+
+export interface Course {
+  id: string;
+  user_id: string;
+  name: string;
+  platform: string | null;
+  progress: number;
+  hours: number;
+  status: string;
+}
+
+export interface StudySession {
+  id: string;
+  user_id: string;
+  date: string;
+  minutes: number;
+  subject: string | null;
+  notes: string | null;
+}
+
+export interface Trip {
+  id: string;
+  user_id: string;
+  destination: string;
+  start_date: string | null;
+  end_date: string | null;
+  budget: number | null;
+  status: "planned" | "booked" | "completed";
+  notes: string | null;
+}
+
+export interface TripItem {
+  id: string;
+  user_id: string;
+  trip_id: string;
+  type: "flight" | "hotel" | "activity" | "restaurant" | "packing" | "other";
+  title: string;
+  cost: number | null;
+  datetime: string | null;
+  checked: boolean;
+}
+
+export interface SharedExpense {
+  id: string;
+  user_id: string;
+  title: string;
+  amount: number;
+  paid_by: string;
+  participants: string[];
+  date: string;
+  settled: boolean;
+}
+
+export interface DigitalAsset {
+  id: string;
+  user_id: string;
+  type: "device" | "license" | "domain" | "service" | "cloud";
+  name: string;
+  details: string | null;
+  purchase_date: string | null;
+  expiry_date: string | null;
+  cost: number | null;
+  notes: string | null;
+}
+
+export interface Document {
+  id: string;
+  user_id: string;
+  name: string;
+  category: string;
+  number: string | null;
+  expiry_date: string | null;
+  notes: string | null;
+}
+
+export interface AIMemory {
+  id: string;
+  user_id: string;
+  category: string;
+  key: string;
+  value: string;
 }
 
 export interface MoneyTotals {

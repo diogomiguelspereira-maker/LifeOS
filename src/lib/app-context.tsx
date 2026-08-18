@@ -10,13 +10,14 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { pt, en, type Dict } from "@/lib/i18n";
+import { pt, en, es, fr, type Dict } from "@/lib/i18n";
 import type { Currency, Lang, Profile } from "@/lib/types";
 
 interface AppContextValue {
   profile: Profile | null;
   refreshProfile: () => Promise<void>;
   updateProfile: (patch: Partial<Profile>) => Promise<boolean>;
+  setProfile: (p: Profile | null) => void;
   lang: Lang;
   t: Dict;
   currency: Currency;
@@ -101,11 +102,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const lang: Lang = profile?.language ?? "pt";
   const currency: Currency = profile?.currency ?? "EUR";
-  const t: Dict = lang === "pt" ? pt : en;
+  const dicts: Record<string, Dict> = { pt, en, es, fr };
+  const t: Dict = dicts[lang] ?? pt;
 
   const value = useMemo(
-    () => ({ profile, refreshProfile, updateProfile, lang, t, currency, signOut }),
-    [profile, refreshProfile, updateProfile, lang, t, currency, signOut]
+    () => ({ profile, refreshProfile, updateProfile, setProfile, lang, t, currency, signOut }),
+    [profile, refreshProfile, updateProfile, setProfile, lang, t, currency, signOut]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

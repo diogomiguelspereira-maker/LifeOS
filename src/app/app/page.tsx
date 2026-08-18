@@ -23,6 +23,7 @@ import { cn } from "@/lib/cn";
 
 const DEFAULT_WIDGETS: WidgetDef[] = [
   { id: "briefing", visible: true },
+  { id: "next", visible: true },
   { id: "money", visible: true },
   { id: "tasks", visible: true },
   { id: "events", visible: true },
@@ -31,6 +32,18 @@ const DEFAULT_WIDGETS: WidgetDef[] = [
   { id: "bills", visible: true },
   { id: "chart", visible: true },
 ];
+
+// Modes: which widgets are shown per mode (progressive disclosure)
+const MODE_WIDGETS: Record<string, string[]> = {
+  all: ["briefing", "next", "money", "tasks", "events", "goals", "habits", "bills", "chart"],
+  work: ["briefing", "next", "tasks", "events"],
+  finance: ["briefing", "next", "money", "bills", "chart", "goals"],
+  study: ["briefing", "next", "tasks", "goals"],
+  weekend: ["briefing", "next", "events", "habits"],
+  travel: ["briefing", "next", "money", "goals"],
+};
+
+type Mode = "all" | "work" | "finance" | "study" | "weekend" | "travel";
 
 export default function DashboardPage() {
   const { t, currency, profile } = useApp();
@@ -47,6 +60,7 @@ export default function DashboardPage() {
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [layout, setLayout] = useState<WidgetDef[]>(DEFAULT_WIDGETS);
+  const [mode, setMode] = useState<Mode>("all");
 
   const now = new Date();
 
@@ -137,8 +151,14 @@ export default function DashboardPage() {
 
   const briefing = useMemo(() => buildBriefing(t, currency, profile?.name ?? "", todayTasks.length, totals, monthTx, categories, goals, todayHabits.length), [t, currency, profile?.name, todayTasks.length, totals, monthTx, categories, goals, todayHabits.length]);
 
+  const nextItems = useMemo(
+    () => buildNextItems(t, currency, tasks, subs, goals, monthTx, categories, now),
+    [t, currency, tasks, subs, goals, monthTx, categories, now]
+  );
+
   const widgets: Record<string, { visible: boolean; render: () => React.ReactNode }> = {
     briefing: { visible: true, render: () => <BriefingWidget t={t} briefing={briefing} /> },
+    next: { visible: true, render: () => <NextWidget t={t} items={nextItems} /> },
     money: { visible: true, render: () => <MoneyWidget t={t} currency={currency} totals={totals} /> },
     tasks: { visible: true, render: () => <TasksWidget t={t} tasks={todayTasks} onToggle={toggleTask} /> },
     events: { visible: true, render: () => <EventsWidget t={t} events={events} /> },
@@ -197,7 +217,7 @@ export default function DashboardPage() {
   }
 
   const visibleWidgets = layout
-    .filter((w) => w.visible && widgets[w.id])
+    .filter((w) => w.visible && widgets[w.id] && (mode === "all" || MODE_WIDGETS[mode].includes(w.id)))
     .map((w) => widgets[w.id]);
 
   return (
@@ -206,7 +226,7 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm text-zinc-400">
-            {now.toLocaleDateString(profile?.language === "en" ? "en-GB" : "pt-PT", { weekday: "long", day: "numeric", month: "long" })}
+            {now.toLocaleDateString(profile?.language === "en" ? "en-GB" : profile?.language === "es" ? "es-ES" : profile?.language === "fr" ? "fr-FR" : "pt-PT", { weekday: "long", day: "numeric", month: "long" })}
           </p>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
             {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]} 👋
@@ -216,6 +236,24 @@ export default function DashboardPage() {
           <Settings2 className="h-4 w-4" />
           <span className="hidden sm:inline">{t.dashboard.customize}</span>
         </Button>
+      </div>
+
+      {/* Mode selector */}
+      <div className="flex flex-wrap gap-1.5">
+        {(["all", "work", "finance", "study", "weekend", "travel"] as Mode[]).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+              mode === m
+                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                : "border-white/10 text-zinc-400 hover:bg-white/5"
+            )}
+          >
+            {t.modes[m]}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -500,6 +538,103 @@ function ChartWidget({ t, currency, byCat }: { t: (typeof import("@/lib/i18n"))[
   );
 }
 
+function NextWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; items: { text: string; href?: string }[] }) {
+  return (
+    <Card className="border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/8 to-transparent">
+      <CardHeader
+        title={t.next.title}
+        action={
+          <Link href="/app/nova" className="flex items-center gap-1 text-xs font-medium text-indigo-400 hover:text-indigo-300">
+            <Sparkles className="h-3.5 w-3.5" />
+            {t.cmd.askNova}
+          </Link>
+        }
+      />
+      {items.length === 0 ? (
+        <p className="py-2 text-sm text-zinc-500">{t.next.empty}</p>
+      ) : (
+        <div className="space-y-2">
+          {items.slice(0, 4).map((item, i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+              <p className="text-sm leading-relaxed text-zinc-300">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/* ---------- rule-based "what should I do next?" ---------- */
+function buildNextItems(
+  t: (typeof import("@/lib/i18n"))["pt"],
+  currency: string,
+  tasks: Task[],
+  subs: Subscription[],
+  goals: SavingsGoal[],
+  monthTx: Transaction[],
+  categories: Category[],
+  now: Date
+): { text: string; href?: string }[] {
+  const items: { text: string; href?: string }[] = [];
+  const dayStart = new Date(now);
+  dayStart.setHours(0, 0, 0, 0);
+
+  // due tasks today/overdue
+  const dueSoon = tasks
+    .filter((x) => x.status !== "done" && x.due_date)
+    .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
+    .slice(0, 1);
+  if (dueSoon.length) {
+    const d = new Date(dueSoon[0].due_date!);
+    items.push({
+      text:
+        d < dayStart
+          ? `⏰ Tens uma tarefa atrasada: "${dueSoon[0].title}".`
+          : `📌 Tarefa para hoje: "${dueSoon[0].title}".`,
+      href: "/app/tasks",
+    });
+  }
+
+  // bills due in the next 3 days
+  const nextBill = subs
+    .filter((s) => s.next_billing_date && new Date(s.next_billing_date) >= dayStart && new Date(s.next_billing_date) <= new Date(dayStart.getTime() + 3 * 86400000))
+    .sort((a, b) => new Date(a.next_billing_date!).getTime() - new Date(b.next_billing_date!).getTime())[0];
+  if (nextBill?.next_billing_date) {
+    items.push({
+      text: `💳 ${nextBill.name} (${formatMoney(nextBill.amount, currency)}) vence ${formatDate(nextBill.next_billing_date)}.`,
+      href: "/app/subscriptions",
+    });
+  }
+
+  // savings goal gap
+  const closest = goals
+    .filter((g) => g.current_amount < g.target_amount)
+    .sort((a, b) => b.current_amount / b.target_amount - a.current_amount / a.target_amount)[0];
+  if (closest && closest.monthly_contribution > 0) {
+    const remaining = closest.target_amount - closest.current_amount;
+    if (remaining <= closest.monthly_contribution * 1.5) {
+      items.push({
+        text: `🎯 Faltam ${formatMoney(remaining, currency)} para "${closest.name}" — dá para fechar com a contribuição mensal.`,
+        href: "/app/goals",
+      });
+    }
+  }
+
+  // spending signal
+  const wantsCats = categories.filter((c) => c.budget_type !== "needs" && c.type === "expense");
+  const monthIncome = monthTx.filter((x) => x.amount > 0).reduce((s, x) => s + x.amount, 0);
+  const wantsSpent = Math.abs(
+    monthTx.filter((x) => x.amount < 0 && wantsCats.some((c) => c.id === x.category_id)).reduce((s, x) => s + x.amount, 0)
+  );
+  if (monthIncome > 0 && wantsSpent > monthIncome * 0.3) {
+    items.push({ text: `🧠 Estás a gastar ${Math.round((wantsSpent / monthIncome) * 100)}% do rendimento em desejos este mês.`, href: "/app/budgets" });
+  }
+
+  return items;
+}
+
 function MiniStat({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
     <div className="rounded-xl bg-white/4 px-2 py-2">
@@ -512,6 +647,7 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
 function widgetLabel(t: (typeof import("@/lib/i18n"))["pt"], id: string): string {
   const map: Record<string, string> = {
     briefing: t.widgets.briefing,
+    next: t.next.title,
     money: t.widgets.money,
     tasks: t.widgets.tasks,
     events: t.widgets.events,

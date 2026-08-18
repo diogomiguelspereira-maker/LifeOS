@@ -2,20 +2,44 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { monthKey } from "./format";
 import type {
   Account,
+  AIMemory,
+  Book,
   Budget,
   CalendarEvent,
+  CareerGoal,
   Category,
   Contact,
+  Course,
+  DigitalAsset,
+  Document,
+  ExerciseLog,
+  FinancialChallenge,
+  FocusSession,
   Habit,
   HabitCompletion,
+  IncomeSchedule,
+  JobApplication,
   JournalEntry,
   MoneyTotals,
+  NetWorthSnapshot,
   Note,
   Profile,
+  Routine,
   SavingsGoal,
+  SharedExpense,
+  ShoppingItem,
+  ShoppingList,
+  Skill,
+  SleepLog,
+  StudySession,
   Subscription,
   Task,
   Transaction,
+  Trip,
+  TripItem,
+  WaterLog,
+  WellnessLog,
+  WishlistItem,
 } from "./types";
 
 type SB = SupabaseClient;
@@ -127,6 +151,127 @@ export const api = {
   async contacts(sb: SB): Promise<Contact[]> {
     const { data } = await sb.from("contacts").select("*").order("name");
     return (data as Contact[]) ?? [];
+  },
+
+  /* ---------- finance intelligence ---------- */
+  async netWorthSnapshots(sb: SB): Promise<NetWorthSnapshot[]> {
+    const { data } = await sb.from("net_worth_snapshots").select("*").order("date", { ascending: true });
+    return (data as NetWorthSnapshot[]) ?? [];
+  },
+  async incomeSchedule(sb: SB): Promise<IncomeSchedule[]> {
+    const { data } = await sb.from("income_schedule").select("*").order("day_of_month");
+    return (data as IncomeSchedule[]) ?? [];
+  },
+  async challenges(sb: SB): Promise<FinancialChallenge[]> {
+    const { data } = await sb.from("financial_challenges").select("*").order("created_at");
+    return (data as FinancialChallenge[]) ?? [];
+  },
+
+  /* ---------- shopping ---------- */
+  async shoppingLists(sb: SB): Promise<ShoppingList[]> {
+    const { data } = await sb.from("shopping_lists").select("*").order("created_at");
+    return (data as ShoppingList[]) ?? [];
+  },
+  async shoppingItems(sb: SB): Promise<ShoppingItem[]> {
+    const { data } = await sb.from("shopping_items").select("*").order("created_at");
+    return (data as ShoppingItem[]) ?? [];
+  },
+  async wishlist(sb: SB): Promise<WishlistItem[]> {
+    const { data } = await sb.from("wishlist_items").select("*").order("created_at");
+    return (data as WishlistItem[]) ?? [];
+  },
+
+  /* ---------- focus ---------- */
+  async focusSessions(sb: SB): Promise<FocusSession[]> {
+    const { data } = await sb.from("focus_sessions").select("*").order("started_at", { ascending: false }).limit(100);
+    return (data as FocusSession[]) ?? [];
+  },
+  async routines(sb: SB): Promise<Routine[]> {
+    const { data } = await sb.from("routines").select("*").order("created_at");
+    return (data as Routine[]) ?? [];
+  },
+
+  /* ---------- wellness ---------- */
+  async sleepLogs(sb: SB, days = 30): Promise<SleepLog[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await sb.from("sleep_logs").select("*").gte("date", since).order("date", { ascending: false });
+    return (data as SleepLog[]) ?? [];
+  },
+  async waterLogs(sb: SB, days = 30): Promise<WaterLog[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await sb.from("water_logs").select("*").gte("date", since).order("date", { ascending: false });
+    return (data as WaterLog[]) ?? [];
+  },
+  async exerciseLogs(sb: SB, days = 60): Promise<ExerciseLog[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await sb.from("exercise_logs").select("*").gte("date", since).order("date", { ascending: false });
+    return (data as ExerciseLog[]) ?? [];
+  },
+  async wellnessLogs(sb: SB, days = 30): Promise<WellnessLog[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await sb.from("wellness_logs").select("*").gte("date", since).order("date", { ascending: false });
+    return (data as WellnessLog[]) ?? [];
+  },
+
+  /* ---------- career ---------- */
+  async careerGoals(sb: SB): Promise<CareerGoal[]> {
+    const { data } = await sb.from("career_goals").select("*").order("created_at");
+    return (data as CareerGoal[]) ?? [];
+  },
+  async skills(sb: SB): Promise<Skill[]> {
+    const { data } = await sb.from("skills").select("*").order("name");
+    return (data as Skill[]) ?? [];
+  },
+  async jobApplications(sb: SB): Promise<JobApplication[]> {
+    const { data } = await sb.from("job_applications").select("*").order("applied_date", { ascending: false });
+    return (data as JobApplication[]) ?? [];
+  },
+
+  /* ---------- learning ---------- */
+  async books(sb: SB): Promise<Book[]> {
+    const { data } = await sb.from("books").select("*").order("created_at");
+    return (data as Book[]) ?? [];
+  },
+  async courses(sb: SB): Promise<Course[]> {
+    const { data } = await sb.from("courses").select("*").order("created_at");
+    return (data as Course[]) ?? [];
+  },
+  async studySessions(sb: SB, days = 90): Promise<StudySession[]> {
+    const since = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    const { data } = await sb.from("study_sessions").select("*").gte("date", since).order("date", { ascending: false });
+    return (data as StudySession[]) ?? [];
+  },
+
+  /* ---------- travel ---------- */
+  async trips(sb: SB): Promise<Trip[]> {
+    const { data } = await sb.from("trips").select("*").order("start_date", { ascending: true, nullsFirst: false });
+    return (data as Trip[]) ?? [];
+  },
+  async tripItems(sb: SB, tripId: string): Promise<TripItem[]> {
+    const { data } = await sb.from("trip_items").select("*").eq("trip_id", tripId).order("created_at");
+    return (data as TripItem[]) ?? [];
+  },
+
+  /* ---------- social ---------- */
+  async sharedExpenses(sb: SB): Promise<SharedExpense[]> {
+    const { data } = await sb.from("shared_expenses").select("*").order("date", { ascending: false });
+    return (data as SharedExpense[]) ?? [];
+  },
+
+  /* ---------- digital & docs ---------- */
+  async digitalAssets(sb: SB): Promise<DigitalAsset[]> {
+    const { data } = await sb.from("digital_assets").select("*").order("created_at");
+    return (data as DigitalAsset[]) ?? [];
+  },
+  async documents(sb: SB): Promise<Document[]> {
+    const { data } = await sb.from("documents").select("*").order("name");
+    return (data as Document[]) ?? [];
+  },
+
+  /* ---------- AI memory ---------- */
+  async aiMemory(sb: SB): Promise<AIMemory[]> {
+    const { data } = await sb.from("ai_memory").select("*").order("category");
+    return (data as AIMemory[]) ?? [];
   },
 };
 

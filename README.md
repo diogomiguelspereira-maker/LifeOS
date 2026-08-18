@@ -8,19 +8,27 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
 
 ## ✨ Funcionalidades
 
-- **Dashboard personalizável** — widgets reordenáveis (dinheiro, briefing da Nova, tarefas de hoje, eventos, hábitos, objetivos, contas a pagar, gráfico de gastos)
+- **Dashboard personalizável** — widgets reordenáveis (dinheiro, briefing da Nova, "o que fazer a seguir?", tarefas, eventos, hábitos, objetivos, contas a pagar, gráfico) + **modos** (Trabalho / Finanças / Estudo / Fim de semana / Viagem)
 - **Dinheiro** — contas, movimentos, categorias automáticas, subscrições, saldo/património, "para onde foi o meu dinheiro?"
+- **Finance Hub** — payday countdown, safe-to-spend, limites diário/semanal, previsão de saldo (7/30/60/90d), timeline de património, comparativo mensal, mercados, heatmap de gastos, simulador de bónus, fundo de emergência, desafios financeiros
 - **Orçamentos inteligentes** — plano 50/30/20 com limites por categoria e análise da Nova
 - **Objetivos de poupança** — progresso, data estimada de conclusão e sugestão de contribuição mensal
-- **Tarefas** — quick-add com linguagem natural ("comprar mercearias amanhã às 18:00"), prioridades, projetos, etiquetas
+- **Tarefas** — quick-add com linguagem natural, prioridades, projetos, etiquetas, foco
+- **Focus/Pomodoro** — timer com sessões ligadas a tarefas
 - **Hábitos** — streaks, consistência e alvos semanais
-- **Calendário** — vistas dia/semana/mês (Google Calendar pronto a ligar via OAuth)
+- **Calendário** — vistas dia/semana/mês, **deteção de conflitos** e **tempo livre** (Google Calendar pronto a ligar via OAuth)
+- **Bem-estar** — sono, água, exercício, humor e energia (informativo, sem diagnósticos)
+- **Aprendizagem** — livros, cursos, sessões de estudo e horas estudadas
+- **Carreira** — roadmap, matriz de competências, candidaturas a emprego e salários
+- **Viagens** — orçamento, itinerário, packing e gastos por viagem
+- **Social** — despesas partilhadas com split bills ("quem deve a quem")
+- **Digital & Docs** — dispositivos, garantias, licenças, domínios e documentos com alertas de expiração (passaporte, carta…)
 - **Notas + Diário** — segundo cérebro com favoritos, etiquetas e humor
 - **Pessoas** — aniversários e "não falas com X há N dias"
 - **Estatísticas** — rendimento vs despesas, taxas de conclusão
-- **Nova (IA)** — chatbot com contexto real dos teus dados e **ações confirmadas pelo utilizador** (criar tarefas, eventos, objetivos, notas, movimentos)
-- **Command Palette** — `Ctrl/Cmd + K`
-- **Privacidade** — autenticação, Row Level Security (cada utilizador só vê os seus dados), exportação de dados, PT/EN, tema escuro/claro, EUR por defeito
+- **Nova (IA)** — chatbot com contexto real (finanças, tarefas, calendário, hábitos, carreira, aprendizagem, viagens), **memória controlável** (ver/editar/apagar), **5 personalidades** e **revisão semanal** automática; ações **confirmadas pelo utilizador**
+- **Command Palette + pesquisa global** — `Ctrl/Cmd + K` pesquisa tarefas, notas, eventos, movimentos, metas, pessoas, viagens, documentos e subscrições
+- **Privacidade** — autenticação, Row Level Security, exportação de dados, PT/EN/ES/FR, tema escuro/claro, EUR/USD/GBP/CHF/CAD/BRL/JPY
 
 ---
 
@@ -34,6 +42,8 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - Cria todas as tabelas (perfis, contas, movimentos, orçamentos, objetivos, tarefas, hábitos, notas, calendário, etc.)
    - Ativa **RLS** em todas as tabelas (cada utilizador vê apenas os seus dados)
    - Cria o trigger que, ao registar, gera perfil + contas + categorias por defeito
+3. **Expansão (Finance Hub, Foco, Bem-estar, Carreira, Viagens, Memória da Nova…):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-2.sql`](supabase/migration-2.sql) e executa.
+   - **Aditivo e seguro**: apenas adiciona tabelas novas (+1 coluna em `subscriptions`) — não apaga nem altera dados existentes. Pode ser corrido em qualquer altura, mesmo depois de já usares a app.
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 

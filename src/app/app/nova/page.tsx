@@ -170,10 +170,31 @@ function NovaChat() {
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={newConversation}>
-          <Plus className="h-4 w-4" />
-          {t.common.add}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              setThinking(true);
+              try {
+                const res = await fetch("/api/nova/review");
+                const data = (await res.json()) as { reply: string };
+                setMessages((prev) => [
+                  ...prev,
+                  { id: `local-${Date.now()}-review`, conversation_id: "", user_id: "", role: "assistant", content: data.reply, created_at: new Date().toISOString() },
+                ]);
+              } finally {
+                setThinking(false);
+              }
+            }}
+          >
+            📊 {t.review.weekly}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={newConversation}>
+            <Plus className="h-4 w-4" />
+            {t.common.add}
+          </Button>
+        </div>
       </div>
 
       {/* messages */}

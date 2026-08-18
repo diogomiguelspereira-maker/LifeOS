@@ -28,6 +28,10 @@ type View = "day" | "week" | "month";
 
 const HOUR_HEIGHT = 56;
 
+function fmtMin(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+}
+
 function CalendarPageInner() {
   const { t } = useApp();
   const supabase = useSupabase();
@@ -109,6 +113,46 @@ function CalendarPageInner() {
     return map;
   }, [events]);
 
+  // conflict detection: overlapping non-all-day events
+  const conflicts = useMemo(() => {
+    const out: { a: CalendarEvent; b: CalendarEvent }[] = [];
+    for (const list of dayEvents.values()) {
+      for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+          const x = list[i];
+          const y = list[j];
+          if (x.all_day || y.all_day) continue;
+          const xs = new Date(x.start_at).getTime();
+          const xe = x.end_at ? new Date(x.end_at).getTime() : xs + 3600000;
+          const ys = new Date(y.start_at).getTime();
+          const ye = y.end_at ? new Date(y.end_at).getTime() : ys + 3600000;
+          if (xs < ye && ys < xe) out.push({ a: x, b: y });
+        }
+      }
+    }
+    return out;
+  }, [dayEvents]);
+
+  // free-time detection (current day, 8h-22h)
+  const freeTime = useMemo(() => {
+    const key = cursor.toISOString().slice(0, 10);
+    const list = (dayEvents.get(key) ?? []).filter((e) => !e.all_day);
+    const busy: [number, number][] = list.map((e) => {
+      const s = new Date(e.start_at);
+      const en = e.end_at ? new Date(e.end_at) : new Date(s.getTime() + 3600000);
+      return [s.getHours() * 60 + s.getMinutes(), en.getHours() * 60 + en.getMinutes()];
+    });
+    busy.sort((a, b) => a[0] - b[0]);
+    const free: { start: string; end: string }[] = [];
+    let cur = 8 * 60;
+    for (const [s, e] of busy) {
+      if (s > cur) free.push({ start: fmtMin(cur), end: fmtMin(s) });
+      cur = Math.max(cur, e);
+    }
+    if (cur < 22 * 60) free.push({ start: fmtMin(cur), end: fmtMin(22 * 60) });
+    return free.slice(0, 3);
+  }, [dayEvents, cursor]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -160,6 +204,32 @@ function CalendarPageInner() {
       )}
       {view === "week" && <WeekView cursor={cursor} dayEvents={dayEvents} onEvent={setDetails} />}
       {view === "day" && <DayView cursor={cursor} dayEvents={dayEvents} onEvent={setDetails} />}
+
+      {conflicts.length > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <p className="text-sm font-semibold text-amber-400">⚠️ {conflicts.length} conflito(s) no calendário</p>
+          <div className="mt-2 space-y-1">
+            {conflicts.slice(0, 3).map((c, i) => (
+              <p key={i} className="text-xs text-zinc-400">
+                {c.a.title} ↔ {c.b.title} — {new Date(c.a.start_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {view === "day" && freeTime.length > 0 && (
+        <Card className="border-emerald-500/20 bg-emerald-500/5">
+          <p className="text-sm font-semibold text-emerald-400">🕐 Tempo livre hoje</p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {freeTime.map((f, i) => (
+              <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">
+                {f.start}–{f.end}
+              </span>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card className="border-indigo-500/15 bg-indigo-500/5">
         <p className="text-xs text-indigo-300">
