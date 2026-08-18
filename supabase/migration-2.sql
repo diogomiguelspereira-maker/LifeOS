@@ -117,7 +117,8 @@ create table if not exists public.routines (
   updated_at timestamptz not null default now()
 );
 create index if not exists routines_user_idx on public.routines(user_id);
-create trigger if not exists routines_set_updated_at before update on public.routines
+drop trigger if exists routines_set_updated_at on public.routines;
+create trigger routines_set_updated_at before update on public.routines
   for each row execute function public.set_updated_at();
 
 -- ---------- wellness ----------
@@ -220,7 +221,8 @@ create table if not exists public.books (
   updated_at timestamptz not null default now()
 );
 create index if not exists books_user_idx on public.books(user_id);
-create trigger if not exists books_set_updated_at before update on public.books
+drop trigger if exists books_set_updated_at on public.books;
+create trigger books_set_updated_at before update on public.books
   for each row execute function public.set_updated_at();
 
 create table if not exists public.courses (
@@ -260,7 +262,8 @@ create table if not exists public.trips (
   updated_at timestamptz not null default now()
 );
 create index if not exists trips_user_idx on public.trips(user_id);
-create trigger if not exists trips_set_updated_at before update on public.trips
+drop trigger if exists trips_set_updated_at on public.trips;
+create trigger trips_set_updated_at before update on public.trips
   for each row execute function public.set_updated_at();
 
 create table if not exists public.trip_items (
@@ -305,7 +308,8 @@ create table if not exists public.digital_assets (
   updated_at timestamptz not null default now()
 );
 create index if not exists digital_assets_user_idx on public.digital_assets(user_id);
-create trigger if not exists digital_assets_set_updated_at before update on public.digital_assets
+drop trigger if exists digital_assets_set_updated_at on public.digital_assets;
+create trigger digital_assets_set_updated_at before update on public.digital_assets
   for each row execute function public.set_updated_at();
 
 create table if not exists public.documents (
@@ -331,7 +335,8 @@ create table if not exists public.ai_memory (
   updated_at timestamptz not null default now()
 );
 create index if not exists ai_memory_user_idx on public.ai_memory(user_id);
-create trigger if not exists ai_memory_set_updated_at before update on public.ai_memory
+drop trigger if exists ai_memory_set_updated_at on public.ai_memory;
+create trigger ai_memory_set_updated_at before update on public.ai_memory
   for each row execute function public.set_updated_at();
 
 -- ---------- subscriptions: cancelation tracker ----------
@@ -352,6 +357,7 @@ begin
   ]
   loop
     execute format('alter table public.%I enable row level security;', t);
+    execute format('drop policy if exists "own rows" on public.%I;', t);
     execute format('create policy "own rows" on public.%I for all using (auth.uid() = user_id) with check (auth.uid() = user_id);', t);
   end loop;
 end $$;
