@@ -244,6 +244,9 @@ export const pt = {
     google: "Google Calendar",
     googleNotConnected: "Liga o Google Calendar para sincronizar os teus eventos.",
     noEvents: "Sem eventos neste período.",
+    importSchedule: "Importar horário",
+    importDone: "✓ Horário importado",
+    importFailed: "Falha ao importar o horário.",
   },
   nova: {
     title: "Nova",
@@ -924,6 +927,9 @@ export const en: Dict = {
     google: "Google Calendar",
     googleNotConnected: "Connect Google Calendar to sync your events.",
     noEvents: "No events in this period.",
+    importSchedule: "Import schedule",
+    importDone: "✓ Schedule imported",
+    importFailed: "Failed to import schedule.",
   },
   nova: {
     title: "Nova",
@@ -1604,6 +1610,9 @@ export const es: Dict = {
     google: "Google Calendar",
     googleNotConnected: "Conecta Google Calendar para sincronizar tus eventos.",
     noEvents: "Sin eventos en este período.",
+    importSchedule: "Importar horario",
+    importDone: "✓ Horario importado",
+    importFailed: "No se pudo importar el horario.",
   },
   nova: {
     title: "Nova",
@@ -2284,6 +2293,9 @@ export const fr: Dict = {
     google: "Google Calendar",
     googleNotConnected: "Connecte Google Calendar pour synchroniser tes événements.",
     noEvents: "Aucun événement sur cette période.",
+    importSchedule: "Importer l'horaire",
+    importDone: "✓ Horaire importé",
+    importFailed: "Échec de l'import de l'horaire.",
   },
   nova: {
     title: "Nova",

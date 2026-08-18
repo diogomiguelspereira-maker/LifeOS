@@ -6,6 +6,7 @@ import { CalendarPlus, ChevronLeft, ChevronRight, MapPin, Pencil, Trash2 } from 
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
 import { dontForgetHints } from "@/lib/dontforget";
+import { scheduleToEvents } from "@/lib/schedule-import";
 import {
   Button,
   Card,
@@ -68,6 +69,8 @@ function CalendarPageInner() {
   const [google, setGoogle] = useState<{ configured: boolean; connected: boolean; email: string | null } | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const range = useMemo(() => {
     const start = new Date(cursor);
@@ -133,6 +136,45 @@ function CalendarPageInner() {
     if (params.get("new") === "1") setAddOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function importSchedule() {
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const slots = scheduleToEvents();
+      // skip entries that already exist on the same day with the same title
+      const { data: existing } = await supabase
+        .from("calendar_events")
+        .select("id, title, start_at")
+        .gte("start_at", "2026-08-10T00:00:00.000Z")
+        .lte("start_at", "2026-09-01T00:00:00.000Z");
+      const have = new Set(
+        ((existing as { title: string; start_at: string }[] | null) ?? []).map(
+          (e) => `${localDayKey(new Date(e.start_at))}|${e.title}`
+        )
+      );
+      const fresh = slots.filter((s) => !have.has(s.key));
+      if (fresh.length === 0) {
+        setImportMsg(t.calendar.importDone);
+      } else {
+        const { error } = await supabase.from("calendar_events").insert(
+          fresh.map((s) => ({
+            title: s.title,
+            start_at: s.startAt.toISOString(),
+            end_at: s.endAt ? s.endAt.toISOString() : null,
+            all_day: s.allDay,
+            color: s.color,
+          }))
+        );
+        if (error) throw error;
+        setImportMsg(`${t.calendar.importDone} +${fresh.length}`);
+        load();
+      }
+    } catch {
+      setImportMsg(t.calendar.importFailed);
+    }
+    setImporting(false);
+  }
 
   function shift(dir: number) {
     const d = new Date(cursor);
@@ -216,10 +258,15 @@ function CalendarPageInner() {
       <PageHeader
         title={t.calendar.title}
         action={
-          <Button onClick={() => { setEditing(null); setAddOpen(true); }}>
-            <CalendarPlus className="h-4 w-4" />
-            {t.calendar.addEvent}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={importSchedule} disabled={importing}>
+              {importing ? t.common.loading : t.calendar.importSchedule}
+            </Button>
+            <Button onClick={() => { setEditing(null); setAddOpen(true); }}>
+              <CalendarPlus className="h-4 w-4" />
+              {t.calendar.addEvent}
+            </Button>
+          </div>
         }
       />
 
@@ -294,6 +341,7 @@ function CalendarPageInner() {
             )}
           </p>
           <div className="flex items-center gap-2">
+            {importMsg && <span className="text-[11px] text-emerald-400">{importMsg}</span>}
             {syncMsg && <span className="text-[11px] text-emerald-400">{syncMsg}</span>}
             {google?.connected && (
               <Button variant="outline" size="sm" disabled={syncing} onClick={syncGoogle}>
