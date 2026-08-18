@@ -49,6 +49,9 @@ OPENAI_API_KEY=sk-...        # opcional — sem esta, a Nova funciona em "modo o
 
 A chave `anon` é pública (a segurança vem do RLS). A `OPENAI_API_KEY` **nunca** vai para o browser.
 
+> **IA grátis?** A Nova aceita **qualquer API compatível com OpenAI** — não precisa de ser a OpenAI paga.
+> Com uma chave grátis de [SambaNova](https://cloud.sambanova.ai/), [Groq](https://console.groq.com/) ou [Gemini (AI Studio)](https://aistudio.google.com/), define também `OPENAI_BASE_URL` e `OPENAI_MODEL` (ver `.env.example`).
+
 ## 🚀 3. Correr localmente
 
 ```bash

@@ -184,7 +184,7 @@ export default function SettingsPage() {
             <div>
               <p className="text-sm font-medium text-zinc-200">{t.settings.ai}</p>
               <p className="text-xs text-zinc-500">
-                OpenAI ·{" "}
+                {t.settings.ai} · API OpenAI-compatível ·{" "}
                 {aiStatus === null ? "…" : aiStatus ? (
                   <Badge color="green">✓</Badge>
                 ) : (

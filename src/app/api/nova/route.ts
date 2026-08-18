@@ -103,10 +103,17 @@ Responde APENAS com JSON válido: {"reply": string, "action"?: object}.`;
 
     let result: NovaResponse;
 
+    // Provider-agnostic: any OpenAI-compatible API works (OpenAI, SambaNova,
+    // Groq, Gemini, OpenRouter…). Set OPENAI_BASE_URL/OPENAI_MODEL to switch.
     if (process.env.OPENAI_API_KEY) {
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const baseURL = process.env.OPENAI_BASE_URL || undefined;
+      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+        ...(baseURL ? { baseURL } : {}),
+      });
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model,
         messages,
         temperature: 0.7,
         max_tokens: 700,
