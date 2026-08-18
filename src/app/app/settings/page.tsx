@@ -70,6 +70,8 @@ export default function SettingsPage() {
   const [savings, setSavings] = useState("");
   const [country, setCountry] = useState("");
   const [aiStatus, setAiStatus] = useState<boolean | null>(null);
+  const [googleStatus, setGoogleStatus] = useState<{ configured: boolean; connected: boolean; email: string | null } | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -84,6 +86,10 @@ export default function SettingsPage() {
       .then((r) => r.json())
       .then((d) => setAiStatus(Boolean(d.configured)))
       .catch(() => setAiStatus(false));
+    fetch("/api/google/status")
+      .then((r) => r.json())
+      .then((d) => setGoogleStatus(d))
+      .catch(() => setGoogleStatus({ configured: false, connected: false, email: null }));
   }, [profile]);
 
   async function saveProfile() {
@@ -199,13 +205,60 @@ export default function SettingsPage() {
             <div>
               <p className="text-sm font-medium text-zinc-200">{t.settings.connectGoogle}</p>
               <p className="text-xs text-zinc-500">
-                {t.settings.googleStatus}: <Badge color="amber">{t.settings.notConfigured}</Badge>
+                {t.settings.googleStatus}:{" "}
+                {!googleStatus ? (
+                  <Badge color="zinc">…</Badge>
+                ) : googleStatus.connected ? (
+                  <Badge color="green">✓ {googleStatus.email ?? t.settings.googleConnected}</Badge>
+                ) : googleStatus.configured ? (
+                  <Badge color="amber">{t.settings.googleNotConnected}</Badge>
+                ) : (
+                  <Badge color="amber">{t.settings.notConfigured}</Badge>
+                )}
               </p>
             </div>
-            <Button variant="outline" size="sm" disabled>
-              {t.settings.connectGoogle}
-            </Button>
+            {!googleStatus ? null : googleStatus.connected ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={syncing}
+                  onClick={async () => {
+                    setSyncing(true);
+                    await fetch("/api/google/sync", { method: "POST" });
+                    setSyncing(false);
+                  }}
+                >
+                  {syncing ? t.common.loading : t.settings.googleSync}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={async () => {
+                    await fetch("/api/google/disconnect", { method: "POST" });
+                    setGoogleStatus((s) => (s ? { ...s, connected: false, email: null } : s));
+                  }}
+                >
+                  {t.settings.googleDisconnect}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.location.href = "/api/google/connect";
+                }}
+              >
+                {t.settings.connectGoogle}
+              </Button>
+            )}
           </div>
+          {googleStatus && !googleStatus.configured && (
+            <p className="rounded-xl bg-amber-500/5 px-3 py-2 text-[11px] text-amber-400">
+              {t.settings.googleSetupHint}
+            </p>
+          )}
           <div className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-3">
             <div>
               <p className="text-sm font-medium text-zinc-200">{t.settings.ai}</p>

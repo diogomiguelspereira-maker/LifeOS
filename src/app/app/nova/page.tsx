@@ -18,6 +18,7 @@ function NovaChat() {
   const [convId, setConvId] = useState<string | null>(null);
   const [online, setOnline] = useState<boolean | null>(null);
   const [pending, setPending] = useState<{ action: NovaAction; reply: string } | null>(null);
+  const [lastActionId, setLastActionId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,6 +76,29 @@ function NovaChat() {
   async function newConversation() {
     setConvId(null);
     setMessages([]);
+    setLastActionId(null);
+  }
+
+  async function undoLast() {
+    if (!lastActionId) return;
+    const res = await fetch("/api/nova/undo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action_id: lastActionId }),
+    });
+    const data = (await res.json()) as { ok?: boolean; error?: string };
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `local-${Date.now()}-undo`,
+        conversation_id: "",
+        user_id: "",
+        role: "assistant",
+        content: data.ok ? "↩️ Revertido." : `❌ ${data.error ?? "não foi possível reverter"}`,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    setLastActionId(null);
   }
 
   async function executeAction() {
@@ -92,6 +116,30 @@ function NovaChat() {
           const start = p.start_at ? new Date(p.start_at) : new Date(Date.now() + 3600000);
           const end = p.end_at ? new Date(p.end_at) : new Date(start.getTime() + 3600000);
           await supabase.from("calendar_events").insert({ title: p.title, start_at: start.toISOString(), end_at: end.toISOString() });
+          break;
+        }
+        case "create_plan": {
+          const items = (action.payload.items ?? []) as { kind: string; title: string; start_at?: string; end_at?: string; due_date?: string | null }[];
+          const createdEvents: string[] = [];
+          const createdTasks: string[] = [];
+          for (const it of items) {
+            if (it.kind === "event") {
+              const start = it.start_at ? new Date(it.start_at) : new Date(Date.now() + 3600000);
+              const end = it.end_at ? new Date(it.end_at) : new Date(start.getTime() + 3600000);
+              const { data } = await supabase.from("calendar_events").insert({ title: it.title, start_at: start.toISOString(), end_at: end.toISOString() }).select().single();
+              if (data) createdEvents.push((data as { id: string }).id);
+            } else if (it.kind === "task") {
+              const { data } = await supabase.from("tasks").insert({ title: it.title, due_date: it.due_date ?? null }).select().single();
+              if (data) createdTasks.push((data as { id: string }).id);
+            }
+          }
+          const summary = `${items.length} item(ns) criado(s)`;
+          const { data } = await supabase.from("ai_action_log").insert({
+            action: "plan",
+            summary,
+            undo_payload: { created_events: createdEvents, created_tasks: createdTasks },
+          }).select().single();
+          if (data) setLastActionId((data as { id: string }).id);
           break;
         }
         case "create_goal": {
@@ -138,7 +186,16 @@ function NovaChat() {
       }
       setMessages((prev) => [
         ...prev,
-        { id: `local-${Date.now()}-done`, conversation_id: "", user_id: "", role: "assistant", content: "✅ Feito!", created_at: new Date().toISOString() },
+        {
+          id: `local-${Date.now()}-done`,
+          conversation_id: "",
+          user_id: "",
+          role: "assistant",
+          content: lastActionId
+            ? `✅ Feito! (podes reverter com Undo)`
+            : "✅ Feito!",
+          created_at: new Date().toISOString(),
+        },
       ]);
     } catch {
       setMessages((prev) => [
@@ -171,6 +228,11 @@ function NovaChat() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {lastActionId && (
+            <Button variant="ghost" size="sm" onClick={undoLast}>
+              ↩️ {t.common.undo}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"

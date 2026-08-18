@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarDays,
@@ -19,10 +19,22 @@ import {
 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
+import { parseCapture, type Capture } from "@/lib/parse";
 import { Modal } from "@/components/ui";
 import type { Dict } from "@/lib/i18n";
 
 type Result = { type: string; title: string; sub: string; href: string };
+
+const CAPTURE_LABEL: Record<string, string> = {
+  expense: "💸",
+  income: "💰",
+  task: "✅",
+  event: "📅",
+  goal: "🎯",
+  trip: "✈️",
+  reminder: "⏰",
+  unknown: "❓",
+};
 
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useApp();
@@ -32,17 +44,27 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const inputRef = useRef<HTMLInputElement>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [searching, setSearching] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (open) {
       setQuery("");
       setResults([]);
+      setSaved(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
 
+  const capture: Capture | null = useMemo(() => {
+    const q = query.trim();
+    if (q.length < 2) return null;
+    const parsed = parseCapture(q);
+    return parsed.kind === "unknown" ? null : parsed;
+  }, [query]);
+
   useEffect(() => {
-    if (!open) return;
+    if (!open || capture) return;
     const q = query.trim().toLowerCase();
     if (q.length < 2) {
       setResults([]);
@@ -84,7 +106,61 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, open, supabase]);
+  }, [query, open, supabase, capture]);
+
+  const saveCapture = useCallback(async () => {
+    if (!capture || saving) return;
+    setSaving(true);
+    try {
+      if (capture.kind === "expense" || capture.kind === "income") {
+        const amount = (capture.kind === "expense" ? -1 : 1) * Math.abs(capture.amount ?? 0);
+        const type = capture.kind === "expense" ? "expense" : "income";
+        let categoryId: string | null = null;
+        if (capture.category) {
+          const { data: cats } = await supabase.from("categories").select("*").eq("name", capture.category).eq("type", type).limit(1);
+          if (cats?.length) categoryId = cats[0].id;
+        }
+        const { data: accs } = await supabase.from("accounts").select("*").limit(1);
+        const acc = accs?.[0] ?? null;
+        await supabase.from("transactions").insert({
+          amount,
+          description: capture.title,
+          category_id: categoryId,
+          account_id: acc?.id ?? null,
+          date: new Date().toISOString().slice(0, 10),
+        });
+        if (acc) {
+          await supabase.from("accounts").update({ balance: (acc.balance ?? 0) + amount }).eq("id", acc.id);
+        }
+      } else if (capture.kind === "task" || capture.kind === "reminder") {
+        await supabase.from("tasks").insert({ title: capture.title, due_date: capture.due_date ?? null });
+      } else if (capture.kind === "event") {
+        const start = capture.start_at ? new Date(capture.start_at) : new Date(Date.now() + 3600000);
+        await supabase.from("calendar_events").insert({
+          title: capture.title,
+          start_at: start.toISOString(),
+          end_at: new Date(start.getTime() + 3600000).toISOString(),
+        });
+      } else if (capture.kind === "goal") {
+        await supabase.from("savings_goals").insert({
+          name: capture.title,
+          target_amount: capture.target_amount ?? 500,
+          current_amount: 0,
+          icon: "🎯",
+        });
+      } else if (capture.kind === "trip") {
+        await supabase.from("trips").insert({ destination: capture.destination ?? capture.title });
+      }
+      setSaved(true);
+      setTimeout(() => {
+        setQuery("");
+        setSaved(false);
+        setSaving(false);
+      }, 1200);
+    } catch {
+      setSaving(false);
+    }
+  }, [capture, saving, supabase]);
 
   const QUICK_ACTIONS: { icon: typeof Wallet; href: string; label: (t: Dict) => string }[] = [
     { icon: Wallet, href: "/app/money?new=1", label: (t) => t.money.addTransaction },
@@ -117,24 +193,69 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     router.push(`/app/nova?q=${encodeURIComponent(q)}`);
   }
 
-  const showSearch = query.trim().length >= 2;
+  const showCapture = Boolean(capture);
 
   return (
-    <Modal open={open} onClose={onClose} maxWidth="max-w-lg" title={t.cmd.quickActions}>
+    <Modal open={open} onClose={onClose} maxWidth="max-w-lg" title={showCapture ? t.cmd.capture : t.cmd.quickActions}>
       <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
         <Search className="h-4 w-4 shrink-0 text-zinc-500" />
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && capture) saveCapture();
+            else if (e.key === "Enter") submit();
+          }}
           placeholder={t.cmd.placeholder}
           className="h-11 w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 outline-none"
         />
         <CornerDownLeft className="h-4 w-4 shrink-0 text-zinc-600" />
       </div>
 
-      {showSearch && (
+      {/* Instant capture */}
+      {showCapture && capture && (
+        <div className="mt-3 rounded-xl border border-indigo-500/25 bg-indigo-500/8 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
+            {CAPTURE_LABEL[capture.kind]} {t.cmd.capture}
+          </p>
+          <div className="mt-1.5 space-y-0.5 text-sm text-zinc-200">
+            <p>
+              {capture.kind === "expense" || capture.kind === "income" ? (
+                <>
+                  {capture.title} · <b>{capture.amount}€</b>
+                  {capture.category ? ` · ${capture.category}` : ""}
+                </>
+              ) : capture.kind === "goal" ? (
+                <>
+                  {capture.title} · <b>{capture.target_amount}€</b>
+                </>
+              ) : capture.kind === "event" && capture.start_at ? (
+                <>
+                  {capture.title} · {new Date(capture.start_at).toLocaleString("pt-PT", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </>
+              ) : capture.kind === "task" || capture.kind === "reminder" ? (
+                <>
+                  {capture.title}
+                  {capture.due_date ? ` · ${capture.due_date}` : ""}
+                </>
+              ) : (
+                capture.destination ?? capture.title
+              )}
+            </p>
+          </div>
+          <button
+            onClick={saveCapture}
+            disabled={saving}
+            className="mt-3 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-2.5 text-sm font-semibold text-white transition hover:from-indigo-400 hover:to-violet-400 disabled:opacity-60"
+          >
+            {saved ? "✓ " + t.common.done : t.common.save}
+          </button>
+        </div>
+      )}
+
+      {/* Search results */}
+      {!showCapture && query.trim().length >= 2 && (
         <div className="mt-3 max-h-64 space-y-1 overflow-y-auto">
           {searching && <p className="px-1 py-2 text-xs text-zinc-500">{t.common.loading}</p>}
           {!searching && results.length === 0 && (
@@ -160,7 +281,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         </div>
       )}
 
-      {!showSearch && (
+      {/* Quick actions */}
+      {!showCapture && query.trim().length < 2 && (
         <div className="mt-3 grid grid-cols-2 gap-2">
           {QUICK_ACTIONS.map((a) => (
             <button

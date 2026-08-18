@@ -219,8 +219,18 @@ export interface NovaAction {
     | "create_goal"
     | "create_note"
     | "create_reminder"
-    | "create_transaction";
+    | "create_transaction"
+    | "create_plan";
   payload: Record<string, unknown>;
+}
+
+export interface AiActionLog {
+  id: string;
+  user_id: string;
+  action: string;
+  summary: string;
+  undo_payload: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface NetWorthSnapshot {

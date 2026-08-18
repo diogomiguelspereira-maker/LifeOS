@@ -195,6 +195,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </nav>
 
+      {/* Mobile quick-capture FAB */}
+      <button
+        onClick={() => setCommandOpen(true)}
+        aria-label="Captura rápida"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-xl shadow-indigo-500/40 transition active:scale-95 lg:hidden"
+      >
+        <Command className="h-6 w-6" />
+      </button>
+
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
     </div>
   );

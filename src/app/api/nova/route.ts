@@ -122,6 +122,8 @@ Regras:
 - Responde sempre no idioma do utilizador (campo language do contexto: pt ou en).
 - Responde de forma curta, calorosa e prática, como uma assistente de confiança. Usa emojis com moderação.
 - Quando o utilizador pedir para CRIAR algo (tarefa, evento, objetivo de poupança, nota, movimento financeiro), devolve JSON com campo "reply" (texto a mostrar) e campo "action" com {kind, payload}. Kinds válidos: create_task {title, due_date?, notes?}, create_event {title, start_at?, end_at?}, create_goal {name, target_amount?, deadline?}, create_note {title, content}, create_transaction {amount, description?, type: "expense"|"income"}.
+- Para planos ("planear a noite/o fim de semana"): devolve action com kind "create_plan" e payload {items: [{kind: "event"|"task", title, start_at?, end_at?, due_date?}]} com 2-5 itens realistas baseados no contexto (calendário, tarefas, dinheiro). O utilizador aprova antes de criar.
+- Se o utilizador perguntar "why?" / "porquê?", explica o raciocínio por trás da recomendação anterior, citando números do contexto.
 - Para operações destrutivas (apagar, alterar) NUNCA devolvas action: apenas confirma o que encontraste e pergunta se quer que avance (o utilizador confirma na UI).
 - Usa os dados do contexto para responder com números reais. Para "can I afford it" / "posso comprar": analisa dinheiro disponível, rendimento, despesas, objetivos e respondes com recomendação educacional clara, distinguindo-a de aconselhamento financeiro profissional.
 - Usa a secção memory do contexto para personalizar respostas (ex: preferências, datas importantes, rotinas). Nunca inventes memórias.
@@ -266,6 +268,20 @@ function localNova(
     const list = (ctx.habits ?? []).map((h) => h.name).join(", ") || "—";
     return { reply: pt ? `✅ Os teus hábitos: ${list}.` : `✅ Your habits: ${list}.` };
   }
+  if (/(planear|plano|plan my|planear a noite|planear o fim de semana|plan the|plan my evening|plan my weekend|plan tonight)/.test(m)) {
+    const evening = /(noite|evening|tonight)/.test(m);
+    const items = [
+      { kind: "event", title: pt ? "Trabalhar no projeto" : "Work on project", start_at: evening ? new Date(new Date().setHours(20, 30, 0, 0)).toISOString() : new Date(new Date().setHours(10, 0, 0, 0)).toISOString(), end_at: evening ? new Date(new Date().setHours(21, 15, 0, 0)).toISOString() : new Date(new Date().setHours(11, 0, 0, 0)).toISOString() },
+      { kind: "event", title: pt ? "Jantar" : "Dinner", start_at: evening ? new Date(new Date().setHours(21, 15, 0, 0)).toISOString() : new Date(new Date().setHours(13, 0, 0, 0)).toISOString() },
+      { kind: "event", title: pt ? "Relaxar" : "Relax", start_at: evening ? new Date(new Date().setHours(22, 0, 0, 0)).toISOString() : new Date(new Date().setHours(18, 0, 0, 0)).toISOString() },
+    ];
+    return {
+      reply: pt
+        ? `📋 Plano sugerido para ${eveningLabel(pt, evening)}:\n1. 🎯 Projeto (${evening ? "20:30–21:15" : "10:00–11:00"})\n2. 🍽️ Jantar\n3. 😌 Relaxar\n\nAprovas para eu criar os eventos?`
+        : `📋 Suggested plan${evening ? " for the evening" : ""}:\n1. 🎯 Project (${evening ? "20:30–21:15" : "10:00–11:00"})\n2. 🍽️ Dinner\n3. 😌 Relax\n\nApprove so I can create the events?`,
+      action: { kind: "create_plan", payload: { items } },
+    };
+  }
   if (/(o que fazer|what should i do|foco|focus|sugere|suggest)/.test(m)) {
     const tasks = ctx.openTasks.filter((x) => x.due).sort((a, b) => (a.due! < b.due! ? -1 : 1)).slice(0, 3);
     if (tasks.length) {
@@ -275,7 +291,12 @@ function localNova(
   }
   return {
     reply: pt
-      ? "Posso ajudar com: 💰 quanto podes gastar, 📅 o teu dia, 🎯 criar objetivos, ✅ criar tarefas e ✍️ notas. Experimenta perguntar! (Dica: adiciona uma chave OpenAI nas definições para respostas completas.)"
-      : "I can help with: 💰 how much you can spend, 📅 your day, 🎯 creating goals, ✅ tasks and ✍️ notes. Try asking! (Tip: add an OpenAI key in settings for full responses.)",
+      ? "Posso ajudar com: 💰 quanto podes gastar, 📅 o teu dia, 🎯 criar objetivos, ✅ tarefas, ✍️ notas e 📋 planear a noite/o fim de semana. Experimenta perguntar! (Dica: adiciona uma chave OpenAI nas definições para respostas completas.)"
+      : "I can help with: 💰 how much you can spend, 📅 your day, 🎯 goals, ✅ tasks, ✍️ notes and 📋 planning your evening/weekend. Try asking! (Tip: add an OpenAI key in settings for full responses.)",
   };
+}
+
+function eveningLabel(pt: boolean, evening: boolean): string {
+  if (!pt) return evening ? "the evening" : "the day";
+  return evening ? "a noite" : "o dia";
 }

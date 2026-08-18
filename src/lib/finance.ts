@@ -134,3 +134,56 @@ export function costPerUse(price: number, uses: number): number {
   if (uses <= 0) return price;
   return price / uses;
 }
+
+export interface AffordResult {
+  verdict: "yes" | "not-yet";
+  afterBalance: number;
+  safeToSpendAfter: number;
+  reasoning: string;
+  waitWeeks: number | null;
+}
+
+/** "Can I afford this?" — educational, never financial advice. */
+export function canAfford(
+  price: number,
+  opts: {
+    available: number;
+    safeToSpend: number;
+    emergencyFundTarget: number;
+    emergencyFundCurrent: number;
+    monthlyIncome: number;
+    savingsRate: number;
+  }
+): AffordResult {
+  const afterBalance = opts.available - price;
+  const afterSafe = opts.safeToSpend - price;
+  const fundGap = opts.emergencyFundTarget - opts.emergencyFundCurrent;
+  const monthSaving = opts.monthlyIncome * (opts.savingsRate / 100);
+
+  const breaksSafe = afterSafe < 0;
+  const breaksFund = price > fundGap && fundGap > 0;
+
+  if (breaksSafe || breaksFund || afterBalance < 0) {
+    const deficit = Math.max(0, -afterSafe, -afterBalance);
+    const waitWeeks = monthSaving > 0 ? Math.ceil((deficit + Math.max(0, fundGap)) / (monthSaving / 4.33)) : null;
+    const reasons: string[] = [];
+    if (afterBalance < 0) reasons.push(`ficarias com ${Math.round(afterBalance)}€ negativos`);
+    if (breaksSafe) reasons.push(`reduziria o teu limite seguro para ${Math.round(afterSafe)}€`);
+    if (breaksFund) reasons.push(`o fundo de emergência ainda está ${Math.round(fundGap)}€ abaixo da meta`);
+    return {
+      verdict: "not-yet",
+      afterBalance: Math.round(afterBalance),
+      safeToSpendAfter: Math.round(afterSafe),
+      reasoning: `Ainda não — ${reasons.join("; ")}.`, // educational guidance, not professional advice
+      waitWeeks,
+    };
+  }
+
+  return {
+    verdict: "yes",
+    afterBalance: Math.round(afterBalance),
+    safeToSpendAfter: Math.round(afterSafe),
+    reasoning: `Sim, consegues — sobrariam ${Math.round(afterBalance)}€ e o teu limite seguro manter-se-ia positivo (${Math.round(afterSafe)}€). Opinião educacional, não aconselhamento financeiro.`,
+    waitWeeks: null,
+  };
+}

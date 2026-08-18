@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpDown, Check, ChevronRight, Eye, EyeOff, Settings2, Sparkles } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
@@ -18,6 +19,7 @@ import {
   Switch,
 } from "@/components/ui";
 import { formatDate, formatMoney, greeting, monthKey, percent } from "@/lib/format";
+import { nowBanner, whatShouldIDo, nowStatus, type Suggestion } from "@/lib/now";
 import type { Account, CalendarEvent, Category, Habit, HabitCompletion, SavingsGoal, Subscription, Task, Transaction, WidgetDef } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -48,6 +50,7 @@ type Mode = "all" | "work" | "finance" | "study" | "weekend" | "travel";
 export default function DashboardPage() {
   const { t, currency, profile } = useApp();
   const supabase = useSupabase();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [tx, setTx] = useState<Transaction[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -61,6 +64,8 @@ export default function DashboardPage() {
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [layout, setLayout] = useState<WidgetDef[]>(DEFAULT_WIDGETS);
   const [mode, setMode] = useState<Mode>("all");
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
   const now = new Date();
 
@@ -149,12 +154,55 @@ export default function DashboardPage() {
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayHabits = habits.filter((h) => !completions.some((c) => c.habit_id === h.id && c.date === todayKey));
 
-  const briefing = useMemo(() => buildBriefing(t, currency, profile?.name ?? "", todayTasks.length, totals, monthTx, categories, goals, todayHabits.length), [t, currency, profile?.name, todayTasks.length, totals, monthTx, categories, goals, todayHabits.length]);
+  // ---- NOW system ----
+  const dayStartD = new Date(now);
+  dayStartD.setHours(0, 0, 0, 0);
+  const todayEvents = events.filter((e) => new Date(e.start_at) >= dayStartD && new Date(e.start_at) < new Date(dayStartD.getTime() + 86400000));
+  const overdueTasks = tasks.filter((x) => x.status !== "done" && x.due_date && x.due_date < todayKey);
+  const nowCtx: import("@/lib/now").NowContext = {
+    now: nowStatus(todayEvents, now),
+    todayTasks,
+    overdueTasks,
+    events: todayEvents,
+    goals: goals.map((g) => ({ name: g.name, current: g.current_amount, target: g.target_amount, pct: g.target_amount > 0 ? Math.round((g.current_amount / g.target_amount) * 100) : 0 })),
+    habitsDueToday: todayHabits.length,
+    learningHours30d: 0,
+    hasTripSoon: null,
+    expiringDocs: [],
+    billsDueSoon: subs.filter((s) => s.next_billing_date && new Date(s.next_billing_date) >= dayStartD && new Date(s.next_billing_date) <= new Date(dayStartD.getTime() + 3 * 86400000)).map((s) => s.name),
+    money: { safeToSpend: Math.round(totals.available), nextPayday: null, paydayDays: null },
+  };
+  const banner = nowBanner(nowCtx);
+  const daySummaryLine = [
+    todayTasks.length ? `${todayTasks.length} ${t.dashboard.tasks}` : "",
+    todayEvents.length ? `${todayEvents.length} ${t.dashboard.events}` : "",
+    totals.available > 0 ? `${formatMoney(totals.available, currency)} ${t.dashboard.available}` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-  const nextItems = useMemo(
-    () => buildNextItems(t, currency, tasks, subs, goals, monthTx, categories, now),
-    [t, currency, tasks, subs, goals, monthTx, categories, now]
-  );
+  function openSuggestions() {
+    setSuggestions(whatShouldIDo(nowCtx));
+    setSuggestOpen(true);
+  }
+
+  async function doSuggestion(s: Suggestion) {
+    if (s.kind === "task" && s.id) {
+      await supabase.from("tasks").update({ status: "in_progress" }).eq("id", s.id);
+      await supabase.from("focus_sessions").insert({ task_id: s.id, kind: "focus", minutes: Math.min(60, s.duration ?? 25) });
+      load();
+    } else if (s.kind === "habit") {
+      router.push("/app/habits");
+    } else if (s.kind === "learning") {
+      router.push("/app/learning");
+    } else if (s.kind === "errand") {
+      router.push("/app/digital");
+    }
+    setSuggestOpen(false);
+  }
+
+  const briefing = buildBriefing(t, currency, profile?.name ?? "", todayTasks.length, totals, monthTx, categories, goals, todayHabits.length);
+  const nextItems = buildNextItems(t, currency, tasks, subs, goals, monthTx, categories, now);
 
   const widgets: Record<string, { visible: boolean; render: () => React.ReactNode }> = {
     briefing: { visible: true, render: () => <BriefingWidget t={t} briefing={briefing} /> },
@@ -232,11 +280,41 @@ export default function DashboardPage() {
             {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]} 👋
           </h1>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setCustomizeOpen(true)}>
-          <Settings2 className="h-4 w-4" />
-          <span className="hidden sm:inline">{t.dashboard.customize}</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={openSuggestions}>
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.now.whatShouldIDo}</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setCustomizeOpen(true)}>
+            <Settings2 className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.dashboard.customize}</span>
+          </Button>
+        </div>
       </div>
+
+      {/* NOW banner */}
+      <Card
+        className={cn(
+          "relative overflow-hidden",
+          banner.tone === "red" && "border-red-500/25 bg-gradient-to-r from-red-500/10 to-transparent",
+          banner.tone === "amber" && "border-amber-500/25 bg-gradient-to-r from-amber-500/10 to-transparent",
+          banner.tone === "green" && "border-emerald-500/25 bg-gradient-to-r from-emerald-500/10 to-transparent"
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">{banner.emoji}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-zinc-100">
+              {t.now.title}: {banner.headline}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-zinc-400">{banner.sub}</p>
+            {daySummaryLine && <p className="mt-1.5 text-[11px] text-zinc-500">{daySummaryLine}</p>}
+          </div>
+          <Button size="sm" variant="secondary" onClick={openSuggestions} className="shrink-0">
+            {t.now.ideas}
+          </Button>
+        </div>
+      </Card>
 
       {/* Mode selector */}
       <div className="flex flex-wrap gap-1.5">
@@ -263,6 +341,33 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+
+      {/* What should I do? modal */}
+      <Modal open={suggestOpen} onClose={() => setSuggestOpen(false)} title={t.now.whatShouldIDo}>
+        <div className="space-y-2">
+          <p className="text-xs text-zinc-500">
+            {banner.emoji} {banner.headline}
+          </p>
+          {suggestions.length === 0 && <p className="py-4 text-sm text-zinc-500">{t.next.empty}</p>}
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => doSuggestion(s)}
+              className="flex w-full items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
+            >
+              <span className="text-xl">{s.icon}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-zinc-200">{s.title}</p>
+                <p className="text-[11px] text-zinc-500">
+                  {s.duration ? `${s.duration} min · ` : ""}
+                  {s.reason}
+                </p>
+              </div>
+              {s.kind === "task" && s.id && <span className="shrink-0 text-[10px] uppercase tracking-wider text-indigo-400">{t.focus.start}</span>}
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       {/* Customize modal */}
       <Modal open={customizeOpen} onClose={() => setCustomizeOpen(false)} title={t.widgets.title}>

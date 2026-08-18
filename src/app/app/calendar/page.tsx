@@ -48,6 +48,9 @@ function CalendarPageInner() {
   const [details, setDetails] = useState<CalendarEvent | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
+  const [google, setGoogle] = useState<{ configured: boolean; connected: boolean; email: string | null } | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   const range = useMemo(() => {
     const start = new Date(cursor);
@@ -76,9 +79,37 @@ function CalendarPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, range]);
 
+  const syncGoogle = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/google/sync", { method: "POST" });
+      const data = (await res.json()) as { ok?: boolean; created?: number; updated?: number; removed?: number; error?: string };
+      if (data.ok) {
+        setSyncMsg(`✓ ${data.created ?? 0} novos · ${data.updated ?? 0} atualizados`);
+        load();
+      } else if (data.error === "not-connected") {
+        setSyncMsg(null);
+      } else {
+        setSyncMsg(t.settings.googleSyncFailed);
+      }
+    } catch {
+      setSyncMsg(t.settings.googleSyncFailed);
+    }
+    setSyncing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load]);
+
   useEffect(() => {
     setLoading(true);
     load();
+    fetch("/api/google/status")
+      .then((r) => r.json())
+      .then((d) => {
+        setGoogle(d);
+        if (d?.connected) syncGoogle();
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [load]);
 
   useEffect(() => {
@@ -232,9 +263,28 @@ function CalendarPageInner() {
       )}
 
       <Card className="border-indigo-500/15 bg-indigo-500/5">
-        <p className="text-xs text-indigo-300">
-          🔗 {t.calendar.google}: {t.calendar.googleNotConnected}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-indigo-300">
+            🔗 {t.calendar.google}:{" "}
+            {!google ? (
+              "…"
+            ) : google.connected ? (
+              <span className="text-emerald-400">✓ {google.email ?? t.settings.googleConnected}</span>
+            ) : google.configured ? (
+              t.settings.googleNotConnected
+            ) : (
+              t.calendar.googleNotConnected
+            )}
+          </p>
+          <div className="flex items-center gap-2">
+            {syncMsg && <span className="text-[11px] text-emerald-400">{syncMsg}</span>}
+            {google?.connected && (
+              <Button variant="outline" size="sm" disabled={syncing} onClick={syncGoogle}>
+                {syncing ? t.common.loading : t.settings.googleSync}
+              </Button>
+            )}
+          </div>
+        </div>
       </Card>
 
       <EventModal
@@ -601,6 +651,11 @@ function EventDetailsModal({
           <p className="flex items-center gap-2 text-sm text-zinc-400">
             <MapPin className="h-4 w-4" /> {ev.location}
           </p>
+        )}
+        {ev.source === "google" && (
+          <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2 text-xs text-sky-300">
+            🔗 {t.calendar.google} · {t.settings.googleConnected}
+          </div>
         )}
         {ev.description && (
           <p className="whitespace-pre-wrap rounded-xl bg-white/5 p-3 text-sm leading-relaxed text-zinc-300">

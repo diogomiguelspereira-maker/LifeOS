@@ -55,13 +55,14 @@ export default function FinancePage() {
   const [income, setIncome] = useState<IncomeSchedule[]>([]);
   const [snapshots, setSnapshots] = useState<{ date: string; net_worth: number }[]>([]);
   const [challenges, setChallenges] = useState<FinancialChallenge[]>([]);
+  const [goals, setGoals] = useState<{ id: string; name: string; current_amount: number; target_amount: number; monthly_contribution: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
   const [bonus, setBonus] = useState("");
 
   const load = useCallback(async () => {
-    const [tx_, acc, cats, subs_, inc, snap, chall] = await Promise.all([
+    const [tx_, acc, cats, subs_, inc, snap, chall, goals_] = await Promise.all([
       api.allTransactions(supabase, 400),
       api.accounts(supabase),
       api.categories(supabase),
@@ -69,6 +70,7 @@ export default function FinancePage() {
       api.incomeSchedule(supabase),
       api.netWorthSnapshots(supabase),
       api.challenges(supabase),
+      api.goals(supabase),
     ]);
     setTx(tx_);
     setAccounts(acc);
@@ -77,6 +79,7 @@ export default function FinancePage() {
     setIncome(inc);
     setSnapshots(snap);
     setChallenges(chall);
+    setGoals(goals_);
     setLoading(false);
   }, [supabase]);
 
@@ -315,6 +318,84 @@ export default function FinancePage() {
                 <p className="py-2 text-sm text-zinc-500">{t.finance.empty}</p>
               )}
             </div>
+          </Card>
+
+          {/* money timeline: next 30 days of cash flow */}
+          <Card>
+            <CardHeader title={t.finance.timeline} subtitle={t.finance.next30} />
+            {(() => {
+              const days: { date: Date; label: string; value: number; icon: string }[] = [];
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const horizon = new Date(today.getTime() + 30 * 86400000);
+              // recurring income
+              for (const s of income) {
+                if (!s.active) continue;
+                let d = new Date(today.getFullYear(), today.getMonth(), s.day_of_month);
+                if (d < today) d = new Date(today.getFullYear(), today.getMonth() + 1, s.day_of_month);
+                while (d <= horizon) {
+                  days.push({ date: new Date(d), label: s.name, value: s.amount, icon: "+" });
+                  d = new Date(d.getFullYear(), d.getMonth() + 1, s.day_of_month);
+                }
+              }
+              // subscription bills
+              for (const s of subs) {
+                if (!s.is_active || !s.next_billing_date) continue;
+                let d = new Date(s.next_billing_date);
+                while (d <= horizon && d >= today) {
+                  days.push({ date: new Date(d), label: s.name, value: -s.amount, icon: "−" });
+                  const next = new Date(d);
+                  if (s.billing_cycle === "weekly") next.setDate(next.getDate() + 7);
+                  else if (s.billing_cycle === "yearly") next.setFullYear(next.getFullYear() + 1);
+                  else next.setMonth(next.getMonth() + 1);
+                  d = next;
+                }
+              }
+              // savings goal auto-contribution
+              for (const g of goals) {
+                if (g.monthly_contribution <= 0 || g.current_amount >= g.target_amount) continue;
+                const d = new Date(today.getFullYear(), today.getMonth(), 28);
+                if (d >= today && d <= horizon) {
+                  days.push({ date: new Date(d), label: `${t.finance.savingsAuto}: ${g.name}`, value: -g.monthly_contribution, icon: "🎯" });
+                }
+              }
+              days.sort((a, b) => a.date.getTime() - b.date.getTime());
+              let running = totals.totalBalance;
+              const seen = new Set<string>();
+              return days.length === 0 ? (
+                <p className="py-2 text-sm text-zinc-500">{t.finance.empty}</p>
+              ) : (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2">
+                    <span className="text-sm font-medium text-zinc-300">{t.common.today}</span>
+                    <span className="text-sm font-bold text-zinc-100">{formatMoney(running, currency)}</span>
+                  </div>
+                  {days.map((row, i) => {
+                    const key = `${row.date.toISOString().slice(0, 10)}-${row.label}`;
+                    if (seen.has(key)) return null;
+                    seen.add(key);
+                    running += row.value;
+                    return (
+                      <div key={key} className="flex items-center justify-between rounded-xl bg-white/3 px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-8 shrink-0 text-[10px] text-zinc-500">
+                            {row.date.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}
+                          </span>
+                          <span className="text-sm text-zinc-300">
+                            {row.icon} {row.label}
+                          </span>
+                        </div>
+                        <span className={cn("text-sm font-semibold", row.value >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                          {row.value >= 0 ? "+" : "−"}
+                          {formatMoney(Math.abs(row.value), currency)}
+                          <span className="ml-2 text-xs font-normal text-zinc-600">{formatMoney(running, currency)}</span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </Card>
 
           {/* bonus simulator */}

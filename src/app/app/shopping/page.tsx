@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { Check, Lightbulb, Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
-import { api } from "@/lib/api";
-import { costPerUse } from "@/lib/finance";
+import { api, currentMonthTransactions, moneyTotals } from "@/lib/api";
+import { canAfford, costPerUse, safeToSpend, avgDailySpend, nextPayday, type AffordResult } from "@/lib/finance";
 import {
   Badge,
   Button,
@@ -46,6 +46,8 @@ export default function ShoppingPage() {
   const [itemOpen, setItemOpen] = useState(false);
   const [wishOpen, setWishOpen] = useState(false);
   const [activeList, setActiveList] = useState<string>("");
+  const [affordItem, setAffordItem] = useState<WishlistItem | null>(null);
+  const [affordResult, setAffordResult] = useState<AffordResult | null>(null);
 
   const load = useCallback(async () => {
     const [ls, it, ws] = await Promise.all([api.shoppingLists(supabase), api.shoppingItems(supabase), api.wishlist(supabase)]);
@@ -55,6 +57,60 @@ export default function ShoppingPage() {
     if (!activeList && ls.length) setActiveList(ls[0].id);
     setLoading(false);
   }, [supabase, activeList]);
+
+  // financial context for "Can I afford this?"
+  const [moneyCtx, setMoneyCtx] = useState<{ available: number; safe: number; fundTarget: number; fundCurrent: number; income: number; savingsRate: number } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const [tx, acc, profile, subs, income] = await Promise.all([
+        api.allTransactions(supabase, 300),
+        api.accounts(supabase),
+        (async () => (await supabase.from("profiles").select("*").maybeSingle())?.data)(),
+        api.subscriptions(supabase),
+        api.incomeSchedule(supabase),
+      ]);
+      const monthTx = currentMonthTransactions(tx);
+      const totals = moneyTotals(acc, monthTx, profile as never);
+      const payday = nextPayday(income);
+      const safe = safeToSpend(totals.totalBalance, income, subs, avgDailySpend(tx));
+      const fundCurrent = (profile as { savings?: number } | null)?.savings ?? 0;
+      const fundTarget = (totals.monthlyExpenses || (profile as { typical_expenses?: number } | null)?.typical_expenses || 0) * 3;
+      setMoneyCtx({
+        available: totals.available,
+        safe: Math.round(safe.amount),
+        fundTarget,
+        fundCurrent,
+        income: totals.monthlyIncome,
+        savingsRate: totals.savingsRate,
+      });
+    })();
+  }, [supabase]);
+
+  function checkAfford(w: WishlistItem) {
+    if (!w.price || !moneyCtx) return;
+    setAffordItem(w);
+    setAffordResult(
+      canAfford(w.price, {
+        available: moneyCtx.available,
+        safeToSpend: moneyCtx.safe,
+        emergencyFundTarget: moneyCtx.fundTarget,
+        emergencyFundCurrent: moneyCtx.fundCurrent,
+        monthlyIncome: moneyCtx.income,
+        savingsRate: moneyCtx.savingsRate,
+      })
+    );
+  }
+
+  async function createGoalFromWish(w: WishlistItem) {
+    await supabase.from("savings_goals").insert({
+      name: w.name,
+      target_amount: w.price ?? 0,
+      current_amount: 0,
+      icon: "🛍️",
+    });
+    setAffordItem(null);
+    setAffordResult(null);
+  }
 
   useEffect(() => {
     load();
@@ -240,6 +296,15 @@ export default function ShoppingPage() {
                     {t.shopping.costPerUse}: <b className="text-zinc-300">{formatMoney(costPerUse(w.price, 100), currency)}</b> / 100 {t.shopping.uses}
                   </p>
                 ) : null}
+                {w.price && moneyCtx && (
+                  <button
+                    onClick={() => checkAfford(w)}
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-500/25 bg-indigo-500/8 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/15"
+                  >
+                    <Lightbulb className="h-3.5 w-3.5" />
+                    {t.shopping.canAfford}
+                  </button>
+                )}
               </Card>
             ))}
           </div>
@@ -249,6 +314,63 @@ export default function ShoppingPage() {
       <ListModal open={listOpen} onClose={() => setListOpen(false)} onSaved={load} />
       <ItemModal open={itemOpen} onClose={() => setItemOpen(false)} lists={lists} activeList={activeList} onSaved={load} currency={currency} />
       <WishModal open={wishOpen} onClose={() => setWishOpen(false)} onSaved={load} currency={currency} />
+
+      {/* Can I afford this? */}
+      <Modal
+        open={!!affordItem}
+        onClose={() => {
+          setAffordItem(null);
+          setAffordResult(null);
+        }}
+        title={`${t.shopping.canAfford}: ${affordItem?.name ?? ""}`}
+      >
+        {affordItem && affordResult && (
+          <div className="space-y-4">
+            <div
+              className={cn(
+                "rounded-2xl border p-4 text-center",
+                affordResult.verdict === "yes" ? "border-emerald-500/30 bg-emerald-500/10" : "border-amber-500/30 bg-amber-500/10"
+              )}
+            >
+              <p className={cn("text-2xl font-bold", affordResult.verdict === "yes" ? "text-emerald-400" : "text-amber-400")}>
+                {affordResult.verdict === "yes" ? "YES ✓" : t.shopping.notYet}
+              </p>
+              <p className="mt-1 text-sm text-zinc-300">{affordResult.reasoning}</p>
+              {affordResult.waitWeeks && (
+                <p className="mt-1.5 text-xs text-zinc-500">
+                  {t.shopping.waitWeeks}: ~{affordResult.waitWeeks} {t.finance.days === "dias" ? "semanas" : "weeks"}
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="rounded-xl bg-white/4 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterBalance}</p>
+                <p className={cn("text-lg font-bold", affordResult.afterBalance < 0 ? "text-rose-400" : "text-zinc-100")}>
+                  {formatMoney(affordResult.afterBalance, currency)}
+                </p>
+              </div>
+              <div className="rounded-xl bg-white/4 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterSafe}</p>
+                <p className={cn("text-lg font-bold", affordResult.safeToSpendAfter < 0 ? "text-rose-400" : "text-zinc-100")}>
+                  {formatMoney(affordResult.safeToSpendAfter, currency)}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="secondary" className="flex-1" onClick={() => setAffordItem(null)}>
+                {t.common.close}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => createGoalFromWish(affordItem)}
+              >
+                🎯 {t.shopping.createGoal}
+              </Button>
+            </div>
+            <p className="text-center text-[10px] text-zinc-600">ℹ️ {t.shopping.educational}</p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
