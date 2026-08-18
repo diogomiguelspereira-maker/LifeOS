@@ -46,6 +46,7 @@ function MoneyPageInner() {
   const [txOpen, setTxOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   const load = useCallback(async () => {
     const [tx, acc, cats] = await Promise.all([
@@ -107,7 +108,12 @@ function MoneyPageInner() {
       <PageHeader
         title={t.money.title}
         action={
-          <Button onClick={() => setTxOpen(true)}>
+          <Button
+            onClick={() => {
+              setEditingTx(null);
+              setTxOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4" />
             {t.money.addTransaction}
           </Button>
@@ -277,12 +283,25 @@ function MoneyPageInner() {
                     {income ? "+" : "−"}
                     {formatMoney(Math.abs(tx.amount), currency)}
                   </p>
-                  <button
-                    onClick={() => deleteTx(tx.id)}
-                    className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      onClick={() => {
+                        setEditingTx(tx);
+                        setTxOpen(true);
+                      }}
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-indigo-300"
+                      title={t.common.edit}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteTx(tx.id)}
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-red-400"
+                      title={t.common.delete}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -293,7 +312,11 @@ function MoneyPageInner() {
       {/* Add transaction modal */}
       <TransactionModal
         open={txOpen}
-        onClose={() => setTxOpen(false)}
+        onClose={() => {
+          setTxOpen(false);
+          setEditingTx(null);
+        }}
+        transaction={editingTx}
         accounts={accounts}
         categories={categories}
         expenseCats={expenseCats}
@@ -335,6 +358,7 @@ function TransactionModal({
   incomeCats,
   onSaved,
   currency,
+  transaction,
 }: {
   open: boolean;
   onClose: () => void;
@@ -344,6 +368,7 @@ function TransactionModal({
   incomeCats: Category[];
   onSaved: () => void;
   currency: string;
+  transaction?: Transaction | null;
 }) {
   const { t } = useApp();
   const supabase = useSupabase();
@@ -356,7 +381,17 @@ function TransactionModal({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+    if (transaction) {
+      const txType: "expense" | "income" = transaction.amount > 0 ? "income" : "expense";
+      const list = txType === "expense" ? expenseCats : incomeCats;
+      setType(txType);
+      setAmount(String(Math.abs(transaction.amount)));
+      setDescription(transaction.description ?? "");
+      setCategoryId(list.some((c) => c.id === transaction.category_id) ? (transaction.category_id ?? "") : (list[0]?.id ?? ""));
+      setAccountId(transaction.account_id ?? accounts[0]?.id ?? "");
+      setDate(transaction.date ?? new Date().toISOString().slice(0, 10));
+    } else {
       setType("expense");
       setAmount("");
       setDescription("");
@@ -364,7 +399,7 @@ function TransactionModal({
       setAccountId(accounts[0]?.id ?? "");
       setDate(new Date().toISOString().slice(0, 10));
     }
-  }, [open, expenseCats, accounts]);
+  }, [open, transaction, expenseCats, incomeCats, accounts]);
 
   const cats = type === "expense" ? expenseCats : incomeCats;
 
@@ -373,17 +408,48 @@ function TransactionModal({
     if (!value || !categoryId || !accountId) return;
     setSaving(true);
     const signed = type === "expense" ? -Math.abs(value) : Math.abs(value);
-    const { data } = await supabase
-      .from("transactions")
-      .insert({ amount: signed, description, category_id: categoryId, account_id: accountId, date })
-      .select()
-      .single();
-    if (data) {
-      const account = accounts.find((a) => a.id === accountId);
+
+    if (transaction) {
+      // Editing: keep the account balances consistent by reversing the old
+      // movement's effect and applying the new one.
+      const oldAccountId = transaction.account_id;
+      if (oldAccountId === accountId) {
+        const account = accounts.find((a) => a.id === accountId);
+        await supabase
+          .from("accounts")
+          .update({ balance: (account?.balance ?? 0) + (signed - transaction.amount) })
+          .eq("id", accountId);
+      } else {
+        if (oldAccountId) {
+          const oldAccount = accounts.find((a) => a.id === oldAccountId);
+          await supabase
+            .from("accounts")
+            .update({ balance: (oldAccount?.balance ?? 0) - transaction.amount })
+            .eq("id", oldAccountId);
+        }
+        const account = accounts.find((a) => a.id === accountId);
+        await supabase
+          .from("accounts")
+          .update({ balance: (account?.balance ?? 0) + signed })
+          .eq("id", accountId);
+      }
       await supabase
-        .from("accounts")
-        .update({ balance: (account?.balance ?? 0) + signed })
-        .eq("id", accountId);
+        .from("transactions")
+        .update({ amount: signed, description, category_id: categoryId, account_id: accountId, date })
+        .eq("id", transaction.id);
+    } else {
+      const { data } = await supabase
+        .from("transactions")
+        .insert({ amount: signed, description, category_id: categoryId, account_id: accountId, date })
+        .select()
+        .single();
+      if (data) {
+        const account = accounts.find((a) => a.id === accountId);
+        await supabase
+          .from("accounts")
+          .update({ balance: (account?.balance ?? 0) + signed })
+          .eq("id", accountId);
+      }
     }
     setSaving(false);
     onSaved();
@@ -391,7 +457,7 @@ function TransactionModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.money.addTransaction}>
+    <Modal open={open} onClose={onClose} title={transaction ? t.money.editTransaction : t.money.addTransaction}>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-2">
           <button
