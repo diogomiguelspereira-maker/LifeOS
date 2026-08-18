@@ -20,7 +20,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { ACCENTS } from "@/lib/colors";
 import { cn } from "@/lib/cn";
-import type { Currency, Lang } from "@/lib/types";
+import type { Currency, Lang, Profile } from "@/lib/types";
 
 const TABLES = [
   "accounts",
@@ -80,6 +80,13 @@ function SettingsPageInner() {
   const [syncing, setSyncing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  async function persist(patch: Partial<Profile>) {
+    const ok = await updateProfile(patch);
+    setSaveMsg(ok ? "✓" : "⚠");
+    setTimeout(() => setSaveMsg(null), 1800);
+  }
 
   useEffect(() => {
     if (profile) {
@@ -180,12 +187,12 @@ function SettingsPageInner() {
 
       {/* Appearance */}
       <Card>
-        <CardHeader title={t.settings.appearance} />
+        <CardHeader title={t.settings.appearance} action={saveMsg ? <span className="text-xs text-emerald-400">{saveMsg}</span> : undefined} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.settings.theme}>
             <Segmented
               value={profile.theme}
-              onChange={(v) => updateProfile({ theme: v as "dark" | "light" | "system" })}
+              onChange={(v) => persist({ theme: v as "dark" | "light" | "system" })}
               options={[
                 { value: "dark", label: `🌙 ${t.settings.dark}` },
                 { value: "light", label: `☀️ ${t.settings.light}` },
@@ -199,7 +206,7 @@ function SettingsPageInner() {
                 <button
                   key={a.id}
                   onClick={() =>
-                    updateProfile({ preferences: { ...(profile.preferences as Record<string, unknown>), accent: a.id } })
+                    persist({ preferences: { ...(profile.preferences as Record<string, unknown>), accent: a.id } })
                   }
                   className="group flex flex-col items-center gap-1.5"
                   title={t.settings.accents[i]}

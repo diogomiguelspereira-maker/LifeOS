@@ -72,11 +72,34 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [supabase, refreshProfile]);
 
+  // localStorage cache so the chosen look applies instantly on page load
+  // (the DB profile is still the source of truth and wins when it arrives).
+  useEffect(() => {
+    try {
+      const prefs = (profile?.preferences ?? {}) as Record<string, unknown>;
+      const dbAccent = prefs.accent as string | undefined;
+      if (dbAccent && ACCENT_IDS.includes(dbAccent)) {
+        window.localStorage.setItem("lifeos:accent", dbAccent);
+      }
+      const dbTheme = profile?.theme;
+      if (dbTheme) window.localStorage.setItem("lifeos:theme", dbTheme);
+    } catch {}
+  }, [profile?.preferences, profile?.theme]);
+
   // accent theme (data-accent on <html>, resolved by globals.css)
   useEffect(() => {
     const root = document.documentElement;
-    const accent = ((profile?.preferences ?? {}) as Record<string, unknown>).accent as string | undefined;
-    root.setAttribute("data-accent", accent && ACCENT_IDS.includes(accent) ? accent : "indigo");
+    let accent = "indigo";
+    const prefs = (profile?.preferences ?? {}) as Record<string, unknown>;
+    const dbAccent = prefs.accent as string | undefined;
+    if (dbAccent && ACCENT_IDS.includes(dbAccent)) accent = dbAccent;
+    else {
+      try {
+        const stored = window.localStorage.getItem("lifeos:accent");
+        if (stored && ACCENT_IDS.includes(stored)) accent = stored;
+      } catch {}
+    }
+    root.setAttribute("data-accent", accent);
   }, [profile?.preferences]);
 
   // dark / light / system
@@ -86,7 +109,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       root.classList.remove("dark", "light");
       root.classList.add(theme);
     };
-    const theme = profile?.theme ?? "dark";
+    let theme: string = profile?.theme ?? "dark";
+    if (!profile?.theme) {
+      try {
+        theme = window.localStorage.getItem("lifeos:theme") ?? "dark";
+      } catch {}
+    }
     if (theme === "system") {
       const mq = window.matchMedia("(prefers-color-scheme: light)");
       apply(mq.matches ? "light" : "dark");
