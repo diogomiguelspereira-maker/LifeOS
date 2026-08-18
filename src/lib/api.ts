@@ -343,3 +343,42 @@ export function currentMonthTransactions(transactions: Transaction[], now = new 
   const nextKey = next.toISOString().slice(0, 10);
   return transactions.filter((t) => t.date >= mk && t.date < nextKey);
 }
+
+/**
+ * Creates an all-day birthday event for every year (current → +60) so the
+ * birthday always shows up on the calendar. Events are tagged in `description`
+ * with `🎂:<contactId>` so they can be removed together when the contact is
+ * deleted. Feb 29 birthdays are clamped to Feb 28 on non-leap years.
+ */
+export async function addBirthdayEvents(sb: SB, title: string, contactId: string, birthday: string) {
+  const [, m, d] = birthday.split("-").map(Number);
+  if (!m || !d) return;
+  const startYear = new Date().getFullYear();
+  const endYear = startYear + 60;
+  const marker = `🎂:${contactId}`;
+  const rows: {
+    title: string;
+    start_at: string;
+    end_at: null;
+    all_day: boolean;
+    color: string;
+    description: string;
+  }[] = [];
+  for (let year = startYear; year <= endYear; year++) {
+    const day = Math.min(d, new Date(year, m, 0).getDate());
+    const startAt = new Date(year, m - 1, day, 0, 0, 0, 0);
+    rows.push({
+      title,
+      start_at: startAt.toISOString(),
+      end_at: null,
+      all_day: true,
+      color: "#ec4899",
+      description: marker,
+    });
+  }
+  // avoid duplicates in case the same contact is somehow added twice
+  const { data: existing } = await sb.from("calendar_events").select("start_at").eq("description", marker);
+  const have = new Set(((existing as { start_at: string }[] | null) ?? []).map((e) => e.start_at.slice(0, 10)));
+  const fresh = rows.filter((r) => !have.has(r.start_at.slice(0, 10)));
+  if (fresh.length) await sb.from("calendar_events").insert(fresh);
+}

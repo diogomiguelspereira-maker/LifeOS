@@ -819,7 +819,7 @@ function EventDetailsModal({
             🔗 {t.calendar.google} · {t.settings.googleConnected}
           </div>
         )}
-        {ev.description && (
+        {ev.description && !ev.description.startsWith("🎂:") && (
           <p className="whitespace-pre-wrap rounded-xl bg-white/5 p-3 text-sm leading-relaxed text-zinc-300">
             {event.description}
           </p>

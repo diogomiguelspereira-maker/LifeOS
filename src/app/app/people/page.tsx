@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
-import { api } from "@/lib/api";
+import { addBirthdayEvents, api } from "@/lib/api";
 import {
   Badge,
   Button,
@@ -37,6 +37,8 @@ export default function PeoplePage() {
 
   async function remove(id: string) {
     await supabase.from("contacts").delete().eq("id", id);
+    // remove the recurring all-day birthday events created for this contact
+    await supabase.from("calendar_events").delete().eq("description", `🎂:${id}`);
     load();
   }
 
@@ -149,15 +151,24 @@ function ContactModal({
 
   async function save() {
     if (!name.trim()) return;
-    await supabase.from("contacts").insert({
-      name: name.trim(),
-      relationship: relationship || null,
-      phone: phone || null,
-      email: email || null,
-      birthday: birthday || null,
-      last_contacted: lastContacted || null,
-      notes: notes || null,
-    });
+    const trimmed = name.trim();
+    const { data: contact } = await supabase
+      .from("contacts")
+      .insert({
+        name: trimmed,
+        relationship: relationship || null,
+        phone: phone || null,
+        email: email || null,
+        birthday: birthday || null,
+        last_contacted: lastContacted || null,
+        notes: notes || null,
+      })
+      .select("id")
+      .single();
+    // mark an all-day calendar event for every year (until +60 years)
+    if (birthday && contact) {
+      await addBirthdayEvents(supabase, `🎂 ${t.people.birthday} — ${trimmed}`, contact.id, birthday);
+    }
     onSaved();
     onClose();
   }
