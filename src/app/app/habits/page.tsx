@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Flame, Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
+import { SWATCHES } from "@/lib/colors";
 import {
   Button,
   Card,
@@ -19,7 +20,7 @@ import type { Habit, HabitCompletion } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const HABIT_ICONS = ["🔥", "💪", "💧", "📖", "🧘", "😴", "💻", "🥗", "🏃", "✍️", "🎯", "🚭"];
-const HABIT_COLORS = ["#f97316", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#f59e0b"];
+const HABIT_COLORS = SWATCHES;
 
 export default function HabitsPage() {
   const { t } = useApp();

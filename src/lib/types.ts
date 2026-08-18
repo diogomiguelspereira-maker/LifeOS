@@ -12,7 +12,7 @@ export interface Profile {
   typical_expenses: number;
   savings: number;
   work_schedule: string | null;
-  theme: "dark" | "light";
+  theme: "dark" | "light" | "system";
   language: Lang;
   week_start: "monday" | "sunday";
   onboarding_completed: boolean;

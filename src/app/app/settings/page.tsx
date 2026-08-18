@@ -18,6 +18,8 @@ import {
   Switch,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ACCENTS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import type { Currency, Lang } from "@/lib/types";
 
 const TABLES = [
@@ -183,12 +185,38 @@ function SettingsPageInner() {
           <Field label={t.settings.theme}>
             <Segmented
               value={profile.theme}
-              onChange={(v) => updateProfile({ theme: v as "dark" | "light" })}
+              onChange={(v) => updateProfile({ theme: v as "dark" | "light" | "system" })}
               options={[
                 { value: "dark", label: `🌙 ${t.settings.dark}` },
                 { value: "light", label: `☀️ ${t.settings.light}` },
+                { value: "system", label: `🖥️ ${t.settings.system}` },
               ]}
             />
+          </Field>
+          <Field label={t.settings.accent}>
+            <div className="flex flex-wrap gap-3">
+              {ACCENTS.map((a, i) => (
+                <button
+                  key={a.id}
+                  onClick={() =>
+                    updateProfile({ preferences: { ...(profile.preferences as Record<string, unknown>), accent: a.id } })
+                  }
+                  className="group flex flex-col items-center gap-1.5"
+                  title={t.settings.accents[i]}
+                >
+                  <span
+                    className={cn(
+                      "h-9 w-9 rounded-full transition group-hover:scale-105",
+                      ((profile.preferences as Record<string, unknown>).accent ?? "indigo") === a.id
+                        ? "scale-105 ring-2 ring-white ring-offset-2 ring-offset-zinc-950"
+                        : "opacity-75 group-hover:opacity-100"
+                    )}
+                    style={{ background: a.color }}
+                  />
+                  <span className="text-[10px] text-zinc-400">{t.settings.accents[i]}</span>
+                </button>
+              ))}
+            </div>
           </Field>
           <Field label={t.settings.language}>
             <Select value={profile.language} onChange={(e) => updateProfile({ language: e.target.value as Lang })}>

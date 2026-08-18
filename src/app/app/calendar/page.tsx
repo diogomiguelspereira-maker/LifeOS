@@ -7,6 +7,7 @@ import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
 import { dontForgetHints } from "@/lib/dontforget";
 import { parseScheduleText, SCHEDULE_EXAMPLE } from "@/lib/schedule-import";
+import { SWATCHES as COLORS } from "@/lib/colors";
 import {
   Button,
   Card,
@@ -23,8 +24,6 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import type { CalendarEvent } from "@/lib/types";
 import { cn } from "@/lib/cn";
-
-const COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"];
 
 type View = "day" | "week" | "month";
 

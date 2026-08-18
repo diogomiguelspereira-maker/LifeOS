@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Plus, Sparkles, Trash2, TrendingUp } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
+import { SWATCHES as COLORS } from "@/lib/colors";
 import {
   Button,
   Card,
@@ -21,7 +22,7 @@ import type { SavingsGoal } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const ICONS = ["🎯", "💻", "📱", "🚗", "🏍️", "✈️", "🏠", "🎓", "🎸", "🕹️", "🐷", "🛡️"];
-const COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"];
+
 
 function GoalsPageInner() {
   const { t, currency } = useApp();

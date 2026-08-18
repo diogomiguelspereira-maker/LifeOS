@@ -6,6 +6,7 @@ import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-re
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
+import { SWATCHES } from "@/lib/colors";
 import {
   Badge,
   Button,
@@ -478,7 +479,7 @@ function TransactionModal({
 }
 
 const ACCOUNT_ICONS = ["🏦", "💵", "🐷", "📈", "💳", "🪙", "🏠", "🚗", "✈️", "🎓", "🛒", "🎯"];
-const ACCOUNT_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"];
+const ACCOUNT_COLORS = SWATCHES;
 
 function AccountModal({
   open,

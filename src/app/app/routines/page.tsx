@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CalendarPlus, Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
+import { SWATCHES as COLORS } from "@/lib/colors";
 import {
   Badge,
   Button,
@@ -23,7 +24,7 @@ import type { Routine, RoutineCompletion, RoutineStep } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const ICONS = ["🌅", "💼", "🌙", "☀️", "🏋️", "📚", "🧘", "🍳", "🚶", "🧹"];
-const COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"];
+
 
 function localDayKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

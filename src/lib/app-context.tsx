@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { pt, en, es, fr, type Dict } from "@/lib/i18n";
+import { ACCENT_IDS } from "@/lib/colors";
 import type { Currency, Lang, Profile } from "@/lib/types";
 
 interface AppContextValue {
@@ -71,12 +72,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, [supabase, refreshProfile]);
 
-  // theme
+  // accent theme (data-accent on <html>, resolved by globals.css)
   useEffect(() => {
-    const theme = profile?.theme ?? "dark";
     const root = document.documentElement;
-    root.classList.remove("dark", "light");
-    root.classList.add(theme);
+    const accent = ((profile?.preferences ?? {}) as Record<string, unknown>).accent as string | undefined;
+    root.setAttribute("data-accent", accent && ACCENT_IDS.includes(accent) ? accent : "indigo");
+  }, [profile?.preferences]);
+
+  // dark / light / system
+  useEffect(() => {
+    const root = document.documentElement;
+    const apply = (theme: string) => {
+      root.classList.remove("dark", "light");
+      root.classList.add(theme);
+    };
+    const theme = profile?.theme ?? "dark";
+    if (theme === "system") {
+      const mq = window.matchMedia("(prefers-color-scheme: light)");
+      apply(mq.matches ? "light" : "dark");
+      const onChange = (e: MediaQueryListEvent) => apply(e.matches ? "light" : "dark");
+      mq.addEventListener("change", onChange);
+      return () => mq.removeEventListener("change", onChange);
+    }
+    apply(theme);
   }, [profile?.theme]);
 
   const updateProfile = useCallback(
