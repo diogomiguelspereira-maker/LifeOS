@@ -300,7 +300,10 @@ export function moneyTotals(
     transactions.filter((t) => t.amount < 0).reduce((s, t) => s + t.amount, 0)
   );
   const savingsRate = monthlyIncome > 0 ? Math.round((1 - monthlyExpenses / monthlyIncome) * 100) : 0;
-  const available = monthlyIncome - monthlyExpenses + (profile?.savings ?? 0);
+  // "available to spend" = this month's net flow, never exceeding the actual money
+  // in accounts. (profile.savings is the onboarding snapshot and is NOT extra
+  // spendable cash — adding it made the number exceed the real balance.)
+  const available = Math.max(0, Math.min(totalBalance, monthlyIncome - monthlyExpenses));
   return { totalBalance, netWorth, monthlyIncome, monthlyExpenses, savingsRate, available };
 }
 
