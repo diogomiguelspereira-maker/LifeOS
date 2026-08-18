@@ -70,7 +70,7 @@ function localDayKey(d: Date): string {
 }
 
 export default function DashboardPage() {
-  const { t, currency, profile } = useApp();
+  const { t, currency, profile, updateProfile } = useApp();
   const supabase = useSupabase();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -84,6 +84,7 @@ export default function DashboardPage() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [layoutMsg, setLayoutMsg] = useState<string | null>(null);
   const [layout, setLayout] = useState<WidgetDef[]>(DEFAULT_WIDGETS);
   const [mode, setMode] = useState<Mode>("all");
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -136,10 +137,22 @@ export default function DashboardPage() {
 
   useEffect(() => {
     load();
-    if (profile?.widget_layout?.length) {
+    // saved layout from the DB, falling back to a local cache so the
+    // customization is applied instantly on reload (DB still wins when it arrives)
+    let saved: WidgetDef[] | null = profile?.widget_layout?.length ? profile.widget_layout : null;
+    if (!saved) {
+      try {
+        const raw = window.localStorage.getItem("lifeos:widget_layout");
+        if (raw) {
+          const parsed = JSON.parse(raw) as WidgetDef[];
+          if (Array.isArray(parsed) && parsed.length) saved = parsed;
+        }
+      } catch {}
+    }
+    if (saved?.length) {
       // merge: keep the saved layout but surface newly added widgets
-      const ids = new Set(profile.widget_layout.map((w) => w.id));
-      setLayout([...profile.widget_layout, ...DEFAULT_WIDGETS.filter((w) => !ids.has(w.id))]);
+      const ids = new Set(saved.map((w) => w.id));
+      setLayout([...saved, ...DEFAULT_WIDGETS.filter((w) => !ids.has(w.id))]);
     } else {
       setLayout(DEFAULT_WIDGETS);
     }
@@ -330,11 +343,17 @@ export default function DashboardPage() {
     });
   }
 
-  function saveLayout() {
-    if (profile) {
-      supabase.from("profiles").update({ widget_layout: layout }).eq("id", profile.id);
+  async function saveLayout() {
+    setLayoutMsg(null);
+    try {
+      window.localStorage.setItem("lifeos:widget_layout", JSON.stringify(layout));
+    } catch {}
+    const ok = await updateProfile({ widget_layout: layout });
+    if (ok) {
+      setCustomizeOpen(false);
+    } else {
+      setLayoutMsg("⚠");
     }
-    setCustomizeOpen(false);
   }
 
   if (loading) {
@@ -555,6 +574,7 @@ export default function DashboardPage() {
             {t.common.save}
           </Button>
         </div>
+        {layoutMsg && <p className="mt-2 text-center text-xs text-amber-400">{layoutMsg}</p>}
       </Modal>
     </div>
   );
