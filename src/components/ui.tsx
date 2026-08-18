@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -36,6 +37,7 @@ export function Button({
   };
   return (
     <button
+      type="button"
       className={cn(
         "inline-flex items-center justify-center font-medium transition-all disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap",
         variants[variant],
@@ -292,7 +294,9 @@ export function Modal({
   }, [open, onClose]);
 
   if (!open) return null;
-  return (
+  // render at body level so no parent layout (transform, overflow, stacking)
+  // can ever hide or break the dialog
+  const panel = (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm animate-fade-in sm:items-center sm:p-4"
       onClick={onClose}
@@ -317,6 +321,7 @@ export function Modal({
       </div>
     </div>
   );
+  return typeof document !== "undefined" ? createPortal(panel, document.body) : panel;
 }
 
 /* ---------- Empty state ---------- */

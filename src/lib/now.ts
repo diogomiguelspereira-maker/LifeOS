@@ -186,7 +186,25 @@ export function whatShouldIDo(ctx: NowContext, minutes: number | null = null, op
     });
   }
 
-  // 5. Break
+  // 5. Generic useful options so the list is never thin
+  if (out.length < 3) {
+    out.push({
+      icon: "🗓️",
+      title: "Planear amanhã",
+      duration: Math.min(10, free),
+      kind: "chore",
+      reason: "2 minutos hoje poupam decisões amanhã",
+    });
+    out.push({
+      icon: "🧹",
+      title: "Limpar a caixa de entrada",
+      duration: Math.min(15, free),
+      kind: "chore",
+      reason: "despacha o ruído e fica com a mente leve",
+    });
+  }
+
+  // 6. Break
   out.push({
     icon: "☕",
     title: "Fazer uma pausa",
