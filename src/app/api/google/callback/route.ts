@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   cookieStore.delete("google_oauth_state");
 
   try {
-    await storeCode(supabase, user.id, code);
+    await storeCode(supabase, user.id, code, appBaseUrl(request));
     return NextResponse.redirect(new URL("/app/calendar?google=connected", request.url));
   } catch (err) {
     console.error("google callback error", err);

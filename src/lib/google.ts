@@ -9,7 +9,11 @@ export interface GoogleTokens {
   calendar_id: string;
 }
 
-const SCOPES = "https://www.googleapis.com/auth/calendar.events";
+const SCOPES = [
+  "https://www.googleapis.com/auth/calendar.events",
+  // Needed for the /oauth2/v2/userinfo endpoint (to show the connected email).
+  "https://www.googleapis.com/auth/userinfo.email",
+].join(" ");
 
 export function isGoogleConfigured(): boolean {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
@@ -57,10 +61,18 @@ async function exchange(
   return res.json();
 }
 
-/** Exchange an authorization code for tokens and persist (encrypted). */
-export async function storeCode(supabase: SupabaseClient, userId: string, code: string): Promise<string | null> {
+/**
+ * Exchange an authorization code for tokens and persist (encrypted).
+ * baseUrl must match the one used to build the auth URL (request-derived).
+ * Throws on any failure so callers never report a false success.
+ */
+export async function storeCode(
+  supabase: SupabaseClient,
+  userId: string,
+  code: string,
+  baseUrl: string
+): Promise<string | null> {
   const { id, secret } = googleClient();
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
   const data = await exchange({
     code,
     client_id: id,
@@ -68,12 +80,23 @@ export async function storeCode(supabase: SupabaseClient, userId: string, code: 
     redirect_uri: `${baseUrl}/api/google/callback`,
     grant_type: "authorization_code",
   });
-  if (!data.refresh_token) return null; // offline access not granted (or already connected)
+  if (!data.refresh_token) {
+    throw new Error("no refresh_token returned — offline access not granted");
+  }
 
-  const me = await googleGet(data.access_token, "https://www.googleapis.com/oauth2/v2/userinfo");
-  const email = (me as { email?: string })?.email ?? null;
+  // Best-effort email lookup (the userinfo endpoint needs the email scope;
+  // a failure here must not break the connection).
+  let email: string | null = null;
+  try {
+    const me = (await googleGet(data.access_token, "https://www.googleapis.com/oauth2/v2/userinfo")) as {
+      email?: string;
+    };
+    email = me.email ?? null;
+  } catch (err) {
+    console.error("google userinfo failed (ignored)", err);
+  }
 
-  await supabase.from("google_tokens").upsert(
+  const { error } = await supabase.from("google_tokens").upsert(
     {
       user_id: userId,
       access_token: encryptToken(data.access_token),
@@ -84,6 +107,7 @@ export async function storeCode(supabase: SupabaseClient, userId: string, code: 
     },
     { onConflict: "user_id" }
   );
+  if (error) throw new Error(`failed to store google tokens: ${error.message}`);
   return email;
 }
 

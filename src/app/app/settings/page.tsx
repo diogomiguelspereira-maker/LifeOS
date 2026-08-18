@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Download, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { currencies } from "@/lib/i18n";
@@ -62,8 +63,10 @@ const TABLES = [
   "ai_memory",
 ];
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const { t, profile, updateProfile } = useApp();
+  const params = useSearchParams();
+  const googleErr = params.get("google");
   const supabase = useSupabase();
   const [name, setName] = useState("");
   const [income, setIncome] = useState("");
@@ -131,6 +134,14 @@ export default function SettingsPage() {
   return (
     <div className="space-y-5">
       <PageHeader title={t.settings.title} />
+
+      {googleErr && googleErr !== "connected" && (
+        <p className="rounded-xl bg-red-500/10 px-3 py-2 text-xs text-red-400">
+          {googleErr === "not-configured"
+            ? t.settings.googleSetupHint
+            : t.settings.googleConnectFailed}
+        </p>
+      )}
 
       {/* Profile */}
       <Card>
@@ -309,5 +320,13 @@ export default function SettingsPage() {
         </div>
       </Modal>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageInner />
+    </Suspense>
   );
 }

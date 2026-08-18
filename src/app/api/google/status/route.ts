@@ -15,10 +15,16 @@ export async function GET() {
   let connected = false;
   let email: string | null = null;
   if (configured) {
-    const { data } = await supabase.from("google_tokens").select("google_email, updated_at").eq("user_id", user.id).maybeSingle();
-    if (data) {
+    // order+limit (instead of maybeSingle) so a stray duplicate row can't hide a real connection
+    const { data } = await supabase
+      .from("google_tokens")
+      .select("google_email, updated_at")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    if (data && data.length > 0) {
       connected = true;
-      email = (data.google_email as string) ?? null;
+      email = (data[0].google_email as string) ?? null;
     }
   }
   return NextResponse.json({ configured, connected, email });
