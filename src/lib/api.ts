@@ -26,6 +26,8 @@ import type {
   Profile,
   Project,
   Routine,
+  RoutineCompletion,
+  RoutineStep,
   SavingsGoal,
   SharedExpense,
   ShoppingItem,
@@ -111,6 +113,16 @@ export const api = {
       .eq("status", "active")
       .order("created_at");
     return (data as Project[]) ?? [];
+  },
+
+  async routineSteps(sb: SB): Promise<RoutineStep[]> {
+    const { data } = await sb.from("routine_steps").select("*").order("order");
+    return (data as RoutineStep[]) ?? [];
+  },
+
+  async routineCompletions(sb: SB, date: string): Promise<RoutineCompletion[]> {
+    const { data } = await sb.from("routine_completions").select("*").eq("date", date);
+    return (data as RoutineCompletion[]) ?? [];
   },
 
   async tasks(sb: SB): Promise<Task[]> {
@@ -290,7 +302,7 @@ export const api = {
 export function moneyTotals(
   accounts: Account[],
   transactions: Transaction[],
-  profile: Profile | null
+  _profile: Profile | null
 ): MoneyTotals {
   const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
   const loans = accounts.filter((a) => a.type === "loan").reduce((s, a) => s + a.balance, 0);

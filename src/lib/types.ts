@@ -314,7 +314,9 @@ export interface Routine {
   time_of_day: string;
   icon: string;
   color: string;
-  items: { text: string; minutes: number }[];
+  days: "daily" | "weekdays" | "weekend";
+  start_time: string; // HH:MM local
+  items: { text: string; minutes: number }[]; // legacy (kept for compat)
   active: boolean;
 }
 
@@ -476,6 +478,24 @@ export interface AIMemory {
   category: string;
   key: string;
   value: string;
+}
+
+export interface RoutineStep {
+  id: string;
+  user_id: string;
+  routine_id: string;
+  title: string;
+  time: string; // HH:MM local
+  duration_minutes: number;
+  order: number;
+  created_at: string;
+}
+
+export interface RoutineCompletion {
+  id: string;
+  user_id: string;
+  step_id: string;
+  date: string; // YYYY-MM-DD
 }
 
 export interface MoneyTotals {

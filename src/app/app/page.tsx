@@ -20,6 +20,7 @@ import {
 } from "@/components/ui";
 import { formatDate, formatMoney, formatTime, greeting, monthKey, percent } from "@/lib/format";
 import { boredomIdeas, nowBanner, whatShouldIDo, nowStatus, type BoredomMood, type Suggestion } from "@/lib/now";
+import { currentRoutine, sortSteps } from "@/lib/routines";
 import {
   activityTimeline,
   computeDayStats,
@@ -31,12 +32,13 @@ import {
   type TimelineEntry,
   type TomorrowPrep,
 } from "@/lib/daily";
-import type { Account, CalendarEvent, Category, FocusSession, Habit, HabitCompletion, SavingsGoal, Subscription, Task, Transaction, WidgetDef } from "@/lib/types";
+import type { Account, CalendarEvent, Category, FocusSession, Habit, HabitCompletion, Routine, RoutineCompletion, RoutineStep, SavingsGoal, Subscription, Task, Transaction, WidgetDef } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const DEFAULT_WIDGETS: WidgetDef[] = [
   { id: "briefing", visible: true },
   { id: "top3", visible: true },
+  { id: "routine", visible: true },
   { id: "next", visible: true },
   { id: "money", visible: true },
   { id: "tasks", visible: true },
@@ -52,15 +54,20 @@ const DEFAULT_WIDGETS: WidgetDef[] = [
 
 // Modes: which widgets are shown per mode (progressive disclosure)
 const MODE_WIDGETS: Record<string, string[]> = {
-  all: ["briefing", "top3", "next", "money", "tasks", "events", "timeline", "summary", "tomorrow", "goals", "habits", "bills", "chart"],
-  work: ["briefing", "top3", "next", "tasks", "events", "timeline"],
+  all: ["briefing", "top3", "routine", "next", "money", "tasks", "events", "timeline", "summary", "tomorrow", "goals", "habits", "bills", "chart"],
+  work: ["briefing", "top3", "routine", "next", "tasks", "events", "timeline"],
   finance: ["briefing", "top3", "next", "money", "bills", "chart", "goals"],
   study: ["briefing", "top3", "next", "tasks", "goals", "timeline"],
-  weekend: ["briefing", "top3", "next", "events", "habits", "timeline", "tomorrow"],
+  weekend: ["briefing", "top3", "routine", "next", "events", "habits", "timeline", "tomorrow"],
   travel: ["briefing", "top3", "next", "money", "goals", "tomorrow"],
 };
 
 type Mode = "all" | "work" | "finance" | "study" | "weekend" | "travel";
+
+/** Local YYYY-MM-DD (avoid toISOString which is UTC and shifts the day). */
+function localDayKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 export default function DashboardPage() {
   const { t, currency, profile } = useApp();
@@ -84,6 +91,9 @@ export default function DashboardPage() {
   const [boredOpen, setBoredOpen] = useState(false);
   const [boredIdeas, setBoredIdeas] = useState<Suggestion[]>([]);
   const [focus, setFocus] = useState<FocusSession[]>([]);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [rSteps, setRSteps] = useState<RoutineStep[]>([]);
+  const [rCompletions, setRCompletions] = useState<RoutineCompletion[]>([]);
 
   const now = new Date();
   const saveMode = ((profile?.preferences ?? {}) as Record<string, unknown>).save_mode === true;
@@ -93,7 +103,7 @@ export default function DashboardPage() {
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(dayStart.getTime() + 86400000);
     const weekEnd = new Date(dayStart.getTime() + 7 * 86400000);
-    const [tx_, acc, cats, tasks_, evs, goals_, subs_, habs_, comps_, foc_] = await Promise.all([
+    const [tx_, acc, cats, tasks_, evs, goals_, subs_, habs_, comps_, foc_, rts_, rSteps_, rComps_] = await Promise.all([
       api.allTransactions(supabase, 300),
       api.accounts(supabase),
       api.categories(supabase),
@@ -104,6 +114,9 @@ export default function DashboardPage() {
       api.habits(supabase),
       api.completions(supabase),
       api.focusSessions(supabase),
+      api.routines(supabase),
+      api.routineSteps(supabase),
+      api.routineCompletions(supabase, localDayKey(new Date())),
     ]);
     setTx(tx_);
     setAccounts(acc);
@@ -115,6 +128,9 @@ export default function DashboardPage() {
     setHabits(habs_);
     setCompletions(comps_);
     setFocus(foc_);
+    setRoutines(rts_);
+    setRSteps(rSteps_);
+    setRCompletions(rComps_);
     setLoading(false);
   }, [supabase]);
 
@@ -247,10 +263,22 @@ export default function DashboardPage() {
 
   const briefing = buildBriefing(t, currency, profile?.name ?? "", todayTasks.length, totals, monthTx, categories, goals, todayHabits.length);
   const nextItems = buildNextItems(t, currency, tasks, subs, goals, monthTx, categories, now);
+  const routineNow = currentRoutine(routines, rSteps, now);
 
   const widgets: Record<string, { visible: boolean; render: () => React.ReactNode }> = {
     briefing: { visible: true, render: () => <BriefingWidget t={t} briefing={briefing} /> },
     top3: { visible: true, render: () => <PrioritiesWidget t={t} items={priorities} /> },
+    routine: {
+      visible: true,
+      render: () => (
+        <RoutineWidget
+          t={t}
+          now={routineNow}
+          doneIds={new Set(rCompletions.map((c) => c.step_id))}
+          onToggle={toggleRoutineStep}
+        />
+      ),
+    },
     next: { visible: true, render: () => <NextWidget t={t} items={nextItems} /> },
     timeline: { visible: true, render: () => <TimelineWidget t={t} currency={currency} items={timeline} /> },
     summary: { visible: true, render: () => <SummaryWidget t={t} currency={currency} stats={stats} tod={tod} /> },
@@ -267,6 +295,16 @@ export default function DashboardPage() {
   async function toggleTask(task: Task) {
     const done = task.status === "done";
     await supabase.from("tasks").update({ status: done ? "todo" : "done", completed_at: done ? null : new Date().toISOString() }).eq("id", task.id);
+    load();
+  }
+
+  async function toggleRoutineStep(step: RoutineStep) {
+    const existing = rCompletions.find((c) => c.step_id === step.id);
+    if (existing) {
+      await supabase.from("routine_completions").delete().eq("id", existing.id);
+    } else {
+      await supabase.from("routine_completions").insert({ step_id: step.id, date: localDayKey(new Date()) });
+    }
     load();
   }
 
@@ -640,6 +678,64 @@ function GoalsWidget({ t, currency, goals }: { t: (typeof import("@/lib/i18n"))[
           })}
         </div>
       )}
+    </Card>
+  );
+}
+
+function RoutineWidget({
+  t,
+  now,
+  doneIds,
+  onToggle,
+}: {
+  t: (typeof import("@/lib/i18n"))["pt"];
+  now: ReturnType<typeof currentRoutine>;
+  doneIds: Set<string>;
+  onToggle: (step: RoutineStep) => void;
+}) {
+  if (!now) return null;
+  const { routine, steps, currentIndex, nextIndex } = now;
+  const done = steps.filter((s) => doneIds.has(s.id)).length;
+  return (
+    <Card className="border-violet-500/15">
+      <CardHeader
+        title={`${routine.icon || "⏰"} ${routine.name}`}
+        subtitle={routine.start_time}
+        action={<Link href="/app/routines" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+      />
+      {steps.length > 0 && (
+        <div className="mb-3 flex items-center gap-3">
+          <Progress value={(done / steps.length) * 100} className="flex-1" color="bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+          <span className="text-xs font-semibold text-zinc-300">
+            {done}/{steps.length}
+          </span>
+        </div>
+      )}
+      <div className="space-y-1">
+        {steps.map((s, i) => {
+          const isDone = doneIds.has(s.id);
+          const isCurrent = i === currentIndex;
+          const isNext = i === nextIndex;
+          return (
+            <button key={s.id} onClick={() => onToggle(s)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/5">
+              <span
+                className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition",
+                  isDone ? "border-emerald-400 bg-emerald-400/20" : "border-white/20"
+                )}
+              >
+                {isDone && <Check className="h-3 w-3 text-emerald-400" />}
+              </span>
+              <span className="w-11 shrink-0 text-xs tabular-nums text-zinc-500">{s.time}</span>
+              <span className={cn("truncate text-sm", isDone ? "text-zinc-500 line-through" : isCurrent ? "font-medium text-zinc-100" : "text-zinc-300")}>
+                {s.title}
+              </span>
+              {isCurrent && !isDone && <Badge color="green">{t.routines.now}</Badge>}
+              {isNext && <Badge color="violet">{t.routines.upNext}</Badge>}
+            </button>
+          );
+        })}
+      </div>
     </Card>
   );
 }

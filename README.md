@@ -55,6 +55,8 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - Adiciona a coluna `parent_task_id` à tabela `tasks` (permite dividir tarefas em subtarefas).
 6. **Projetos ligados (orçamentos, despesas e metas):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-5.sql`](supabase/migration-5.sql) e executa.
    - Adiciona `projects.budget` e liga despesas (`transactions.project_id`) e metas de poupança (`savings_goals.project_id`) a projetos.
+7. **Rotinas automáticas (manhã/trabalho/noite):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-6.sql`](supabase/migration-6.sql) e executa.
+   - Estende a tabela `routines` (dias + hora de início), adiciona `routine_steps` (passos com hora e duração) e `routine_completions` (marcar passos como feitos por dia). Converte `items` antigos em passos.
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 
