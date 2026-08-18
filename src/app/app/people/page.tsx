@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { addBirthdayEvents, api } from "@/lib/api";
 import {
@@ -25,6 +25,7 @@ export default function PeoplePage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Contact | null>(null);
 
   const load = useCallback(async () => {
     setContacts(await api.contacts(supabase));
@@ -87,12 +88,22 @@ export default function PeoplePage() {
                       <p className="text-sm font-semibold text-zinc-100">{c.name}</p>
                       <p className="text-[11px] text-zinc-500">{c.relationship ?? ""}</p>
                     </div>
-                    <button
-                      onClick={() => remove(c.id)}
-                      className="rounded-lg p-1 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1 opacity-60 transition hover:opacity-100">
+                      <button
+                        onClick={() => { setEditing(c); setOpen(true); }}
+                        className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/8 hover:text-zinc-100"
+                        title={t.common.edit}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => remove(c.id)}
+                        className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/8 hover:text-red-400"
+                        title={t.common.delete}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {c.birthday && birthdaySoon && (
@@ -113,17 +124,24 @@ export default function PeoplePage() {
         </div>
       )}
 
-      <ContactModal open={open} onClose={() => setOpen(false)} onSaved={load} />
+      <ContactModal
+        open={open}
+        contact={editing}
+        onClose={() => { setOpen(false); setEditing(null); }}
+        onSaved={load}
+      />
     </div>
   );
 }
 
 function ContactModal({
   open,
+  contact,
   onClose,
   onSaved,
 }: {
   open: boolean;
+  contact: Contact | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -139,42 +157,48 @@ function ContactModal({
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setRelationship("");
-      setPhone("");
-      setEmail("");
-      setBirthday("");
-      setLastContacted("");
-      setNotes("");
+      setName(contact?.name ?? "");
+      setRelationship(contact?.relationship ?? "");
+      setPhone(contact?.phone ?? "");
+      setEmail(contact?.email ?? "");
+      setBirthday(contact?.birthday ?? "");
+      setLastContacted(contact?.last_contacted ?? "");
+      setNotes(contact?.notes ?? "");
     }
-  }, [open]);
+  }, [open, contact]);
 
   async function save() {
     if (!name.trim()) return;
     const trimmed = name.trim();
-    const { data: contact } = await supabase
-      .from("contacts")
-      .insert({
-        name: trimmed,
-        relationship: relationship || null,
-        phone: phone || null,
-        email: email || null,
-        birthday: birthday || null,
-        last_contacted: lastContacted || null,
-        notes: notes || null,
-      })
-      .select("id")
-      .single();
-    // mark an all-day calendar event for every year (until +60 years)
-    if (birthday && contact) {
-      await addBirthdayEvents(supabase, `🎂 ${t.people.birthday} — ${trimmed}`, contact.id, birthday);
+    const payload = {
+      name: trimmed,
+      relationship: relationship || null,
+      phone: phone || null,
+      email: email || null,
+      birthday: birthday || null,
+      last_contacted: lastContacted || null,
+      notes: notes || null,
+    };
+    let id = contact?.id;
+    if (contact) {
+      await supabase.from("contacts").update(payload).eq("id", contact.id);
+    } else {
+      const { data } = await supabase.from("contacts").insert(payload).select("id").single();
+      id = data?.id;
+    }
+    // keep the all-day birthday calendar events in sync (create/edit/remove)
+    if (id) {
+      await supabase.from("calendar_events").delete().eq("description", `🎂:${id}`);
+      if (birthday) {
+        await addBirthdayEvents(supabase, `🎂 ${t.people.birthday} — ${trimmed}`, id, birthday);
+      }
     }
     onSaved();
     onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.people.add}>
+    <Modal open={open} onClose={onClose} title={contact ? t.common.edit : t.people.add}>
       <div className="space-y-4">
         <Field label={t.common.name}>
           <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
