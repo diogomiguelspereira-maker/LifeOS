@@ -119,6 +119,7 @@ export interface Task {
   status: "todo" | "in_progress" | "done";
   tags: string[];
   project_id: string | null;
+  parent_task_id: string | null;
   estimated_minutes: number | null;
   recurrence: string | null;
   reminder_at: string | null;

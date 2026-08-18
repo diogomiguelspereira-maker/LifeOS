@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Flame, Pause, Play, RotateCcw, Timer } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
@@ -12,9 +13,10 @@ import { cn } from "@/lib/cn";
 
 type Phase = "work" | "short" | "long";
 
-export default function FocusPage() {
+function FocusPageInner() {
   const { t } = useApp();
   const supabase = useSupabase();
+  const params = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [sessions, setSessions] = useState<FocusSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,12 @@ export default function FocusPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // "Do it now" (#56): preselect the task passed via ?task=
+  useEffect(() => {
+    const preset = params.get("task");
+    if (preset) setTaskId(preset);
+  }, [params]);
 
   function handleComplete() {
     setRunning(false);
@@ -232,5 +240,13 @@ export default function FocusPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function FocusPage() {
+  return (
+    <Suspense fallback={null}>
+      <FocusPageInner />
+    </Suspense>
   );
 }

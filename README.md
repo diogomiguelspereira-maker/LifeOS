@@ -51,6 +51,8 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - **Aditivo e seguro**: apenas adiciona tabelas novas (+1 coluna em `subscriptions`) — não apaga nem altera dados existentes. Pode ser corrido em qualquer altura, mesmo depois de já usares a app.
 4. **Google Calendar + Undo (Life Admin, NOW, captura rápida):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-3.sql`](supabase/migration-3.sql) e executa.
    - Adiciona `google_tokens` (tokens encriptados com RLS) e `ai_action_log` (histórico de ações da IA para reverter).
+5. **Inteligência de prazos (subtarefas, breakdown automático):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-4.sql`](supabase/migration-4.sql) e executa.
+   - Adiciona a coluna `parent_task_id` à tabela `tasks` (permite dividir tarefas em subtarefas).
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 

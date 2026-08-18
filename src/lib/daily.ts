@@ -1,3 +1,4 @@
+import { deadlineRisk } from "./deadlines";
 import type {
   CalendarEvent,
   Category,
@@ -84,26 +85,28 @@ export function topPriorities(
 
   // Due today.
   for (const t of open.filter((x) => x.due_date === key)) {
+    const risk = deadlineRisk(t, 120, today);
     cands.push({
       score: 88 + prioBonus(t.priority),
       icon: "📌",
       title: t.title,
-      reason: "vence hoje",
+      reason: risk ? `vence hoje · ⚠️ risco de prazo (${risk.requiredPerDay} min/dia)` : "vence hoje",
       href: "/app/tasks",
-      tone: t.priority === "high" ? "red" : "amber",
+      tone: t.priority === "high" || risk ? "red" : "amber",
     });
   }
 
   // Due within 3 days.
   for (const t of open.filter((x) => x.due_date && x.due_date > key && daysAhead(x.due_date, today) <= 3)) {
     const d = daysAhead(t.due_date!, today);
+    const risk = deadlineRisk(t, 120, today);
     cands.push({
       score: 72 + prioBonus(t.priority) - d * 6,
       icon: "🗓️",
       title: t.title,
-      reason: `vence em ${d} dia(s)`,
+      reason: risk ? `vence em ${d} dia(s) · ⚠️ pode falhar por ${risk.missByDays} dia(s)` : `vence em ${d} dia(s)`,
       href: "/app/tasks",
-      tone: d <= 1 ? "amber" : "green",
+      tone: d <= 1 || risk ? "amber" : "green",
     });
   }
 

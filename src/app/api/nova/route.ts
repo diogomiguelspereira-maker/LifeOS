@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@/lib/supabase/server";
 import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
+import { breakdownSuggestions } from "@/lib/deadlines";
 import type { NovaResponse } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
       goals: goals.map((g) => ({ name: g.name, current: g.current_amount, target: g.target_amount, deadline: g.deadline, monthlyContribution: g.monthly_contribution })),
       subscriptions: subs.map((s) => ({ name: s.name, amount: s.amount, cycle: s.billing_cycle, next: s.next_billing_date, unused: s.is_unused, toCancel: (s as { to_cancel?: boolean }).to_cancel === true })),
       upcomingEvents: events.slice(0, 5).map((e) => ({ title: e.title, start: e.start_at })),
-      openTasks: tasks.filter((x) => x.status !== "done").slice(0, 10).map((x) => ({ title: x.title, due: x.due_date })),
+      openTasks: tasks.filter((x) => x.status !== "done").slice(0, 10).map((x) => ({ id: x.id, title: x.title, due: x.due_date })),
       habits: habits.map((h) => ({ name: h.name, targetPerWeek: h.target_per_week })),
       memory: memoryEnabled ? memory.map((m) => ({ [m.category]: m.key + ": " + m.value })) : "desativada pelo utilizador",
       travel: trips.slice(0, 5).map((tr) => ({ destination: tr.destination, start: tr.start_date, end: tr.end_date, budget: tr.budget })),
@@ -122,7 +123,8 @@ Regras:
 - Responde sempre no idioma do utilizador (campo language do contexto: pt ou en).
 - Responde de forma curta, calorosa e prática, como uma assistente de confiança. Usa emojis com moderação.
 - Quando o utilizador pedir para CRIAR algo (tarefa, evento, objetivo de poupança, nota, movimento financeiro), devolve JSON com campo "reply" (texto a mostrar) e campo "action" com {kind, payload}. Kinds válidos: create_task {title, due_date?, notes?}, create_event {title, start_at?, end_at?}, create_goal {name, target_amount?, deadline?}, create_note {title, content}, create_transaction {amount, description?, type: "expense"|"income"}.
-- Para planos ("planear a noite/o fim de semana"): devolve action com kind "create_plan" e payload {items: [{kind: "event"|"task", title, start_at?, end_at?, due_date?}]} com 2-5 itens realistas baseados no contexto (calendário, tarefas, dinheiro). O utilizador aprova antes de criar.
+- Para planos ("planear a noite/o fim de semana"): devolve action com kind "create_plan" e payload {items: [{kind: "event"|"task", title, start_at?, end_at?, due_date?, estimated_minutes?, parent_task_id?}]} com 2-5 itens realistas baseados no contexto (calendário, tarefas, dinheiro). O utilizador aprova antes de criar.
+- Quando o utilizador pedir para DIVIDIR/desdobrar uma tarefa em subtarefas (ex: "divide a tarefa X", "break down X", "desdobra X"): devolve action create_plan com itens kind "task" (título + estimated_minutes, 3-6 passos lógicos) e parent_task_id = id da tarefa original SE ela existir nas openTasks do contexto. Se a tarefa for trivial, responde apenas com texto (sem action). O utilizador aprova antes de criar.
 - Se o utilizador perguntar "why?" / "porquê?", explica o raciocínio por trás da recomendação anterior, citando números do contexto.
 - Para operações destrutivas (apagar, alterar) NUNCA devolvas action: apenas confirma o que encontraste e pergunta se quer que avance (o utilizador confirma na UI).
 - Usa os dados do contexto para responder com números reais. Para "can I afford it" / "posso comprar": analisa dinheiro disponível, rendimento, despesas, objetivos e respondes com recomendação educacional clara, distinguindo-a de aconselhamento financeiro profissional.
@@ -191,7 +193,7 @@ function localNova(
     language: string;
     money: Record<string, unknown>;
     goals: { name: string; current: number; target: number }[];
-    openTasks: { title: string; due: string | null }[];
+    openTasks: { id?: string; title: string; due: string | null }[];
     habits?: { name: string }[];
     travel?: { destination: string; start: string | null }[];
     learning?: { studyHoursLast30d?: number };
@@ -225,6 +227,34 @@ function localNova(
       reply: pt ? `Claro! Vou criar a tarefa "…${title}". Confirma para eu guardar. ⏰` : `Sure! I'll create the task "${title}". Confirm to save it. ⏰`,
       action: { kind: "create_task", payload: { title, due_date: null } },
     };
+  }
+  if (/(divide|dividir|desdobra|desdobrar|break down|subtar|sub[- ]?tarefa|subtask)/.test(m)) {
+    const openTasks = ctx.openTasks as { id?: string; title: string; due: string | null }[];
+    const rest = message
+      .replace(/^(divide|dividir|desdobra|desdobrar|break down|subtar)\s*/i, "")
+      .replace(/^(a |o |a tarefa |a tarefa de |the task |the )/i, "")
+      .replace(/(\s+(em|em sub[- ]?tarefas|em tarefas|into subtasks|into tasks))?\s*$/i, "")
+      .trim();
+    const target = openTasks.find((x) => x.title.toLowerCase().includes(rest.toLowerCase()) || rest.toLowerCase().includes(x.title.toLowerCase())) ?? openTasks[0];
+    const items = breakdownSuggestions((target?.title ?? rest) || "") ?? [];
+    if (items.length) {
+      return {
+        reply: pt
+          ? `✨ Aqui está uma proposta de subtarefas para "${target?.title ?? rest}". Aprovas para eu criar?`
+          : `✨ Here's a subtask breakdown for "${target?.title ?? rest}". Approve so I can create them?`,
+        action: {
+          kind: "create_plan",
+          payload: {
+            items: items.map((it) => ({
+              kind: "task",
+              title: it.title,
+              estimated_minutes: it.estimated_minutes,
+              parent_task_id: target?.id ?? null,
+            })),
+          },
+        },
+      };
+    }
   }
   if (/(tarefa|task)/.test(m) && /(cria|create|adiciona|add)/.test(m)) {
     const title = message.replace(/^(cria|create|adiciona|add)\s+(uma\s+)?(tarefa|task)\s*/i, "").trim() || "Tarefa nova";

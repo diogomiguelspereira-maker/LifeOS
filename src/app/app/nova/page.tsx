@@ -119,7 +119,7 @@ function NovaChat() {
           break;
         }
         case "create_plan": {
-          const items = (action.payload.items ?? []) as { kind: string; title: string; start_at?: string; end_at?: string; due_date?: string | null }[];
+          const items = (action.payload.items ?? []) as { kind: string; title: string; start_at?: string; end_at?: string; due_date?: string | null; estimated_minutes?: number; parent_task_id?: string | null }[];
           const createdEvents: string[] = [];
           const createdTasks: string[] = [];
           for (const it of items) {
@@ -129,7 +129,16 @@ function NovaChat() {
               const { data } = await supabase.from("calendar_events").insert({ title: it.title, start_at: start.toISOString(), end_at: end.toISOString() }).select().single();
               if (data) createdEvents.push((data as { id: string }).id);
             } else if (it.kind === "task") {
-              const { data } = await supabase.from("tasks").insert({ title: it.title, due_date: it.due_date ?? null }).select().single();
+              const { data } = await supabase
+                .from("tasks")
+                .insert({
+                  title: it.title,
+                  due_date: it.due_date ?? null,
+                  estimated_minutes: it.estimated_minutes ?? null,
+                  parent_task_id: it.parent_task_id ?? null,
+                })
+                .select()
+                .single();
               if (data) createdTasks.push((data as { id: string }).id);
             }
           }
@@ -330,12 +339,31 @@ function NovaChat() {
       <Modal open={!!pending} onClose={() => setPending(null)} title={t.nova.confirmTitle}>
         {pending && (
           <div className="space-y-4">
-            <div className="rounded-xl bg-white/5 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-                {pending.action.kind.replace("create_", "create ")}
-              </p>
-              <p className="mt-1.5 text-sm text-zinc-200">{JSON.stringify(pending.action.payload, null, 2)}</p>
-            </div>
+            {pending.action.kind === "create_plan" ? (
+              <div className="rounded-xl bg-white/5 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                  {t.nova.confirmTitle}
+                </p>
+                <div className="mt-2 space-y-1.5">
+                  {((pending.action.payload.items ?? []) as { kind: string; title: string; estimated_minutes?: number }[]).map((it, i) => (
+                    <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-300">
+                      <span>{it.kind === "event" ? "📅" : "✅"}</span>
+                      <span className="truncate">{it.title}</span>
+                      {it.kind === "task" && it.estimated_minutes != null && (
+                        <span className="ml-auto shrink-0 text-[11px] text-zinc-500">{it.estimated_minutes}m</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-white/5 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                  {pending.action.kind.replace("create_", "create ")}
+                </p>
+                <p className="mt-1.5 text-sm text-zinc-200">{JSON.stringify(pending.action.payload, null, 2)}</p>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button variant="secondary" className="flex-1" onClick={() => setPending(null)}>
                 {t.common.cancel}
