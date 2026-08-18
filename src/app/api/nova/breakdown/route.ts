@@ -47,7 +47,7 @@ Responde APENAS com JSON válido: {"items": [{"title": string, "estimated_minute
       model,
       messages: [{ role: "system", content: prompt }],
       temperature: 0.4,
-      max_tokens: 500,
+      max_tokens: 1000,
       response_format: { type: "json_object" },
     });
     const raw = completion.choices[0]?.message?.content ?? "{}";
