@@ -135,8 +135,16 @@ function tasksFor(minutes: number, tasks: Task[], overdue: Task[]): Suggestion[]
 }
 
 /** The signature free-time engine: what should I do with N free minutes? */
-export function whatShouldIDo(ctx: NowContext, minutes: number | null = null, opts: { budgetMode?: boolean } = {}): Suggestion[] {
-  const free = minutes ?? (ctx.now.gapUntilNext ?? ctx.now.gaps[0]?.minutes ?? 30);
+export function whatShouldIDo(
+  ctx: NowContext,
+  minutes: number | null = null,
+  opts: { budgetMode?: boolean; energy?: "low" | "normal" | "high" } = {}
+): Suggestion[] {
+  let free = minutes ?? (ctx.now.gapUntilNext ?? ctx.now.gaps[0]?.minutes ?? 30);
+  const energy = opts.energy ?? "normal";
+  // Energy-aware planning (#54): low energy → short wins, high → deep work.
+  if (energy === "low") free = Math.min(free, 20);
+  if (energy === "high") free = Math.max(free, 45);
   const out: Suggestion[] = [];
 
   // Low-budget mode (#29): zero-cost options first.
@@ -204,13 +212,13 @@ export function whatShouldIDo(ctx: NowContext, minutes: number | null = null, op
     });
   }
 
-  // 6. Break
+  // 6. Break (longer when energy is low — rest is the right move)
   out.push({
-    icon: "☕",
-    title: "Fazer uma pausa",
-    duration: Math.min(15, free),
+    icon: energy === "low" ? "😴" : "☕",
+    title: energy === "low" ? "Descansar a sério" : "Fazer uma pausa",
+    duration: energy === "low" ? Math.min(30, free) : Math.min(15, free),
     kind: "break",
-    reason: "recuperar energia ajuda o resto do dia",
+    reason: energy === "low" ? "recuperar energias é produtivo" : "recuperar energia ajuda o resto do dia",
   });
 
   return out.slice(0, 5);

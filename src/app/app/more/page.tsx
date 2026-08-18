@@ -21,6 +21,7 @@ import {
   Sunrise,
   Target,
   Timer,
+  Upload,
   Users,
   Wallet,
 } from "lucide-react";
@@ -41,6 +42,8 @@ const ITEMS: { href: string; icon: typeof Target; label: (t: Dict) => string }[]
   { href: "/app/digital", icon: FolderOpen, label: (t) => t.digital.title },
   { href: "/app/aimemory", icon: Brain, label: (t) => t.aimemory.title },
   { href: "/app/lifeadmin", icon: ClipboardList, label: (t) => t.lifeadmin.title },
+  { href: "/app/dates", icon: CalendarClock, label: (t) => t.dates.title },
+  { href: "/app/import", icon: Upload, label: (t) => t.importData.title },
   { href: "/app/projects", icon: FolderKanban, label: (t) => t.projects.title },
   { href: "/app/routines", icon: Sunrise, label: (t) => t.routines.title },
   { href: "/app/review", icon: CalendarClock, label: (t) => t.reviews.title },

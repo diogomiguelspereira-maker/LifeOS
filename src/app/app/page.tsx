@@ -89,6 +89,7 @@ export default function DashboardPage() {
   const [mode, setMode] = useState<Mode>("all");
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [energy, setEnergy] = useState<"low" | "normal" | "high">("normal");
   const [boredOpen, setBoredOpen] = useState(false);
   const [boredIdeas, setBoredIdeas] = useState<Suggestion[]>([]);
   const [focus, setFocus] = useState<FocusSession[]>([]);
@@ -240,8 +241,9 @@ export default function DashboardPage() {
   const timeline = activityTimeline(events, tx, focus, tasks, categories, now);
   const stats = computeDayStats(tasks, tx, focus, completions, habits, goals, now);
   const tomorrow = tomorrowPrep(events, tasks, subs, now);
-  function openSuggestions() {
-    setSuggestions(whatShouldIDo(nowCtx, null, { budgetMode: saveMode }));
+  function openSuggestions(energyValue: "low" | "normal" | "high" = energy) {
+    setEnergy(energyValue);
+    setSuggestions(whatShouldIDo(nowCtx, null, { budgetMode: saveMode, energy: energyValue }));
     setSuggestOpen(true);
   }
 
@@ -383,7 +385,7 @@ export default function DashboardPage() {
           <Button variant="outline" size="sm" onClick={() => setBoredOpen(true)}>
             😅 <span className="hidden sm:inline">{t.now.bored}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={openSuggestions}>
+          <Button variant="outline" size="sm" onClick={() => openSuggestions()}>
             <Sparkles className="h-4 w-4" />
             <span className="hidden sm:inline">{t.now.whatShouldIDo}</span>
           </Button>
@@ -423,6 +425,23 @@ export default function DashboardPage() {
       {/* What should I do? modal */}
       <Modal open={suggestOpen} onClose={() => setSuggestOpen(false)} title={t.now.whatShouldIDo}>
         <div className="space-y-2">
+          <div className="mb-1 flex items-center gap-1.5">
+            <span className="mr-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.now.energy}</span>
+            {([["low", "😩", t.now.energyLow], ["normal", "🙂", t.now.energyNormal], ["high", "⚡", t.now.energyHigh]] as const).map(([val, icon, label]) => (
+              <button
+                key={val}
+                onClick={() => openSuggestions(val)}
+                className={cn(
+                  "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                  energy === val
+                    ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-200"
+                    : "border-white/10 text-zinc-400 hover:bg-white/5"
+                )}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
           <p className="text-xs text-zinc-500">
             {banner.emoji} {banner.headline}
           </p>
