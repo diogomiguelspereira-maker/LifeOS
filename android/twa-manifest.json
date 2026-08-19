@@ -1,0 +1,25 @@
+{
+  "packageId": "com.lifeos.app",
+  "host": "lifeos-eosin-phi.vercel.app",
+  "name": "LifeOS",
+  "launcherName": "LifeOS",
+  "display": "standalone",
+  "themeColor": "#08080c",
+  "themeColorDark": "#08080c",
+  "navigationColor": "#08080c",
+  "navigationColorDark": "#08080c",
+  "backgroundColor": "#08080c",
+  "startUrl": "/app",
+  "iconUrl": "https://lifeos-eosin-phi.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://lifeos-eosin-phi.vercel.app/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android-keys/lifeos.keystore",
+    "alias": "lifeos"
+  },
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "enableNotifications": false,
+  "orientation": "portrait",
+  "fallbackType": "customtabs"
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.lifeos.app",
+      "sha256_cert_fingerprints": [
+        "b0fcb4f9cc7cafad190728d0afb51b78e135891b47f16386a416e0b382427cb1"
+      ]
+    }
+  }
+]
