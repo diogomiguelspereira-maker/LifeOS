@@ -191,18 +191,73 @@ html.light body {
   color: #18181b;
 }
 
-/* soft app background */
+/* soft app background (transparent so the ambient aurora shows through) */
 .app-bg {
   background:
     radial-gradient(1200px 500px at 80% -10%, rgba(99, 102, 241, 0.14), transparent 60%),
-    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.08), transparent 55%),
-    #08080c;
+    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.08), transparent 55%);
 }
 html.light .app-bg {
   background:
     radial-gradient(1200px 500px at 80% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
-    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.07), transparent 55%),
-    #fafafa;
+    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.07), transparent 55%);
+}
+
+/* Ambient aurora — fixed drifting color blobs behind everything. Theme-aware
+   via color-mix on the accent vars; transform-only animation (compositor). */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+.aurora-blob-1 {
+  width: 44rem;
+  height: 44rem;
+  top: -16rem;
+  right: -12rem;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--accent-500) 42%, transparent), transparent 70%);
+  animation: auroraDrift1 26s ease-in-out infinite alternate;
+}
+.aurora-blob-2 {
+  width: 38rem;
+  height: 38rem;
+  bottom: -14rem;
+  left: -12rem;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--accent-600) 36%, transparent), transparent 70%);
+  animation: auroraDrift2 34s ease-in-out infinite alternate;
+}
+html.light .aurora {
+  opacity: 0.5;
+}
+@keyframes auroraDrift1 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-5rem, 7rem, 0) scale(1.18);
+  }
+}
+@keyframes auroraDrift2 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(5rem, -6rem, 0) scale(1.12);
+  }
+}
+
+/* text selection tint follows the accent */
+::selection {
+  background: color-mix(in srgb, var(--accent-500) 65%, transparent);
+  color: #fff;
 }
 
 /* scrollbar */

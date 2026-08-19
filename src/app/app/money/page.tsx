@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
@@ -47,6 +47,9 @@ function MoneyPageInner() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
+  const cancelNameRef = useRef(false);
 
   const load = useCallback(async () => {
     const [tx, acc, cats] = await Promise.all([
@@ -86,6 +89,24 @@ function MoneyPageInner() {
         .update({ balance: (accounts.find((a) => a.id === tx.account_id)?.balance ?? 0) - tx.amount })
         .eq("id", tx.account_id);
     }
+    load();
+  }
+
+  function startRename(tx: Transaction) {
+    cancelNameRef.current = false;
+    setDraftName(tx.description ?? "");
+    setEditingNameId(tx.id);
+  }
+
+  async function commitRename(tx: Transaction) {
+    setEditingNameId(null);
+    if (cancelNameRef.current) {
+      cancelNameRef.current = false;
+      return;
+    }
+    const name = draftName.trim();
+    if (name === (tx.description ?? "")) return;
+    await supabase.from("transactions").update({ description: name }).eq("id", tx.id);
     load();
   }
 
@@ -267,9 +288,33 @@ function MoneyPageInner() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-200">
-                      {tx.description || cat?.name || t.common.title}
-                    </p>
+                    {editingNameId === tx.id ? (
+                      <input
+                        autoFocus
+                        value={draftName}
+                        onChange={(e) => setDraftName(e.target.value)}
+                        onBlur={() => commitRename(tx)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          } else if (e.key === "Escape") {
+                            cancelNameRef.current = true;
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className="h-7 w-full rounded-lg border border-indigo-400/60 bg-white/5 px-2 text-sm font-medium text-zinc-100 outline-none ring-2 ring-indigo-500/20"
+                        placeholder={cat?.name ?? t.common.title}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startRename(tx)}
+                        title={t.common.edit}
+                        className="block w-full truncate text-left text-sm font-medium text-zinc-200 transition hover:text-indigo-300"
+                      >
+                        {tx.description || cat?.name || t.common.title}
+                      </button>
+                    )}
                     <p className="text-[11px] text-zinc-500">
                       {cat?.name ?? "—"} · {tx.date}
                     </p>

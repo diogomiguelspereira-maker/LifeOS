@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import {
   Activity,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { Card } from "@/components/ui";
+import { getModuleUsage } from "@/lib/module-usage";
 import type { Dict } from "@/lib/i18n";
 
 const ITEMS: { href: string; icon: typeof Target; label: (t: Dict) => string }[] = [
@@ -59,12 +61,17 @@ const ITEMS: { href: string; icon: typeof Target; label: (t: Dict) => string }[]
 ];
 
 export default function MorePage() {
-  const { t } = useApp();
+  const { t, profile } = useApp();
+  const items = useMemo(() => {
+    const usage = getModuleUsage(profile?.preferences);
+    // Most-used modules float to the top; ties keep their original order.
+    return [...ITEMS].sort((a, b) => (usage[b.href] ?? 0) - (usage[a.href] ?? 0));
+  }, [profile?.preferences]);
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight text-zinc-100">{t.nav.more}</h1>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {ITEMS.map((i) => (
+      <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {items.map((i) => (
           <Link key={i.href} href={i.href}>
             <Card className="flex flex-col items-center gap-2 py-6 transition hover:bg-white/8">
               <i.icon className="h-6 w-6 text-indigo-400" />

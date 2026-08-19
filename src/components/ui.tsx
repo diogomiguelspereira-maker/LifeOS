@@ -57,7 +57,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-white/8 bg-white/[0.035] p-4 dark:border-white/8 dark:bg-white/[0.035] backdrop-blur-sm",
+        "rounded-2xl border border-white/10 bg-white/[0.04] p-4 dark:border-white/10 dark:bg-white/[0.04] backdrop-blur-sm",
         className
       )}
       {...props}
@@ -335,8 +335,8 @@ export function EmptyState({
   subtitle?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <div className="text-3xl">{icon}</div>
+    <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.04] text-3xl">{icon}</div>
       <p className="text-sm font-medium text-zinc-300 dark:text-zinc-300">{title}</p>
       {subtitle && <p className="max-w-xs text-xs text-zinc-500">{subtitle}</p>}
     </div>

@@ -414,9 +414,9 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="stagger grid gap-4 sm:grid-cols-2">
         {visibleWidgets.map((w, i) => (
-          <div key={i} className={cn("animate-slide-up", i === 0 && "sm:col-span-2")}>
+          <div key={i} className={cn(i === 0 && "sm:col-span-2")}>
             {w.render()}
           </div>
         ))}

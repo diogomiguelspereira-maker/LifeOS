@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -27,6 +27,7 @@ import { Wordmark } from "@/components/Logo";
 import { CommandPalette } from "@/components/CommandPalette";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { initials } from "@/lib/format";
+import { getModuleUsage, incrementUsage, moduleHref } from "@/lib/module-usage";
 
 const NAV = [
   { href: "/app", labelKey: "home", icon: Home },
@@ -48,7 +49,7 @@ const NAV = [
 const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/calendar"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { profile, t, signOut } = useApp();
+  const { profile, t, signOut, updateProfile } = useApp();
   const pathname = usePathname();
   const router = useRouter();
   const [commandOpen, setCommandOpen] = useState(false);
@@ -63,6 +64,35 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Track how often each module is opened so the "Mais" grid can
+  // reorder itself by usage. Usage lives in the profile so it syncs
+  // across devices; writes are debounced to avoid hammering the DB.
+  const usageRef = useRef<Record<string, number>>({});
+  const prefsRef = useRef<Record<string, unknown>>({});
+  const updateProfileRef = useRef(updateProfile);
+
+  useEffect(() => {
+    updateProfileRef.current = updateProfile;
+  }, [updateProfile]);
+
+  useEffect(() => {
+    const prefs = (profile?.preferences ?? {}) as Record<string, unknown>;
+    prefsRef.current = prefs;
+    usageRef.current = getModuleUsage(prefs);
+  }, [profile?.preferences]);
+
+  useEffect(() => {
+    const href = moduleHref(pathname);
+    if (!href) return;
+    usageRef.current = incrementUsage(usageRef.current, href);
+    const timer = setTimeout(() => {
+      updateProfileRef.current({
+        preferences: { ...prefsRef.current, moduleUsage: usageRef.current },
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const label = (key: string) => (t.nav as unknown as Record<string, string>)[key] ?? key;
 

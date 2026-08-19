@@ -222,7 +222,7 @@ function NovaChat() {
       {/* header */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-500/30">
+          <div className="flex h-11 w-11 animate-nova-glow items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-500/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -272,7 +272,7 @@ function NovaChat() {
       <Card className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-xl shadow-indigo-500/30">
+            <div className="flex h-16 w-16 animate-nova-glow items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-xl shadow-indigo-500/30">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
             <div>
