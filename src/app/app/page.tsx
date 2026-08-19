@@ -920,6 +920,7 @@ function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i
     quiet: t.dashboard.verdictQuiet,
     empty: t.dashboard.verdictEmpty,
   }[stats.verdict];
+  const profit = stats.earned - stats.spent;
   return (
     <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/8 to-transparent">
       <CardHeader title={isNight ? t.dashboard.daySummaryTitle : t.dashboard.daySoFar} />
@@ -928,6 +929,12 @@ function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i
         <MiniStat label="€" value={formatMoney(stats.spent, currency)} tone="text-rose-400" />
         <MiniStat label="🎯" value={`${stats.focusMinutes}m`} tone="text-sky-400" />
         <MiniStat label="🔥" value={`${stats.habitsDone}/${stats.habitsTotal}`} tone="text-amber-400" />
+      </div>
+      <div className="mt-2 flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
+        <span className="text-xs font-medium text-zinc-400">💰 {t.dashboard.dailyProfit ?? "Profit diário"}</span>
+        <span className={`text-sm font-bold ${profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          {profit >= 0 ? "+" : ""}{formatMoney(profit, currency)}
+        </span>
       </div>
       <p className="mt-2.5 text-xs text-zinc-400">{verdict}</p>
     </Card>
