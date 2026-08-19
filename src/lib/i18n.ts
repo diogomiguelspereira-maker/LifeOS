@@ -259,6 +259,8 @@ export const pt = {
     importAddAll: "Adicionar tudo",
     importNone: "Nada para adicionar. Verifica o formato da tabela.",
     importSkipped: "linha(s) ignorada(s)",
+    importUndo: "Desfazer importação",
+    importUndone: "✓ Importação desfeita",
   },
   nova: {
     title: "Nova",
@@ -1083,6 +1085,8 @@ export const en: Dict = {
     importAddAll: "Add all",
     importNone: "Nothing to add. Check the table format.",
     importSkipped: "skipped row(s)",
+    importUndo: "Undo import",
+    importUndone: "✓ Import undone",
   },
   nova: {
     title: "Nova",
@@ -1907,6 +1911,8 @@ export const es: Dict = {
     importAddAll: "Añadir todo",
     importNone: "Nada que añadir. Comprueba el formato de la tabla.",
     importSkipped: "fila(s) ignorada(s)",
+    importUndo: "Deshacer importación",
+    importUndone: "✓ Importación deshecha",
   },
   nova: {
     title: "Nova",
@@ -2731,6 +2737,8 @@ export const fr: Dict = {
     importAddAll: "Tout ajouter",
     importNone: "Rien à ajouter. Vérifie le format du tableau.",
     importSkipped: "ligne(s) ignorée(s)",
+    importUndo: "Annuler l'import",
+    importUndone: "✓ Import annulé",
   },
   nova: {
     title: "Nova",

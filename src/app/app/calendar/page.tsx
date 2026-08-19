@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardPaste, MapPin, Pencil, Trash2 } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardPaste, MapPin, Pencil, Trash2, Undo2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
 import { dontForgetHints } from "@/lib/dontforget";
@@ -551,6 +551,7 @@ function ImportModal({
   const [defaultTitle, setDefaultTitle] = useState("Trabalho");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [lastInserted, setLastInserted] = useState<string[]>([]);
 
   const parsed = useMemo(
     () => parseScheduleText(text, fallbackDate.getFullYear(), fallbackDate.getMonth() + 1),
@@ -602,19 +603,38 @@ function ImportModal({
       if (fresh.length === 0) {
         setMsg(t.calendar.importDone);
       } else {
-        const { error } = await supabase.from("calendar_events").insert(
-          fresh.map((s) => ({
-            title: s.title,
-            start_at: s.startAt.toISOString(),
-            end_at: s.endAt ? s.endAt.toISOString() : null,
-            all_day: s.allDay,
-            color: s.color,
-          }))
-        );
+        const { data: inserted, error } = await supabase
+          .from("calendar_events")
+          .insert(
+            fresh.map((s) => ({
+              title: s.title,
+              start_at: s.startAt.toISOString(),
+              end_at: s.endAt ? s.endAt.toISOString() : null,
+              all_day: s.allDay,
+              color: s.color,
+            }))
+          )
+          .select("id");
         if (error) throw error;
+        setLastInserted(((inserted as { id: string }[] | null) ?? []).map((r) => r.id));
         setMsg(`${t.calendar.importDone} +${fresh.length}`);
         onImported();
       }
+    } catch {
+      setMsg(t.calendar.importFailed);
+    }
+    setBusy(false);
+  }
+
+  async function undoImport() {
+    if (lastInserted.length === 0) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      await supabase.from("calendar_events").delete().in("id", lastInserted);
+      setLastInserted([]);
+      setMsg(t.calendar.importUndone);
+      onImported();
     } catch {
       setMsg(t.calendar.importFailed);
     }
@@ -658,9 +678,17 @@ function ImportModal({
           )}
           {msg && <p className="mt-2 text-[11px] text-emerald-400">{msg}</p>}
         </div>
-        <Button className="w-full" onClick={addAll} disabled={busy || preview.length === 0}>
-          {busy ? t.common.loading : t.calendar.importAddAll}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button className="flex-1" onClick={addAll} disabled={busy || preview.length === 0}>
+            {busy ? t.common.loading : t.calendar.importAddAll}
+          </Button>
+          {lastInserted.length > 0 && (
+            <Button variant="outline" className="flex-1" onClick={undoImport} disabled={busy}>
+              <Undo2 className="h-4 w-4" />
+              {t.calendar.importUndo}
+            </Button>
+          )}
+        </div>
       </div>
     </Modal>
   );
