@@ -181,6 +181,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
+  /* clip (not hidden) prevents horizontal scroll from any overflowing child
+     without creating a scroll container that would break sticky/fixed bars */
+  overflow-x: clip;
 }
 
 html.light body {
@@ -282,6 +285,25 @@ html.light .app-bg {
   animation: pulseSoft 2s ease-in-out infinite;
 }
 
+/* Nova center-FAB: soft pulsing glow so it reads as the primary action.
+   Box-shadow only, so no layout cost; disabled by prefers-reduced-motion. */
+@keyframes novaGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 24px -6px rgba(99, 102, 241, 0.55),
+      0 0 0 0 rgba(139, 92, 246, 0.35);
+  }
+  50% {
+    box-shadow:
+      0 12px 32px -6px rgba(99, 102, 241, 0.75),
+      0 0 0 7px rgba(139, 92, 246, 0.1);
+  }
+}
+.animate-nova-glow {
+  animation: novaGlow 2.8s ease-in-out infinite;
+}
+
 /* stagger children in lists/cards for a springy, layered entrance */
 .stagger > * {
   animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -329,6 +351,14 @@ summary {
   select,
   textarea {
     font-size: 16px !important;
+  }
+}
+
+/* Touch screens have no hover, so hover-revealed row actions (trash/edit) would
+   be invisible yet still tappable — always show them on coarse pointers. */
+@media (hover: none) {
+  .group .opacity-0 {
+    opacity: 1;
   }
 }
 

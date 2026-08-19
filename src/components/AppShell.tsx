@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Activity,
   BarChart3,
   CalendarDays,
   CheckSquare,
@@ -38,11 +39,13 @@ const NAV = [
   { href: "/app/notes", labelKey: "notes", icon: StickyNote },
   { href: "/app/people", labelKey: "people", icon: Users },
   { href: "/app/stats", labelKey: "stats", icon: BarChart3 },
+  { href: "/app/monitor", labelKey: "monitor", icon: Activity },
   { href: "/app/more", labelKey: "more", icon: LayoutGrid },
   { href: "/app/settings", labelKey: "settings", icon: Settings },
 ] as const;
 
-const MOBILE_MAIN = ["/app", "/app/money", "/app/calendar", "/app/nova", "/app/tasks"];
+// Odd count so Nova sits exactly in the center of the 5-slot bar.
+const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/calendar"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, t, signOut } = useApp();
@@ -114,7 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden dark:border-white/6 dark:bg-black/40">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden dark:border-white/6 dark:bg-black/40">
         <Link href="/app" onClick={() => router.push("/app")}>
           <Wordmark />
         </Link>
@@ -141,8 +144,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden dark:border-white/8 dark:bg-black/60">
-        <div className="mx-auto flex max-w-md items-center justify-around px-2 py-1.5">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:border-white/8 dark:bg-black/60">
+        <div className="mx-auto flex max-w-md items-center justify-around px-1.5 py-2 sm:px-2">
           {mobileVisible.map((n) => {
             const active = isActive(n.href);
             const isNova = n.href === "/app/nova";
@@ -150,21 +153,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={n.href}
                 href={n.href}
+                aria-label={isNova ? label(n.labelKey) : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-all",
-                  isNova && "-mt-6 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 p-3 shadow-lg shadow-indigo-500/40"
+                  "flex flex-col items-center justify-end gap-0.5 rounded-xl px-2.5 py-1.5 transition-all sm:px-3",
+                  isNova &&
+                    "-mt-7 rounded-full border border-white/20 bg-gradient-to-br from-indigo-500 to-violet-500 p-3.5 animate-nova-glow"
                 )}
               >
                 <n.icon
                   className={cn(
                     "h-[20px] w-[20px]",
-                    isNova ? "text-white" : active ? "text-indigo-400" : "text-zinc-500"
+                    isNova ? "h-[22px] w-[22px] text-white" : active ? "text-indigo-400" : "text-zinc-500"
                   )}
                 />
                 {!isNova && (
                   <span
                     className={cn(
-                      "text-[10px] font-medium",
+                      "whitespace-nowrap text-[10px] font-medium",
                       active ? "text-indigo-400" : "text-zinc-500"
                     )}
                   >
@@ -176,14 +181,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
           <Link
             href="/app/more"
-            className="flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5"
+            className="flex flex-col items-center justify-end gap-0.5 rounded-xl px-2.5 py-1.5 sm:px-3"
           >
             <LayoutGrid
               className={cn("h-[20px] w-[20px]", isActive("/app/more") ? "text-indigo-400" : "text-zinc-500")}
             />
             <span
               className={cn(
-                "text-[10px] font-medium",
+                "whitespace-nowrap text-[10px] font-medium",
                 isActive("/app/more") ? "text-indigo-400" : "text-zinc-500"
               )}
             >

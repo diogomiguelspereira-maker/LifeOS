@@ -381,7 +381,7 @@ function MonthGrid({
               key={key}
               onClick={() => onSelect(d)}
               className={cn(
-                "flex min-h-16 flex-col items-stretch gap-0.5 rounded-lg border p-1 text-left transition sm:min-h-20",
+                "flex min-h-12 flex-col items-stretch gap-0.5 rounded-lg border p-1 text-left transition sm:min-h-20",
                 inMonth ? "border-white/5 bg-white/3 hover:bg-white/8" : "border-transparent bg-transparent opacity-40"
               )}
             >
@@ -435,35 +435,39 @@ function WeekView({
   }, [cursor]);
   const todayKey = localDayKey(new Date());
 
+  // On phones 7 fixed columns are ~40px each (unreadable and cramped). Make the
+  // strip horizontally scrollable with readable columns instead of breaking the page.
   return (
-    <div className="grid grid-cols-7 gap-2">
-      {days.map((d) => {
-        const key = localDayKey(d);
-        const evs = dayEvents.get(key) ?? [];
-        const isToday = key === todayKey;
-        return (
-          <Card key={key} className={cn("p-2", isToday && "border-indigo-500/40")}>
-            <p className={cn("mb-2 text-center text-xs font-semibold capitalize", isToday ? "text-indigo-400" : "text-zinc-400")}>
-              {d.toLocaleDateString("pt-PT", { weekday: "short" })}
-              <span className="ml-1 text-zinc-500">{d.getDate()}</span>
-            </p>
-            <div className="space-y-1.5">
-              {evs.length === 0 && <p className="py-4 text-center text-[10px] text-zinc-600">—</p>}
-              {evs.map((ev) => (
-                <button
-                  key={ev.id}
-                  onClick={() => onEvent(ev)}
-                  className="w-full truncate rounded-lg px-2 py-1.5 text-left text-[10px] font-medium text-white transition hover:opacity-80"
-                  style={{ background: ev.color }}
-                >
-                  {!ev.all_day && `${new Date(ev.start_at).getHours()}:${String(new Date(ev.start_at).getMinutes()).padStart(2, "0")} `}
-                  {ev.title}
-                </button>
-              ))}
-            </div>
-          </Card>
-        );
-      })}
+    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <div className="grid min-w-[540px] grid-cols-7 gap-2">
+        {days.map((d) => {
+          const key = localDayKey(d);
+          const evs = dayEvents.get(key) ?? [];
+          const isToday = key === todayKey;
+          return (
+            <Card key={key} className={cn("p-2", isToday && "border-indigo-500/40")}>
+              <p className={cn("mb-2 text-center text-xs font-semibold capitalize", isToday ? "text-indigo-400" : "text-zinc-400")}>
+                {d.toLocaleDateString("pt-PT", { weekday: "short" })}
+                <span className="ml-1 text-zinc-500">{d.getDate()}</span>
+              </p>
+              <div className="space-y-1.5">
+                {evs.length === 0 && <p className="py-4 text-center text-[10px] text-zinc-600">—</p>}
+                {evs.map((ev) => (
+                  <button
+                    key={ev.id}
+                    onClick={() => onEvent(ev)}
+                    className="w-full truncate rounded-lg px-2 py-1.5 text-left text-[10px] font-medium text-white transition hover:opacity-80"
+                    style={{ background: ev.color }}
+                  >
+                    {!ev.all_day && `${new Date(ev.start_at).getHours()}:${String(new Date(ev.start_at).getMinutes()).padStart(2, "0")} `}
+                    {ev.title}
+                  </button>
+                ))}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

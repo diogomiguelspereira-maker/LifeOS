@@ -2,9 +2,23 @@
   "name": "LifeOS",
   "short_name": "LifeOS",
   "description": "O teu centro de comando pessoal — dinheiro, tarefas, hábitos e objetivos num só lugar.",
+  "id": "/app",
   "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#08080c",
   "theme_color": "#08080c",
-  "lang": "pt"
+  "lang": "pt",
+  "categories": ["productivity", "finance", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nova", "short_name": "Nova", "url": "/app/nova", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Dinheiro", "short_name": "Dinheiro", "url": "/app/money", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Tarefas", "short_name": "Tarefas", "url": "/app/tasks", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }

@@ -190,16 +190,16 @@ export default function ImportPage() {
           />
           <div className="max-h-80 space-y-1 overflow-y-auto">
             {rows.map((r, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-white/4">
-                <span className="w-24 shrink-0 tabular-nums text-zinc-500">{r.date}</span>
-                <span className="min-w-0 flex-1 truncate text-zinc-200">{r.description}</span>
-                <span className={cn("w-24 shrink-0 text-right font-semibold tabular-nums", r.amount < 0 ? "text-rose-400" : "text-emerald-400")}>
+              <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-white/4">
+                <span className="w-20 shrink-0 tabular-nums text-zinc-500 sm:w-24">{r.date}</span>
+                <span className="min-w-[100px] flex-1 truncate text-zinc-200">{r.description}</span>
+                <span className={cn("w-20 shrink-0 text-right font-semibold tabular-nums sm:w-24", r.amount < 0 ? "text-rose-400" : "text-emerald-400")}>
                   {r.amount.toFixed(2)}€
                 </span>
                 <Select
                   value={r.categoryId ?? ""}
                   onChange={(e) => setRows((prev) => (prev ? prev.map((x, j) => (j === i ? { ...x, categoryId: e.target.value || null } : x)) : prev))}
-                  className="h-7 w-36 shrink-0 rounded-lg text-[11px]"
+                  className="h-7 w-32 shrink-0 rounded-lg text-[11px] sm:w-36"
                 >
                   <option value="">{t.importData.category}</option>
                   {categories.map((c) => (

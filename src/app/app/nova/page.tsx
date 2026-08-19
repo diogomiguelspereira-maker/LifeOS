@@ -218,7 +218,7 @@ function NovaChat() {
   const suggestions = t.nova.suggestions;
 
   return (
-    <div className="flex h-[calc(100dvh-140px)] flex-col lg:h-[calc(100dvh-120px)]">
+    <div className="flex h-[calc(100dvh-140px)] min-h-[320px] flex-col lg:h-[calc(100dvh-120px)]">
       {/* header */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
