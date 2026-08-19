@@ -1,0 +1,42 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="0.5" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="glowIndigo" cx="0.5" cy="0.42" r="0.5">
+      <stop offset="0" stop-color="#6366f1" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowViolet" cx="0.5" cy="0.62" r="0.45">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="osGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset="1" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <filter id="logoShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="18" stdDeviation="30" flood-color="#6366f1" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- soft ambient glows -->
+  <rect width="1200" height="1200" fill="url(#glowIndigo)"/>
+  <rect width="1200" height="1200" fill="url(#glowViolet)"/>
+
+  <!-- logo tile -->
+  <rect x="430" y="330" width="340" height="340" rx="76"
+        fill="url(#logoGrad)" filter="url(#logoShadow)"/>
+
+  <!-- sparkle -->
+  <path d="M600 385 Q600 500 715 500 Q600 500 600 615 Q600 500 485 500 Q600 500 600 385 Z"
+        fill="#ffffff"/>
+
+  <!-- wordmark -->
+  <text x="600" y="800" text-anchor="middle"
+        font-family="Noto Sans, DejaVu Sans, sans-serif"
+        font-size="96" font-weight="700" letter-spacing="1"
+        fill="#f4f4f5">Life<tspan fill="url(#osGrad)">OS</tspan></text>
+</svg>
