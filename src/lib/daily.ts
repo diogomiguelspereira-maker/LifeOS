@@ -374,3 +374,36 @@ export function tomorrowPrep(
 
   return { events: tomorrowEvents, tasks: tomorrowTasks, bills: tomorrowBills, leaveHint };
 }
+
+/* ------------------------------------------------------------------ */
+/* Daily profit trend (last N days)                                    */
+/* ------------------------------------------------------------------ */
+
+export interface ProfitDay {
+  date: string; // YYYY-MM-DD
+  label: string; // short label e.g. "19"
+  profit: number;
+}
+
+/** Compute daily profit (earned − spent) for the last `days` days. */
+export function profitTrend(tx: Transaction[], days = 7, now = new Date()): ProfitDay[] {
+  const result: ProfitDay[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dayStart = startOfDay(d);
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
+    const dayTx = tx.filter((x) => {
+      const t = new Date(x.created_at ?? x.date);
+      return t >= dayStart && t < dayEnd;
+    });
+    const earned = dayTx.filter((x) => x.amount > 0).reduce((s, x) => s + x.amount, 0);
+    const spent = Math.abs(dayTx.filter((x) => x.amount < 0).reduce((s, x) => s + x.amount, 0));
+    result.push({
+      date: dayKey(d),
+      label: String(d.getDate()),
+      profit: Math.round((earned - spent) * 100) / 100,
+    });
+  }
+  return result;
+}

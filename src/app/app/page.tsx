@@ -24,11 +24,13 @@ import { currentRoutine, sortSteps } from "@/lib/routines";
 import {
   activityTimeline,
   computeDayStats,
+  profitTrend,
   timeOfDay,
   tomorrowPrep,
   topPriorities,
   type DayStats,
   type Priority,
+  type ProfitDay,
   type TimelineEntry,
   type TomorrowPrep,
 } from "@/lib/daily";
@@ -288,7 +290,7 @@ export default function DashboardPage() {
     },
     next: { visible: true, render: () => <NextWidget t={t} items={nextItems} /> },
     timeline: { visible: true, render: () => <TimelineWidget t={t} currency={currency} items={timeline} /> },
-    summary: { visible: true, render: () => <SummaryWidget t={t} currency={currency} stats={stats} tod={tod} /> },
+    summary: { visible: true, render: () => <SummaryWidget t={t} currency={currency} stats={stats} tod={tod} tx={tx} /> },
     tomorrow: { visible: true, render: () => <TomorrowWidget t={t} currency={currency} prep={tomorrow} /> },
     money: { visible: true, render: () => <MoneyWidget t={t} currency={currency} totals={totals} /> },
     tasks: { visible: true, render: () => <TasksWidget t={t} tasks={todayTasks} onToggle={toggleTask} /> },
@@ -912,7 +914,7 @@ function TimelineWidget({ t, currency, items }: { t: (typeof import("@/lib/i18n"
   );
 }
 
-function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; stats: DayStats; tod: ReturnType<typeof timeOfDay> }) {
+function SummaryWidget({ t, currency, stats, tod, tx }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; stats: DayStats; tod: ReturnType<typeof timeOfDay>; tx: Transaction[] }) {
   const isNight = tod === "evening" || tod === "night";
   const verdict = {
     great: t.dashboard.verdictGreat,
@@ -921,6 +923,7 @@ function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i
     empty: t.dashboard.verdictEmpty,
   }[stats.verdict];
   const profit = stats.earned - stats.spent;
+  const trend = useMemo(() => profitTrend(tx, 7), [tx]);
   return (
     <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/8 to-transparent">
       <CardHeader title={isNight ? t.dashboard.daySummaryTitle : t.dashboard.daySoFar} />
@@ -936,6 +939,7 @@ function SummaryWidget({ t, currency, stats, tod }: { t: (typeof import("@/lib/i
           {profit >= 0 ? "+" : ""}{formatMoney(profit, currency)}
         </span>
       </div>
+      <ProfitSparkline trend={trend} currency={currency} />
       <p className="mt-2.5 text-xs text-zinc-400">{verdict}</p>
     </Card>
   );
@@ -1072,6 +1076,39 @@ function buildNextItems(
   }
 
   return items;
+}
+
+function ProfitSparkline({ trend, currency }: { trend: ProfitDay[]; currency: string }) {
+  if (!trend.length) return null;
+  const vals = trend.map((d) => d.profit);
+  const max = Math.max(...vals, 1);
+  const min = Math.min(...vals, 0);
+  const range = max - min || 1;
+  const W = 280;
+  const H = 40;
+  const pad = 2;
+  const points = vals.map((v, i) => {
+    const x = pad + (i / (vals.length - 1 || 1)) * (W - pad * 2);
+    const y = pad + (1 - (v - min) / range) * (H - pad * 2);
+    return `${x},${y}`;
+  });
+  const positive = vals[vals.length - 1] >= 0;
+  const colour = positive ? "#34d399" : "#fb7185";
+  // fill polygon: close to bottom
+  const fillPoints = points.join(" ") + ` ${W - pad},${H - pad} ${pad},${H - pad}`;
+  return (
+    <div className="mt-2">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-8" preserveAspectRatio="none">
+        <polygon points={fillPoints} fill={colour} opacity="0.12" />
+        <polyline points={points.join(" ")} fill="none" stroke={colour} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      </svg>
+      <div className="flex justify-between px-0.5 mt-0.5">
+        {trend.map((d) => (
+          <span key={d.date} className="text-[9px] text-zinc-600">{d.label}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function MiniStat({ label, value, tone }: { label: string; value: string; tone: string }) {
