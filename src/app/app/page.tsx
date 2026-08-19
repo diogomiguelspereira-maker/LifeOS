@@ -923,7 +923,9 @@ function SummaryWidget({ t, currency, stats, tod, tx }: { t: (typeof import("@/l
     empty: t.dashboard.verdictEmpty,
   }[stats.verdict];
   const profit = stats.earned - stats.spent;
-  const trend = useMemo(() => profitTrend(tx, 7), [tx]);
+  const [trendDays, setTrendDays] = useState<7 | 30>(7);
+  const trend = useMemo(() => profitTrend(tx, trendDays), [tx, trendDays]);
+  const weeklyProfit = useMemo(() => trend.slice(-7).reduce((s, d) => s + d.profit, 0), [trend]);
   return (
     <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/8 to-transparent">
       <CardHeader title={isNight ? t.dashboard.daySummaryTitle : t.dashboard.daySoFar} />
@@ -939,7 +941,21 @@ function SummaryWidget({ t, currency, stats, tod, tx }: { t: (typeof import("@/l
           {profit >= 0 ? "+" : ""}{formatMoney(profit, currency)}
         </span>
       </div>
-      <ProfitSparkline trend={trend} currency={currency} />
+      <div className="mt-2 flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
+        <span className="text-xs font-medium text-zinc-400">📈 {t.dashboard.weeklyProfit ?? "Profit semanal"}</span>
+        <span className={`text-sm font-bold ${weeklyProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          {weeklyProfit >= 0 ? "+" : ""}{formatMoney(weeklyProfit, currency)}
+        </span>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <div className="flex rounded-lg bg-white/5 p-0.5">
+          <button onClick={() => setTrendDays(7)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 7 ? "bg-white/10 text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend7d}</button>
+          <button onClick={() => setTrendDays(30)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 30 ? "bg-white/10 text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend30d}</button>
+        </div>
+        <div className="flex-1">
+          <ProfitSparkline trend={trend} currency={currency} />
+        </div>
+      </div>
       <p className="mt-2.5 text-xs text-zinc-400">{verdict}</p>
     </Card>
   );
@@ -1079,6 +1095,7 @@ function buildNextItems(
 }
 
 function ProfitSparkline({ trend, currency }: { trend: ProfitDay[]; currency: string }) {
+  const [hovered, setHovered] = useState<number | null>(null);
   if (!trend.length) return null;
   const vals = trend.map((d) => d.profit);
   const max = Math.max(...vals, 1);
@@ -1087,24 +1104,52 @@ function ProfitSparkline({ trend, currency }: { trend: ProfitDay[]; currency: st
   const W = 280;
   const H = 40;
   const pad = 2;
-  const points = vals.map((v, i) => {
-    const x = pad + (i / (vals.length - 1 || 1)) * (W - pad * 2);
-    const y = pad + (1 - (v - min) / range) * (H - pad * 2);
-    return `${x},${y}`;
-  });
-  const positive = vals[vals.length - 1] >= 0;
+  const points = vals.map((v, i) => ({
+    x: pad + (i / (vals.length - 1 || 1)) * (W - pad * 2),
+    y: pad + (1 - (v - min) / range) * (H - pad * 2),
+  }));
+  const pts = points.map((p) => `${p.x},${p.y}`).join(" ");
+  const lastVal = vals[vals.length - 1];
+  const positive = lastVal >= 0;
   const colour = positive ? "#34d399" : "#fb7185";
-  // fill polygon: close to bottom
-  const fillPoints = points.join(" ") + ` ${W - pad},${H - pad} ${pad},${H - pad}`;
+  const fillPoints = pts + ` ${W - pad},${H - pad} ${pad},${H - pad}`;
+  const active = hovered !== null ? trend[hovered] : null;
   return (
-    <div className="mt-2">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-8" preserveAspectRatio="none">
+    <div className="relative">
+      {active && (
+        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded-lg bg-zinc-800 px-2 py-1 text-[10px] text-zinc-200 shadow-lg whitespace-nowrap">
+          {active.date}: <span className={active.profit >= 0 ? "text-emerald-400" : "text-rose-400"}>{active.profit >= 0 ? "+" : ""}{formatMoney(active.profit, currency)}</span>
+        </div>
+      )}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full h-8 cursor-pointer"
+        preserveAspectRatio="none"
+        onMouseMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const pct = (e.clientX - rect.left) / rect.width;
+          const idx = Math.round(pct * (trend.length - 1));
+          setHovered(Math.max(0, Math.min(trend.length - 1, idx)));
+        }}
+        onMouseLeave={() => setHovered(null)}
+        onTouchMove={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const touch = e.touches[0];
+          const pct = (touch.clientX - rect.left) / rect.width;
+          const idx = Math.round(pct * (trend.length - 1));
+          setHovered(Math.max(0, Math.min(trend.length - 1, idx)));
+        }}
+        onTouchEnd={() => setHovered(null)}
+      >
         <polygon points={fillPoints} fill={colour} opacity="0.12" />
-        <polyline points={points.join(" ")} fill="none" stroke={colour} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={pts} fill="none" stroke={colour} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+        {hovered !== null && (
+          <circle cx={points[hovered].x} cy={points[hovered].y} r="3" fill={colour} stroke="white" strokeWidth="1" />
+        )}
       </svg>
       <div className="flex justify-between px-0.5 mt-0.5">
-        {trend.map((d) => (
-          <span key={d.date} className="text-[9px] text-zinc-600">{d.label}</span>
+        {trend.map((d, i) => (
+          <span key={d.date} className={`text-[9px] ${i === hovered ? "text-zinc-300" : "text-zinc-600"}`}>{d.label}</span>
         ))}
       </div>
     </div>
