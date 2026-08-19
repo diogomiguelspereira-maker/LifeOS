@@ -249,13 +249,13 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={cn("inline-flex rounded-xl border border-white/10 bg-white/5 p-1 dark:border-white/10 dark:bg-white/5", className)}>
+    <div className={cn("inline-flex max-w-full flex-wrap rounded-xl border border-white/10 bg-white/5 p-1 dark:border-white/10 dark:bg-white/5", className)}>
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
+            "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
             value === o.value
               ? "bg-white/12 text-zinc-100 shadow dark:bg-white/12 dark:text-zinc-100"
               : "text-zinc-500 hover:text-zinc-300 dark:text-zinc-500 dark:hover:text-zinc-300"

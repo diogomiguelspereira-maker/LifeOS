@@ -220,7 +220,7 @@ function NovaChat() {
   return (
     <div className="flex h-[calc(100dvh-140px)] min-h-[320px] flex-col lg:h-[calc(100dvh-120px)]">
       {/* header */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 animate-nova-glow items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-500/30">
             <Sparkles className="h-5 w-5 text-white" />
@@ -236,7 +236,7 @@ function NovaChat() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           {lastActionId && (
             <Button variant="ghost" size="sm" onClick={undoLast}>
               ↩️ {t.common.undo}

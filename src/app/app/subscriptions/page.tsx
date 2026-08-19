@@ -114,9 +114,9 @@ export default function SubscriptionsPage() {
           <p className="text-xs font-semibold text-amber-300">{t.subs.warnings}</p>
           <div className="mt-2 space-y-1.5">
             {upcoming.map((s) => (
-              <div key={s.id} className="flex items-center justify-between text-sm">
-                <span className="text-zinc-200">{s.name}</span>
-                <Badge color="amber">
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="min-w-0 truncate text-zinc-200">{s.name}</span>
+                <Badge color="amber" className="shrink-0">
                   {t.subs.renews} {formatDate(s.next_billing_date!)} · {formatMoney(monthlyCost(s), currency)}
                 </Badge>
               </div>

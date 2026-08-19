@@ -258,15 +258,15 @@ function SettingsPageInner() {
       <Card>
         <CardHeader title={t.settings.integrations} />
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-3">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/4 px-3 py-3">
+            <div className="min-w-0">
               <p className="text-sm font-medium text-zinc-200">{t.settings.connectGoogle}</p>
-              <p className="text-xs text-zinc-500">
+              <p className="break-words text-xs text-zinc-500">
                 {t.settings.googleStatus}:{" "}
                 {!googleStatus ? (
                   <Badge color="zinc">…</Badge>
                 ) : googleStatus.connected ? (
-                  <Badge color="green">✓ {googleStatus.email ?? t.settings.googleConnected}</Badge>
+                  <Badge color="green" className="max-w-[60vw] truncate">✓ {googleStatus.email ?? t.settings.googleConnected}</Badge>
                 ) : googleStatus.configured ? (
                   <Badge color="amber">{t.settings.googleNotConnected}</Badge>
                 ) : (
@@ -275,7 +275,7 @@ function SettingsPageInner() {
               </p>
             </div>
             {!googleStatus ? null : googleStatus.connected ? (
-              <div className="flex gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
