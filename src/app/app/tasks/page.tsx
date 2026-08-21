@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarPlus, Check, ChevronDown, Flag, Loader2, Play, Plus, Trash2, Zap } from "lucide-react";
+import { CalendarPlus, Check, ChevronDown, Copy, Flag, Loader2, Play, Plus, Trash2, Zap } from "lucide-react";
 import {
   breakdownSuggestions,
   deadlinePlan,
@@ -21,6 +21,7 @@ import {
   Field,
   Input,
   Modal,
+  Progress,
   Segmented,
   Select,
   Skeleton,
@@ -58,6 +59,27 @@ function TasksPageInner() {
   const [creatingBlocks, setCreatingBlocks] = useState<string | null>(null);
   const [blocksMsg, setBlocksMsg] = useState<{ taskId: string; created: number } | null>(null);
   const router = useRouter();
+  const [undoTask, setUndoTask] = useState<Task | null>(null);
+  const undoTimerRef = useRef<number | null>(null);
+
+  const doneCount = tasks.filter((x) => x.status === "done").length;
+  const overdueCount = tasks.filter(
+    (x) => x.status !== "done" && x.due_date && new Date(x.due_date).getTime() < Date.now()
+  ).length;
+
+  // Keyboard shortcut: T = nova tarefa
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT")) return;
+      if (e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        setAddOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const load = useCallback(async () => {
     const [ts, ps] = await Promise.all([api.tasks(supabase), supabase.from("projects").select("*").eq("status", "active")]);
@@ -110,7 +132,49 @@ function TasksPageInner() {
   }
 
   async function deleteTask(id: string) {
+    const task = tasks.find((x) => x.id === id);
+    if (!task) return;
     await supabase.from("tasks").delete().eq("id", id);
+    setUndoTask(task);
+    if (undoTimerRef.current) window.clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = window.setTimeout(() => setUndoTask(null), 6000);
+    load();
+  }
+
+  async function restoreTask() {
+    if (!undoTask) return;
+    await supabase.from("tasks").insert({
+      title: undoTask.title,
+      notes: undoTask.notes,
+      priority: undoTask.priority,
+      project_id: undoTask.project_id,
+      estimated_minutes: undoTask.estimated_minutes,
+      tags: undoTask.tags,
+      due_date: undoTask.due_date,
+      status: undoTask.status,
+    });
+    setUndoTask(null);
+    load();
+  }
+
+  async function duplicateTask(task: Task) {
+    const due = task.due_date ? new Date(new Date(task.due_date).getTime() + 86400000).toISOString() : null;
+    await supabase.from("tasks").insert({
+      title: task.title,
+      notes: task.notes,
+      priority: task.priority,
+      project_id: task.project_id,
+      estimated_minutes: task.estimated_minutes,
+      tags: task.tags,
+      due_date: due,
+    });
+    load();
+  }
+
+  async function clearCompleted() {
+    const ids = tasks.filter((x) => x.status === "done").map((x) => x.id);
+    if (!ids.length) return;
+    await supabase.from("tasks").delete().in("id", ids);
     load();
   }
 
@@ -198,10 +262,18 @@ function TasksPageInner() {
       <PageHeader
         title={t.tasks.title}
         action={
-          <Button onClick={() => setAddOpen(true)}>
-            <Plus className="h-4 w-4" />
-            {t.tasks.addTask}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {doneCount > 0 && (
+              <Button variant="outline" onClick={clearCompleted}>
+                <Trash2 className="h-4 w-4" />
+                {t.tasks.clearCompleted}
+              </Button>
+            )}
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus className="h-4 w-4" />
+              {t.tasks.addTask}
+            </Button>
+          </div>
         }
       />
 
@@ -261,10 +333,10 @@ function TasksPageInner() {
           value={view}
           onChange={setView}
           options={[
-            { value: "today", label: t.tasks.today },
+            { value: "today", label: overdueCount > 0 ? `${t.tasks.today} (${overdueCount}⚠)` : t.tasks.today },
             { value: "upcoming", label: t.tasks.upcoming },
             { value: "inbox", label: t.tasks.inbox },
-            { value: "completed", label: t.tasks.completed },
+            { value: "completed", label: doneCount > 0 ? `${t.tasks.completed} (${doneCount})` : t.tasks.completed },
           ]}
         />
         {projects.length > 0 && (
@@ -303,6 +375,17 @@ function TasksPageInner() {
       </div>
 
       <Card>
+        {tasks.length > 0 && (
+          <div className="border-b border-white/5 px-4 py-3">
+            <div className="mb-1.5 flex items-center justify-between text-[11px] text-zinc-500">
+              <span>
+                {doneCount}/{tasks.length} {t.tasks.completed}
+              </span>
+              <span>{Math.round((doneCount / Math.max(1, tasks.length)) * 100)}%</span>
+            </div>
+            <Progress value={(doneCount / Math.max(1, tasks.length)) * 100} />
+          </div>
+        )}
         {visible.length === 0 ? (
           <EmptyState icon="🗂️" title={t.tasks.noTasks} />
         ) : (
@@ -396,6 +479,13 @@ function TasksPageInner() {
                       </Button>
                     )}
                     <button
+                      onClick={() => duplicateTask(task)}
+                      title={t.common.duplicate}
+                      className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-indigo-400 group-hover:opacity-100"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    <button
                       onClick={() => deleteTask(task.id)}
                       className="rounded-lg p-1.5 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
                     >
@@ -485,6 +575,17 @@ function TasksPageInner() {
         onSaved={load}
         onCreated={(task) => maybeSuggestBreakdown(task)}
       />
+
+      {undoTask && (
+        <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 lg:bottom-8">
+          <div className="flex items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+            <p className="text-xs text-zinc-300">{t.tasks.taskDeleted}</p>
+            <button onClick={restoreTask} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+              {t.common.undo}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -494,6 +595,11 @@ function cadenceLabel(days: number[]): string {
   if (days.length >= 7) return "todos os dias";
   const names = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
   return days.map((d) => names[d]).join(" + ");
+}
+
+/* ---------- helpers ---------- */
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /* ---------- natural language date parsing ---------- */
@@ -628,6 +734,48 @@ function TaskModal({
         <Field label={t.common.notes}>
           <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
         </Field>
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: t.common.today, fn: () => setDueDate(localDateStr(new Date())) },
+            {
+              label: t.common.tomorrow,
+              fn: () => {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                setDueDate(localDateStr(d));
+              },
+            },
+            {
+              label: t.common.weekend,
+              fn: () => {
+                const d = new Date();
+                const diff = (6 - d.getDay() + 7) % 7;
+                d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+                setDueDate(localDateStr(d));
+              },
+            },
+            {
+              label: t.common.none,
+              fn: () => {
+                setDueDate("");
+                setDueTime("18:00");
+              },
+            },
+          ].map((chip) => (
+            <button
+              key={chip.label}
+              onClick={chip.fn}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition",
+                dueDate === localDateStr(new Date()) && chip.label === t.common.today
+                  ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                  : "border-white/10 text-zinc-500 hover:bg-white/5"
+              )}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <Field label={t.common.date}>
             <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />

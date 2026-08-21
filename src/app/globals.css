@@ -191,16 +191,17 @@ html.light body {
   color: #18181b;
 }
 
-/* soft app background (transparent so the ambient aurora shows through) */
+/* soft app background (transparent so the ambient aurora shows through).
+   Colors come from the user's custom theme (--app-glow-a / --app-glow-b). */
 .app-bg {
   background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(99, 102, 241, 0.14), transparent 60%),
-    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.08), transparent 55%);
+    radial-gradient(1200px 500px at 80% -10%, var(--app-glow-a, rgba(99, 102, 241, 0.14)), transparent 60%),
+    radial-gradient(900px 400px at -10% 20%, var(--app-glow-b, rgba(168, 85, 247, 0.08)), transparent 55%);
 }
 html.light .app-bg {
   background:
-    radial-gradient(1200px 500px at 80% -10%, rgba(99, 102, 241, 0.12), transparent 60%),
-    radial-gradient(900px 400px at -10% 20%, rgba(168, 85, 247, 0.07), transparent 55%);
+    radial-gradient(1200px 500px at 80% -10%, var(--app-glow-a, rgba(99, 102, 241, 0.12)), transparent 60%),
+    radial-gradient(900px 400px at -10% 20%, var(--app-glow-b, rgba(168, 85, 247, 0.07)), transparent 55%);
 }
 
 /* Ambient aurora — fixed drifting color blobs behind everything. Theme-aware

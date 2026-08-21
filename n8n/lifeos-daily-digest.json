@@ -1,0 +1,84 @@
+{
+  "name": "Digest diário de tarefas LifeOS",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "value": 1
+            }
+          ],
+          "triggerAtHour": 8,
+          "triggerAtMinute": 0
+        }
+      },
+      "id": "schedule-0001",
+      "name": "Agenda diária (08:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://lifeos-eosin-phi.vercel.app/api/integrations/export?type=tasks&limit=10",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LIFEOS_TOKEN }}"
+            }
+          ]
+        }
+      },
+      "id": "http-request-0002",
+      "name": "Buscar tarefas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "=📋 As tuas últimas tarefas:\n{{ $json.data.slice(0, 10).map(t => '• ' + t.title).join('\\n') }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-0001",
+      "name": "Enviar digest",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [520, 300]
+    }
+  ],
+  "connections": {
+    "Agenda diária (08:00)": {
+      "main": [
+        [
+          {
+            "node": "Buscar tarefas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar tarefas": {
+      "main": [
+        [
+          {
+            "node": "Enviar digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

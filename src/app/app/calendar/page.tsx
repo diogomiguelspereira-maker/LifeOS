@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardPaste, MapPin, Pencil, Trash2, Undo2 } from "lucide-react";
+import { CalendarPlus, Check, ChevronLeft, ChevronRight, ClipboardPaste, Copy, Download, Link2, MapPin, Pencil, QrCode, Share2, Trash2, Undo2 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
 import { dontForgetHints } from "@/lib/dontforget";
@@ -22,7 +23,7 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
-import type { CalendarEvent } from "@/lib/types";
+import type { CalendarEvent, CalendarShare } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 type View = "day" | "week" | "month";
@@ -69,6 +70,7 @@ function CalendarPageInner() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const range = useMemo(() => {
     const start = new Date(cursor);
@@ -142,6 +144,30 @@ function CalendarPageInner() {
     if (view === "month") d.setMonth(d.getMonth() + dir);
     setCursor(d);
   }
+
+  // Keyboard shortcuts: N = novo evento, T = hoje, setas = navegar
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT")) return;
+      if (e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        setEditing(null);
+        setAddOpen(true);
+      } else if (e.key.toLowerCase() === "t") {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        setCursor(d);
+      } else if (e.key === "ArrowLeft") {
+        shift(-1);
+      } else if (e.key === "ArrowRight") {
+        shift(1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const relLabel = view === "day" ? relDayLabel(cursor, t.common.today, t.common.tomorrow, t.common.yesterday) : null;
   const title =
@@ -217,10 +243,23 @@ function CalendarPageInner() {
       <PageHeader
         title={t.calendar.title}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={() => setShareOpen(true)}>
+              <Share2 className="h-4 w-4" />
+              {t.calendar.share}
+            </Button>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <ClipboardPaste className="h-4 w-4" />
               {t.calendar.importSchedule}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.location.href = "/api/calendar/export";
+              }}
+            >
+              <Download className="h-4 w-4" />
+              {t.calendar.exportCalendar}
             </Button>
             <Button onClick={() => { setEditing(null); setAddOpen(true); }}>
               <CalendarPlus className="h-4 w-4" />
@@ -324,6 +363,7 @@ function CalendarPageInner() {
         fallbackDate={cursor}
         onImported={() => { load(); }}
       />
+      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} />
       <EventDetailsModal
         event={details}
         onClose={() => setDetails(null)}
@@ -381,10 +421,15 @@ function MonthGrid({
               key={key}
               onClick={() => onSelect(d)}
               className={cn(
-                "flex min-h-12 flex-col items-stretch gap-0.5 rounded-lg border p-1 text-left transition sm:min-h-20",
+                "relative flex min-h-12 flex-col items-stretch gap-0.5 rounded-lg border p-1 text-left transition sm:min-h-20",
                 inMonth ? "border-white/5 bg-white/3 hover:bg-white/8" : "border-transparent bg-transparent opacity-40"
               )}
             >
+              {evs.length > 0 && (
+                <span className="absolute right-0.5 top-0.5 rounded-full bg-white/10 px-1.5 text-[9px] font-semibold text-zinc-300">
+                  {evs.length}
+                </span>
+              )}
               <span
                 className={cn(
                   "mx-auto flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
@@ -694,6 +739,212 @@ function ImportModal({
   );
 }
 
+function randomToken(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function shareStatus(s: CalendarShare): "active" | "used" | "expired" {
+  if (s.used_at) return "used";
+  if (s.expires_at && new Date(s.expires_at).getTime() < Date.now()) return "expired";
+  return "active";
+}
+
+function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useApp();
+  const supabase = useSupabase();
+  const [label, setLabel] = useState("");
+  const [mode, setMode] = useState("24h");
+  const [shares, setShares] = useState<CalendarShare[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [createdUrl, setCreatedUrl] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    const { data } = await supabase
+      .from("calendar_shares")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setShares((data as CalendarShare[]) ?? []);
+  }, [supabase]);
+
+  useEffect(() => {
+    if (open) load();
+  }, [open, load]);
+
+  async function create() {
+    setBusy(true);
+    setError(null);
+    try {
+      const token = randomToken();
+      let expiresAt: string | null = null;
+      let unlimited = false;
+      if (mode === "24h") expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
+      else if (mode === "7d") expiresAt = new Date(Date.now() + 7 * 24 * 3600000).toISOString();
+      else if (mode === "30d") expiresAt = new Date(Date.now() + 30 * 24 * 3600000).toISOString();
+      else if (mode === "unlimited") unlimited = true;
+      // "once" → one view, no time limit
+      const { error: insertError } = await supabase.from("calendar_shares").insert({
+        token,
+        label: label.trim() || null,
+        expires_at: expiresAt,
+        unlimited,
+      });
+      if (insertError) throw insertError;
+      setCreatedUrl(`${window.location.origin}/share/${token}`);
+      setLabel("");
+      load();
+    } catch {
+      setError(t.calendar.shareCreateFailed);
+    }
+    setBusy(false);
+  }
+
+  async function revoke(s: CalendarShare) {
+    await supabase.from("calendar_shares").delete().eq("id", s.id);
+    if (createdUrl?.endsWith(s.token)) setCreatedUrl(null);
+    load();
+  }
+
+  async function copyLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      el.remove();
+    }
+    setCopied(url);
+    setTimeout(() => setCopied((c) => (c === url ? null : c)), 1500);
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title={t.calendar.shareModal} maxWidth="max-w-lg">
+      <div className="space-y-5">
+        <p className="rounded-xl border border-indigo-500/20 bg-indigo-500/8 px-3 py-2.5 text-xs leading-relaxed text-indigo-200">
+          🔗 {t.calendar.shareHint}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t.calendar.shareLabel}>
+            <Input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder={t.calendar.shareLabelPlaceholder}
+            />
+          </Field>
+          <Field label={t.calendar.shareExpiry}>
+            <Select value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="once">{t.calendar.shareOnce}</option>
+              <option value="24h">{t.calendar.share24h}</option>
+              <option value="7d">{t.calendar.share7d}</option>
+              <option value="30d">{t.calendar.share30d}</option>
+              <option value="unlimited">{t.calendar.shareUnlimited}</option>
+            </Select>
+          </Field>
+        </div>
+
+        <Button className="w-full" onClick={create} disabled={busy}>
+          <Share2 className="h-4 w-4" />
+          {busy ? t.common.loading : t.calendar.shareCreate}
+        </Button>
+        {error && <p className="text-xs text-red-400">{error}</p>}
+
+        {createdUrl && (
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/8 p-3">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-emerald-400">
+              {t.calendar.shareLink}
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="min-w-0 flex-1 truncate rounded-lg bg-black/30 px-2.5 py-2 text-xs text-emerald-200">
+                {createdUrl}
+              </code>
+              <Button variant="outline" size="sm" onClick={() => copyLink(createdUrl)}>
+                {copied === createdUrl ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+                {copied === createdUrl ? t.calendar.shareCopied : t.calendar.shareCopy}
+              </Button>
+            </div>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setQrOpen((v) => !v)}>
+                <QrCode className="h-4 w-4" />
+                {t.calendar.shareQr}
+              </Button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(createdUrl)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/20"
+              >
+                💬 {t.calendar.shareWhatsApp}
+              </a>
+            </div>
+            {qrOpen && (
+              <div className="mt-3 flex justify-center rounded-xl bg-white p-3">
+                <QRCodeSVG value={createdUrl} size={150} />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{t.calendar.title}</p>
+          {shares.length === 0 ? (
+            <p className="py-2 text-center text-xs text-zinc-600">{t.calendar.shareEmpty}</p>
+          ) : (
+            shares.map((s) => {
+              const status = shareStatus(s);
+              const url = `${window.location.origin}/share/${s.token}`;
+              return (
+                <div key={s.id} className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium text-zinc-200">{s.label || t.calendar.title}</p>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          status === "active" && "bg-emerald-500/12 text-emerald-400",
+                          status === "used" && "bg-amber-500/12 text-amber-400",
+                          status === "expired" && "bg-red-500/12 text-red-400"
+                        )}
+                      >
+                        {status === "active"
+                          ? t.calendar.shareActive
+                          : status === "used"
+                            ? t.calendar.shareUsed
+                            : t.calendar.shareExpired}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+                      {t.calendar.shareCreated} {new Date(s.created_at).toLocaleDateString("pt-PT")}
+                      {s.expires_at && ` · ${t.calendar.shareExpires} ${new Date(s.expires_at).toLocaleDateString("pt-PT")}`}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" title={t.calendar.shareCopy} onClick={() => copyLink(url)}>
+                    {copied === url ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" title={t.calendar.shareRevoke} onClick={() => revoke(s)}>
+                    <Trash2 className="h-4 w-4 text-red-400/80" />
+                  </Button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 function EventModal({
   open,
   onClose,
@@ -776,6 +1027,39 @@ function EventModal({
           <span className="text-sm text-zinc-300">{t.calendar.allDay}</span>
           <Switch checked={allDay} onChange={setAllDay} />
         </div>
+        {!allDay && (
+          <div className="flex flex-wrap gap-1.5">
+            {[30, 60, 120, 240].map((min) => {
+              const active =
+                start && end
+                  ? (() => {
+                      const [sh, sm] = start.split(":").map(Number);
+                      const [eh, em] = end.split(":").map(Number);
+                      return eh * 60 + em - (sh * 60 + sm) === min;
+                    })()
+                  : false;
+              return (
+                <button
+                  key={min}
+                  onClick={() => {
+                    const [h, m] = start.split(":").map(Number);
+                    const d = new Date();
+                    d.setHours(h, m + min, 0, 0);
+                    setEnd(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+                  }}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition",
+                    active
+                      ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                      : "border-white/10 text-zinc-500 hover:bg-white/5"
+                  )}
+                >
+                  {min >= 60 ? `${min / 60}h` : `${min}m`}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <Field label={t.calendar.location}>
           <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Casa, escritório…" />
         </Field>
@@ -825,6 +1109,26 @@ function EventDetailsModal({
     onDeleted();
   }
 
+  async function duplicate() {
+    const start = new Date(ev.start_at);
+    const { data } = await supabase
+      .from("calendar_events")
+      .insert({
+        title: ev.title,
+        description: ev.description,
+        location: ev.location,
+        start_at: new Date(start.getTime() + 86400000).toISOString(),
+        end_at: ev.end_at ? new Date(new Date(ev.end_at).getTime() + 86400000).toISOString() : null,
+        all_day: ev.all_day,
+        color: ev.color,
+        calendar_name: ev.calendar_name,
+        source: ev.source,
+      })
+      .select()
+      .single();
+    if (data) onEdit(data as CalendarEvent);
+  }
+
   return (
     <Modal open={!!ev} onClose={onClose} title={ev.title}>
       <div className="space-y-4">
@@ -872,6 +1176,9 @@ function EventDetailsModal({
           ) : null;
         })()}
         <div className="flex gap-2">
+          <Button variant="outline" className="flex-1" onClick={duplicate} title={t.common.duplicate}>
+            <Copy className="h-4 w-4" />
+          </Button>
           <Button variant="secondary" className="flex-1" onClick={() => onEdit(ev)}>
             <Pencil className="h-4 w-4" />
             {t.common.edit}

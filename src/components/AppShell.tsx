@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
+  ArrowUp,
   BarChart3,
   CalendarDays,
   CheckSquare,
@@ -53,6 +54,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [commandOpen, setCommandOpen] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,8 +69,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         setCommandOpen((v) => !v);
       }
     };
+    const onOpen = () => setCommandOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("lifeos:open-command", onOpen);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("lifeos:open-command", onOpen);
+    };
   }, []);
 
   // Track how often each module is opened so the "Mais" grid can
@@ -84,7 +97,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const href = moduleHref(pathname);
-    if (!href) return;
+    // Only track once the profile has loaded; otherwise prefsRef is still {}
+    // and the write below would wipe the user's preferences (including the
+    // custom theme, which then falls back to blue).
+    if (!href || !profile?.id) return;
     usageRef.current = incrementUsage(usageRef.current, href);
     const timer = setTimeout(() => {
       updateProfileRef.current({
@@ -92,7 +108,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       });
     }, 1000);
     return () => clearTimeout(timer);
-  }, [pathname]);
+  }, [pathname, profile?.id]);
 
   const label = (key: string) => (t.nav as unknown as Record<string, string>)[key] ?? key;
 
@@ -184,10 +200,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={n.href}
                 href={n.href}
                 aria-label={isNova ? label(n.labelKey) : undefined}
+                style={
+                  isNova
+                    ? {
+                        background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
+                        boxShadow: "0 8px 24px -10px var(--app-primary, #6366f1)",
+                      }
+                    : undefined
+                }
                 className={cn(
                   "flex flex-col items-center justify-end gap-0.5 rounded-xl px-2.5 py-1.5 transition-all sm:px-3",
-                  isNova &&
-                    "-mt-7 rounded-full border border-white/20 bg-gradient-to-br from-indigo-500 to-violet-500 p-3.5 animate-nova-glow"
+                  isNova && "-mt-7 rounded-full border border-white/20 p-3.5 animate-nova-glow"
                 )}
               >
                 <n.icon
@@ -232,12 +255,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <button
         onClick={() => setCommandOpen(true)}
         aria-label="Captura rápida"
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-xl shadow-indigo-500/40 transition active:scale-95 lg:hidden"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition active:scale-95 lg:hidden"
+        style={{
+          background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
+          boxShadow: "0 12px 32px -12px var(--app-primary, #6366f1)",
+        }}
       >
         <Command className="h-6 w-6" />
       </button>
 
       <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+
+      {/* Back to top */}
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Voltar ao topo"
+          className="fixed bottom-24 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 text-zinc-300 shadow-xl backdrop-blur transition hover:text-white lg:bottom-8 lg:left-auto lg:right-8"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 }

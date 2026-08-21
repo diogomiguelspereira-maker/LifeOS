@@ -6,11 +6,11 @@ export function Logo({ size = "md", className }: { size?: "sm" | "md" | "lg"; cl
   const iconSizes = { sm: "h-4 w-4", md: "h-5 w-5", lg: "h-7 w-7" };
   return (
     <div
-      className={cn(
-        "flex shrink-0 items-center justify-center bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 shadow-lg shadow-indigo-500/30",
-        sizes[size],
-        className
-      )}
+      className={cn("flex shrink-0 items-center justify-center", sizes[size], className)}
+      style={{
+        background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
+        boxShadow: "0 8px 24px -10px var(--app-primary, #6366f1)",
+      }}
     >
       <Sparkles className={cn("text-white", iconSizes[size])} />
     </div>
@@ -22,7 +22,17 @@ export function Wordmark({ className }: { className?: string }) {
     <div className={cn("flex items-center gap-2.5", className)}>
       <Logo />
       <span className="text-lg font-bold tracking-tight text-zinc-100 dark:text-zinc-100">
-        Life<span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">OS</span>
+        Life
+        <span
+          style={{
+            backgroundImage: "linear-gradient(90deg, var(--app-primary, #818cf8), var(--app-secondary, #a78bfa))",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          OS
+        </span>
       </span>
     </div>
   );

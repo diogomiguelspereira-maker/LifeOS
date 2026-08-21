@@ -1,0 +1,57 @@
+{
+  "name": "Telegram → Nova tarefa LifeOS",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger-0001",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "webhookId": "lifeos-telegram-to-task"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://lifeos-eosin-phi.vercel.app/api/integrations/webhook",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.LIFEOS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_task\",\n  \"payload\": {\n    \"title\": \"{{ $json.message.text }}\",\n    \"notes\": \"Criada via Telegram\",\n    \"tags\": [\"telegram\"]\n  }\n}"
+      },
+      "id": "http-request-0001",
+      "name": "LifeOS — criar tarefa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 300]
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "LifeOS — criar tarefa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

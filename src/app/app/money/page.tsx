@@ -2,10 +2,10 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp } from "lucide-react";
+import { Check, Copy, Download, Pencil, Plus, Search, Trash2, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
-import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
+import { api, currentMonthTransactions, moneyTotals, prevMonthTransactions, spendingByCategory } from "@/lib/api";
 import { SWATCHES } from "@/lib/colors";
 import {
   Badge,
@@ -71,13 +71,44 @@ function MoneyPageInner() {
 
   const monthTx = useMemo(() => currentMonthTransactions(transactions), [transactions]);
   const totals = useMemo(() => moneyTotals(accounts, monthTx, null), [accounts, monthTx]);
+  const prevMonthTx = useMemo(() => prevMonthTransactions(transactions), [transactions]);
+  const prevTotals = useMemo(() => moneyTotals(accounts, prevMonthTx, null), [accounts, prevMonthTx]);
   const byCategory = useMemo(
     () => spendingByCategory(monthTx, categories),
     [monthTx, categories]
   );
+  const topExpenses = useMemo(() => byCategory.slice(0, 3), [byCategory]);
+  const monthlyInsight = useMemo(() => {
+    if (monthTx.length === 0) return null;
+    const top = byCategory[0];
+    const days = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const perDay = Math.abs(totals.monthlyExpenses) / days;
+    return { top, perDay };
+  }, [monthTx, byCategory, totals]);
+  const [search, setSearch] = useState("");
+  const filteredTx = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return transactions;
+    return transactions.filter((tx) => {
+      const cat = categories.find((c) => c.id === tx.category_id);
+      return (
+        (tx.description ?? "").toLowerCase().includes(q) ||
+        (cat?.name ?? "").toLowerCase().includes(q) ||
+        tx.date.includes(q)
+      );
+    });
+  }, [transactions, search, categories]);
 
   const expenseCats = categories.filter((c) => c.type === "expense");
   const incomeCats = categories.filter((c) => c.type === "income");
+
+  function pctDelta(cur: number, prev: number): number | null {
+    if (prev === 0) return null;
+    return Math.round(((cur - prev) / Math.abs(prev)) * 100);
+  }
+
+  const expDelta = pctDelta(totals.monthlyExpenses, prevTotals.monthlyExpenses);
+  const incDelta = pctDelta(totals.monthlyIncome, prevTotals.monthlyIncome);
 
   async function deleteTx(id: string) {
     const tx = transactions.find((t) => t.id === id);
@@ -90,6 +121,45 @@ function MoneyPageInner() {
         .eq("id", tx.account_id);
     }
     load();
+  }
+
+  async function duplicateTx(tx: Transaction) {
+    await supabase.from("transactions").insert({
+      account_id: tx.account_id,
+      category_id: tx.category_id,
+      amount: tx.amount,
+      description: tx.description,
+      merchant: tx.merchant,
+      date: new Date().toISOString().slice(0, 10),
+      is_recurring: tx.is_recurring,
+    });
+    if (tx.account_id) {
+      await supabase
+        .from("accounts")
+        .update({ balance: (accounts.find((a) => a.id === tx.account_id)?.balance ?? 0) + tx.amount })
+        .eq("id", tx.account_id);
+    }
+    load();
+  }
+
+  function exportCsv() {
+    const header = [t.common.date, t.common.description, t.common.amount, t.money.type];
+    const rows = transactions.map((tx) => [
+      tx.date,
+      tx.description ?? "",
+      String(tx.amount),
+      tx.amount >= 0 ? t.money.income : t.money.expense,
+    ]);
+    const csv = [header, ...rows]
+      .map((r) => r.map((v) => '"' + String(v).split('"').join('""') + '"').join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lifeos-movimentos.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function startRename(tx: Transaction) {
@@ -129,15 +199,21 @@ function MoneyPageInner() {
       <PageHeader
         title={t.money.title}
         action={
-          <Button
-            onClick={() => {
-              setEditingTx(null);
-              setTxOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            {t.money.addTransaction}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={exportCsv} disabled={transactions.length === 0}>
+              <Download className="h-4 w-4" />
+              {t.money.exportCsv}
+            </Button>
+            <Button
+              onClick={() => {
+                setEditingTx(null);
+                setTxOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              {t.money.addTransaction}
+            </Button>
+          </div>
         }
       />
 
@@ -145,11 +221,37 @@ function MoneyPageInner() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <SummaryCard label={t.money.totalBalance} value={formatMoney(totals.totalBalance, currency)} accent="from-indigo-500 to-violet-500" />
         <SummaryCard label={t.money.netWorth} value={formatMoney(totals.netWorth, currency)} accent="from-violet-500 to-fuchsia-500" />
-        <SummaryCard label={t.money.monthlyIncome} value={formatMoney(totals.monthlyIncome, currency)} accent="from-emerald-500 to-teal-500" />
-        <SummaryCard label={t.money.monthlyExpenses} value={formatMoney(totals.monthlyExpenses, currency)} accent="from-rose-500 to-red-500" />
+        <SummaryCard label={t.money.monthlyIncome} value={formatMoney(totals.monthlyIncome, currency)} accent="from-emerald-500 to-teal-500" delta={incDelta == null ? null : { text: `${incDelta >= 0 ? "▲" : "▼"} ${Math.abs(incDelta)}% ${t.money.vsLastMonth}`, tone: incDelta >= 0 ? "up" : "down" }} />
+        <SummaryCard label={t.money.monthlyExpenses} value={formatMoney(totals.monthlyExpenses, currency)} accent="from-rose-500 to-red-500" delta={expDelta == null ? null : { text: `${expDelta >= 0 ? "▲" : "▼"} ${Math.abs(expDelta)}% ${t.money.vsLastMonth}`, tone: expDelta <= 0 ? "up" : "down" }} />
         <SummaryCard label={t.money.available} value={formatMoney(totals.available, currency)} accent="from-sky-500 to-cyan-500" />
         <SummaryCard label={t.money.savingsRate} value={`${totals.savingsRate}%`} accent="from-amber-500 to-orange-500" />
       </div>
+
+      {monthlyInsight && (
+        <Card className="border-indigo-500/15 bg-gradient-to-r from-indigo-500/8 to-transparent">
+          <CardHeader title={t.money.monthlyHighlight} />
+          <div className="space-y-2">
+            {topExpenses.map((c, i) => (
+              <div key={c.category} className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-base" style={{ background: `${c.color}22` }}>
+                  {c.icon ?? "📦"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-zinc-200">{c.category}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    {i === 0 ? `${t.money.top1Label} · ` : ""}
+                    {formatMoney(c.value, currency)}
+                  </p>
+                </div>
+                <span className="text-sm font-semibold tabular-nums text-zinc-100">{formatMoney(c.value, currency)}</span>
+              </div>
+            ))}
+            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs leading-relaxed text-zinc-400">
+              💡 {t.money.insightLine.replace("{cat}", monthlyInsight.top?.category ?? "—").replace("{value}", formatMoney(monthlyInsight.top?.value ?? 0, currency)).replace("{perDay}", formatMoney(monthlyInsight.perDay, currency))}
+            </p>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Chart */}
@@ -265,12 +367,25 @@ function MoneyPageInner() {
 
       {/* Transactions */}
       <Card>
-        <CardHeader title={t.money.transactions} />
-        {transactions.length === 0 ? (
+        <CardHeader
+          title={t.money.transactions}
+          action={
+            <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2">
+              <Search className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.common.search}
+                className="h-8 w-28 bg-transparent text-xs text-zinc-100 placeholder:text-zinc-500 outline-none sm:w-40"
+              />
+            </div>
+          }
+        />
+        {filteredTx.length === 0 ? (
           <EmptyState icon="🧾" title={t.money.noTransactions} />
         ) : (
           <div className="divide-y divide-white/5">
-            {transactions.slice(0, 25).map((tx) => {
+            {filteredTx.slice(0, 50).map((tx) => {
               const cat = categories.find((c) => c.id === tx.category_id);
               const income = tx.amount > 0;
               return (
@@ -316,7 +431,7 @@ function MoneyPageInner() {
                       </button>
                     )}
                     <p className="text-[11px] text-zinc-500">
-                      {cat?.name ?? "—"} · {tx.date}
+                      {cat?.name ?? "—"} · {relDay(tx.date, t.common.today, t.common.yesterday)}
                     </p>
                   </div>
                   <p
@@ -329,6 +444,13 @@ function MoneyPageInner() {
                     {formatMoney(Math.abs(tx.amount), currency)}
                   </p>
                   <div className="flex shrink-0 items-center">
+                    <button
+                      onClick={() => duplicateTx(tx)}
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-indigo-300"
+                      title={t.common.duplicate}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => {
                         setEditingTx(tx);
@@ -380,18 +502,34 @@ function SummaryCard({
   label,
   value,
   accent,
+  delta,
 }: {
   label: string;
   value: string;
   accent: string;
+  delta?: { text: string; tone: "up" | "down" } | null;
 }) {
   return (
     <Card className="relative overflow-hidden">
       <div className={cn("absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r", accent)} />
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</p>
       <p className="mt-1.5 text-lg font-bold tracking-tight text-zinc-100">{value}</p>
+      {delta && (
+        <p className={cn("mt-1 text-[10px] font-medium", delta.tone === "up" ? "text-emerald-400" : "text-rose-400")}>
+          {delta.text}
+        </p>
+      )}
     </Card>
   );
+}
+
+function relDay(dateStr: string, today: string, yesterday: string): string {
+  const now = new Date();
+  if (dateStr === now.toISOString().slice(0, 10)) return today;
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  if (dateStr === y.toISOString().slice(0, 10)) return yesterday;
+  return dateStr;
 }
 
 function TransactionModal({

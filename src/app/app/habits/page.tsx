@@ -96,6 +96,47 @@ export default function HabitsPage() {
     return Math.round((hit / 28) * 100);
   }
 
+  function bestStreak(habitId: string): number {
+    const dates = completions
+      .filter((c) => c.habit_id === habitId)
+      .map((c) => c.date)
+      .sort();
+    let best = 0;
+    let cur = 0;
+    let prev: string | null = null;
+    for (const d of dates) {
+      if (prev && dayDiff(prev, d) === 1) cur++;
+      else cur = 1;
+      best = Math.max(best, cur);
+      prev = d;
+    }
+    return best;
+  }
+
+  function last7Days(habitId: string): { date: string; done: boolean }[] {
+    const done = new Set(completions.filter((c) => c.habit_id === habitId).map((c) => c.date));
+    const out: { date: string; done: boolean }[] = [];
+    const d = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const dd = new Date(d);
+      dd.setDate(d.getDate() - i);
+      const key = dd.toISOString().slice(0, 10);
+      out.push({ date: key, done: done.has(key) });
+    }
+    return out;
+  }
+
+  async function completeAllToday() {
+    const missing = habits.filter(
+      (h) => !completions.some((c) => c.habit_id === h.id && c.date === todayKey)
+    );
+    if (!missing.length) return;
+    await supabase.from("habit_completions").insert(
+      missing.map((h) => ({ habit_id: h.id, date: todayKey }))
+    );
+    load();
+  }
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -113,10 +154,18 @@ export default function HabitsPage() {
       <PageHeader
         title={t.habits.title}
         action={
-          <Button onClick={() => setAddOpen(true)}>
-            <Plus className="h-4 w-4" />
-            {t.habits.addHabit}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {habits.length > 0 && (
+              <Button variant="outline" onClick={completeAllToday}>
+                <Check className="h-4 w-4" />
+                {t.habits.completeAll}
+              </Button>
+            )}
+            <Button onClick={() => setAddOpen(true)}>
+              <Plus className="h-4 w-4" />
+              {t.habits.addHabit}
+            </Button>
+          </div>
         }
       />
 
@@ -157,10 +206,13 @@ export default function HabitsPage() {
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-[11px] text-zinc-500">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-zinc-500">
                       <span className="flex items-center gap-0.5">
                         <Flame className="h-3 w-3 text-orange-400" />
                         {streak(h.id)} {t.habits.streak.toLowerCase()}
+                      </span>
+                      <span className="flex items-center gap-0.5">
+                        🏆 {bestStreak(h.id)} {t.habits.bestStreak}
                       </span>
                       <span>
                         {wc}/{h.target_per_week} {t.habits.weekly.toLowerCase()}
@@ -172,6 +224,16 @@ export default function HabitsPage() {
                         value={(wc / Math.max(1, h.target_per_week)) * 100}
                         color="bg-gradient-to-r from-indigo-500 to-violet-500"
                       />
+                    </div>
+                    <div className="mt-2 flex gap-1">
+                      {last7Days(h.id).map((day, i) => (
+                        <span
+                          key={i}
+                          title={day.date}
+                          className={cn("h-2 flex-1 rounded-full", day.done ? "" : "bg-white/8")}
+                          style={day.done ? { background: h.color } : undefined}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -281,4 +343,8 @@ function AddHabitModal({
       </div>
     </Modal>
   );
+}
+
+function dayDiff(a: string, b: string): number {
+  return Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / 86400000);
 }

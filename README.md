@@ -57,6 +57,12 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
    - Adiciona `projects.budget` e liga despesas (`transactions.project_id`) e metas de poupança (`savings_goals.project_id`) a projetos.
 7. **Rotinas automáticas (manhã/trabalho/noite):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-6.sql`](supabase/migration-6.sql) e executa.
    - Estende a tabela `routines` (dias + hora de início), adiciona `routine_steps` (passos com hora e duração) e `routine_completions` (marcar passos como feitos por dia). Converte `items` antigos em passos.
+8. **Partilha de agenda (links de uso único):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-7.sql`](supabase/migration-7.sql) e executa.
+   - Adiciona `calendar_shares` (links de partilha com expiração e uso único) e a função `get_shared_calendar`, que permite a qualquer pessoa **sem conta** ver a tua agenda uma única vez através de um link.
+9. **Bancos + Automações (GoCardless + n8n):** abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-8.sql`](supabase/migration-8.sql) e executa.
+   - Adiciona `bank_links` (contas bancárias ligadas), `integration_tokens` (chaves para webhooks/automações) e a coluna `external_id` em `transactions` (para não duplicar movimentos importados).
+10. **Privacidade das partilhas (descrições ocultas):** se já executaste a migration-7, abre **SQL Editor → New query**, cola o conteúdo de [`supabase/migration-10.sql`](supabase/migration-10.sql) e executa.
+   - Atualiza `get_shared_calendar` para que os links de partilha mostrem apenas **título, dia, horas e cor** — sem descrições nem locais.
 3. **Authentication → Providers → Email**: confirma que o e-mail está ativo.
    - *(Opcional)* **Google**: ativa o provider e adiciona o Client ID/Secret de um [projeto Google Cloud](https://console.cloud.google.com) (redirect URL: `https://<o-teu-dominio>/auth/callback`).
 
@@ -111,6 +117,39 @@ Integração **completa** (OAuth 2.0 com encriptação dos tokens): ligar, sincr
 3. Na app: **Definições → Integrações → Ligar Google Calendar** → autoriza → os eventos aparecem no calendário (sincronização automática ao abrir + botão manual).
 
 > Os tokens nunca vão para o browser: são encriptados (AES-256-GCM) e guardados na tabela `google_tokens` com RLS (só o dono).
+
+## 🏦 6. Sincronização bancária (GoCardless, gratuito na UE)
+
+Importa os teus movimentos bancários automaticamente (PSD2, grátis para uso pessoal):
+
+1. Cria uma conta em [GoCardless Bank Account Data](https://bankaccountdata.gocardless.com) (antigo Nordigen).
+2. Gera um **Secret ID** e **Secret Key** (Dashboard → Developer → New token) e adiciona na Vercel:
+   ```env
+   GOCARDLESS_SECRET_ID=xxx
+   GOCARDLESS_SECRET_KEY=xxx
+   ```
+3. No painel da GoCardless (Dashboard → Developer → Redirect URIs), adiciona o redirect URL:
+   ```
+   https://<dominio>/api/bank/callback
+   ```
+4. Na app: **Definições → Integrações → 🏦 Bancos** → **Ligar banco** → escolhe o teu banco → autoriza → **Sincronizar**.
+   - Podes escolher para que conta LifeOS os movimentos vão (ou deixar sem conta).
+   - Os movimentos são deduplicados por `external_id` — sincronizar várias vezes não cria duplicados.
+
+## 🔌 7. Automações (n8n + webhooks)
+
+Liga a LifeOS a qualquer serviço (Notion, Todoist, Telegram, Gmail…) via webhooks:
+
+1. Na app: **Definições → Integrações → 🔌 Automações** → **Gerar chave** e copia a chave.
+2. Instala o **n8n** (grátis/open-source): `docker run -it --rm -p 5678:5678 n8nio/n8n` (ou [n8n Cloud](https://n8n.io)).
+3. Nos teus workflows, usa um nó **HTTP Request**:
+   - **Criar dados** → `POST https://<dominio>/api/integrations/webhook`
+     - Header: `Authorization: Bearer <chave>` · Body: `{ "action": "create_task", "payload": { "title": "Comprar leite", "due_date": "2026-08-21" } }`
+     - Ações: `create_task`, `create_event`, `create_note`, `create_transaction`
+   - **Ler dados** → `GET https://<dominio>/api/integrations/export?type=tasks` (ou `events`, `notes`, `transactions`) com o mesmo header.
+4. Exemplo: um bot de Telegram → quando recebe uma mensagem, chama o webhook e cria uma tarefa.
+
+> As chaves dão acesso total aos dados da tua conta (são per-utilizador). Revoga-as em Definições se deixarem de ser precisas.
 
 ## 🔒 Segurança
 

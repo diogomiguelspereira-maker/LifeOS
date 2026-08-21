@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpDown, Check, ChevronRight, Eye, EyeOff, Settings2, Sparkles } from "lucide-react";
+import { ArrowUpDown, Check, ChevronRight, Eye, EyeOff, Settings2, Sparkles, Zap } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
-import { api, currentMonthTransactions, moneyTotals, spendingByCategory } from "@/lib/api";
+import { api, currentMonthTransactions, moneyTotals, prevMonthTransactions, spendingByCategory } from "@/lib/api";
 import {
   Badge,
   Button,
@@ -52,6 +52,7 @@ const DEFAULT_WIDGETS: WidgetDef[] = [
   { id: "habits", visible: true },
   { id: "bills", visible: true },
   { id: "chart", visible: true },
+  { id: "birthdays", visible: true },
 ];
 
 // Modes: which widgets are shown per mode (progressive disclosure)
@@ -98,6 +99,12 @@ export default function DashboardPage() {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [rSteps, setRSteps] = useState<RoutineStep[]>([]);
   const [rCompletions, setRCompletions] = useState<RoutineCompletion[]>([]);
+  const [clock, setClock] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setClock(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   const now = new Date();
   const saveMode = ((profile?.preferences ?? {}) as Record<string, unknown>).save_mode === true;
@@ -199,6 +206,8 @@ export default function DashboardPage() {
 
   const monthTx = useMemo(() => currentMonthTransactions(tx), [tx]);
   const totals = useMemo(() => moneyTotals(accounts, monthTx, profile), [accounts, monthTx, profile]);
+  const prevTx = useMemo(() => prevMonthTransactions(tx), [tx]);
+  const prevTotals = useMemo(() => moneyTotals(accounts, prevTx, profile), [accounts, prevTx, profile]);
   const byCat = useMemo(() => spendingByCategory(monthTx, categories), [monthTx, categories]);
 
   const todayTasks = useMemo(() => {
@@ -212,6 +221,17 @@ export default function DashboardPage() {
 
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayHabits = habits.filter((h) => !completions.some((c) => c.habit_id === h.id && c.date === todayKey));
+
+  const todayBirthdays = events.filter((e) => {
+    const start = new Date(e.start_at);
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    return (
+      (e.title.includes("🎂") || (e.description ?? "").includes("🎂:")) &&
+      start >= todayStart &&
+      start < new Date(todayStart.getTime() + 86400000)
+    );
+  });
 
   // ---- NOW system ----
   const dayStartD = new Date(now);
@@ -292,7 +312,8 @@ export default function DashboardPage() {
     timeline: { visible: true, render: () => <TimelineWidget t={t} currency={currency} items={timeline} /> },
     summary: { visible: true, render: () => <SummaryWidget t={t} currency={currency} stats={stats} tod={tod} tx={tx} /> },
     tomorrow: { visible: true, render: () => <TomorrowWidget t={t} currency={currency} prep={tomorrow} /> },
-    money: { visible: true, render: () => <MoneyWidget t={t} currency={currency} totals={totals} /> },
+    money: { visible: true, render: () => <MoneyWidget t={t} currency={currency} totals={totals} prevExpenses={prevTotals.monthlyExpenses} /> },
+    birthdays: { visible: true, render: () => <BirthdaysWidget t={t} events={todayBirthdays} /> },
     tasks: { visible: true, render: () => <TasksWidget t={t} tasks={todayTasks} onToggle={toggleTask} /> },
     events: { visible: true, render: () => <EventsWidget t={t} events={events} /> },
     goals: { visible: true, render: () => <GoalsWidget t={t} currency={currency} goals={goals} /> },
@@ -384,6 +405,16 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {saveMode && <Badge color="green">🐷 {t.settings.saveMode}</Badge>}
+          <div className="mr-1 hidden text-right sm:block">
+            <p className="text-lg font-bold tabular-nums leading-none text-zinc-100">
+              {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+            </p>
+            <p className="text-[10px] text-zinc-500">{t.common.today}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new Event("lifeos:open-command"))}>
+            <Zap className="h-4 w-4 text-amber-400" />
+            <span className="hidden sm:inline">{t.dashboard.quickCapture}</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setBoredOpen(true)}>
             😅 <span className="hidden sm:inline">{t.now.bored}</span>
           </Button>
@@ -581,7 +612,11 @@ function BriefingWidget({ t, briefing }: { t: (typeof import("@/lib/i18n"))["pt"
   );
 }
 
-function MoneyWidget({ t, currency, totals }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; totals: ReturnType<typeof moneyTotals> }) {
+function MoneyWidget({ t, currency, totals, prevExpenses }: { t: (typeof import("@/lib/i18n"))["pt"]; currency: string; totals: ReturnType<typeof moneyTotals>; prevExpenses: number }) {
+  const delta =
+    prevExpenses === 0
+      ? null
+      : Math.round(((totals.monthlyExpenses - prevExpenses) / Math.abs(prevExpenses)) * 100);
   return (
     <Card>
       <CardHeader title={t.dashboard.moneyOverview} />
@@ -593,6 +628,30 @@ function MoneyWidget({ t, currency, totals }: { t: (typeof import("@/lib/i18n"))
         <MiniStat label={t.money.monthlyIncome} value={formatMoney(totals.monthlyIncome, currency)} tone="text-emerald-400" />
         <MiniStat label={t.money.monthlyExpenses} value={formatMoney(totals.monthlyExpenses, currency)} tone="text-rose-400" />
         <MiniStat label={t.money.savingsRate} value={`${totals.savingsRate}%`} tone="text-sky-400" />
+      </div>
+      {delta != null && (
+        <p className={cn("mt-2.5 border-t border-white/5 pt-2 text-[11px]", delta <= 0 ? "text-emerald-400" : "text-rose-400")}>
+          {delta <= 0 ? "▼" : "▲"} {Math.abs(delta)}% {t.money.vsLastMonth}
+        </p>
+      )}
+    </Card>
+  );
+}
+
+function BirthdaysWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]; events: CalendarEvent[] }) {
+  if (events.length === 0) return null;
+  return (
+    <Card className="border-pink-500/15 bg-gradient-to-r from-pink-500/8 to-transparent">
+      <CardHeader
+        title={`🎂 ${t.dashboard.birthdaysToday}`}
+        action={<Link href="/app/people" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+      />
+      <div className="space-y-1.5">
+        {events.map((ev) => (
+          <p key={ev.id} className="text-sm text-zinc-200">
+            🎉 <span className="font-medium">{ev.title.replace(/^🎂\s*/, "")}</span>
+          </p>
+        ))}
       </div>
     </Card>
   );

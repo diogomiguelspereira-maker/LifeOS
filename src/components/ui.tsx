@@ -18,8 +18,7 @@ export function Button({
   size?: "sm" | "md" | "lg" | "icon";
 }) {
   const variants: Record<ButtonVariant, string> = {
-    primary:
-      "bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-400 hover:to-violet-400 hover:shadow-indigo-500/40",
+    primary: "text-white hover:opacity-90",
     secondary:
       "bg-white/8 text-zinc-100 border border-white/10 hover:bg-white/12 dark:bg-white/8 dark:text-zinc-100 dark:border-white/10 dark:hover:bg-white/12",
     ghost:
@@ -38,6 +37,14 @@ export function Button({
   return (
     <button
       type="button"
+      style={
+        variant === "primary"
+          ? {
+              background: "linear-gradient(90deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
+              boxShadow: "0 10px 30px -14px var(--app-primary, #6366f1)",
+            }
+          : undefined
+      }
       className={cn(
         "inline-flex items-center justify-center font-medium transition-all active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap",
         variants[variant],
@@ -298,12 +305,12 @@ export function Modal({
   // can ever hide or break the dialog
   const panel = (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm animate-fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
         className={cn(
-          "w-full rounded-t-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-slide-up sm:animate-scale-in sm:rounded-3xl dark:bg-zinc-950",
+          "w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain rounded-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-scale-in dark:bg-zinc-950",
           maxWidth
         )}
         onClick={(e) => e.stopPropagation()}

@@ -192,6 +192,55 @@ export interface Contact {
   notes: string | null;
 }
 
+export interface CalendarShare {
+  id: string;
+  user_id: string;
+  token: string;
+  label: string | null;
+  expires_at: string | null;
+  used_at: string | null;
+  unlimited?: boolean;
+  created_at: string;
+}
+
+/** Row returned by the public get_shared_calendar RPC (no account needed). */
+export interface BankLink {
+  id: string;
+  user_id: string;
+  institution_id: string;
+  institution_name: string;
+  requisition_id: string;
+  status: "pending" | "linked" | "failed";
+  accounts: { id: string; iban: string | null; currency: string | null; owner: string | null }[];
+  lifeos_account_id: string | null;
+  error: string | null;
+  created_at: string;
+}
+
+export interface IntegrationToken {
+  id: string;
+  user_id: string;
+  name: string | null;
+  token: string;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+export interface SharedCalendarEvent {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string | null;
+  all_day: boolean;
+  color: string;
+  calendar_name: string;
+  source: string;
+  owner_name: string | null;
+  owner_email: string | null;
+  share_label: string | null;
+  is_unlimited?: boolean;
+}
+
 export interface Notification {
   id: string;
   user_id: string;

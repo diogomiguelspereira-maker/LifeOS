@@ -344,6 +344,14 @@ export function currentMonthTransactions(transactions: Transaction[], now = new 
   return transactions.filter((t) => t.date >= mk && t.date < nextKey);
 }
 
+export function prevMonthTransactions(transactions: Transaction[], now = new Date()): Transaction[] {
+  const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const firstKey = first.toISOString().slice(0, 10);
+  const next = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nextKey = next.toISOString().slice(0, 10);
+  return transactions.filter((t) => t.date >= firstKey && t.date < nextKey);
+}
+
 /**
  * Creates an all-day birthday event for every year (current → +60) so the
  * birthday always shows up on the calendar. Events are tagged in `description`
