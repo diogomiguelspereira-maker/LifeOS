@@ -15,18 +15,19 @@
  */
 package com.lifeos.app;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
 
+import com.google.androidbrowserhelper.trusted.TwaLauncher;
 
 public class LauncherActivity
         extends com.google.androidbrowserhelper.trusted.LauncherActivity {
-    
-
-    
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +48,23 @@ public class LauncherActivity
         // Get the original launch Url.
         Uri uri = super.getLaunchingUrl();
 
-        
-
         return uri;
+    }
+
+    @Override
+    protected TwaLauncher.FallbackStrategy getFallbackStrategy() {
+        // Launch our own WebView fallback, configured for proper mobile rendering.
+        // The library's default fallback WebView doesn't set up the viewport, so
+        // the page can be laid out at desktop width and appear much bigger than
+        // the phone screen.
+        return new TwaLauncher.FallbackStrategy() {
+            @Override
+            public void launch(Context context, TrustedWebActivityIntentBuilder builder, String url, Runnable onFinished) {
+                context.startActivity(WebViewFallbackActivity.createLaunchIntent(context, Uri.parse(url)));
+                if (onFinished != null) {
+                    onFinished.run();
+                }
+            }
+        };
     }
 }
