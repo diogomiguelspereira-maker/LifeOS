@@ -577,7 +577,7 @@ function TasksPageInner() {
       />
 
       {undoTask && (
-        <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 lg:bottom-8">
+        <div className="raise-for-keyboard fixed inset-x-0 z-50 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-4 py-2.5 shadow-2xl backdrop-blur">
             <p className="text-xs text-zinc-300">{t.tasks.taskDeleted}</p>
             <button onClick={restoreTask} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">

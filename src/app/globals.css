@@ -36,6 +36,11 @@
 }
 
 :root {
+  /* set by KeyboardManager when the Android keyboard opens (see
+     src/components/KeyboardManager.tsx). Layouts anchored to the bottom edge
+     raise themselves by this amount so the keyboard never covers them. */
+  --keyboard-inset: 0px;
+
   /* indigo (default) */
   --accent-50: #eef2ff;
   --accent-100: #e0e7ff;
@@ -372,6 +377,29 @@ html.light .aurora {
 .stagger > *:nth-child(6) { animation-delay: 175ms; }
 .stagger > *:nth-child(7) { animation-delay: 210ms; }
 .stagger > *:nth-child(8) { animation-delay: 245ms; }
+
+/* Nova chat fills the viewport. When the Android keyboard opens it overlays
+   the page, so shrink the chat by the keyboard height to keep the composer
+   and the send button visible while typing. */
+.nova-chat {
+  height: calc(100dvh - 140px - var(--keyboard-inset, 0px));
+}
+@media (min-width: 1024px) {
+  .nova-chat {
+    height: calc(100dvh - 120px - var(--keyboard-inset, 0px));
+  }
+}
+
+/* Fixed elements anchored near the bottom (FAB, toasts, back-to-top) sit
+   above the Android keyboard when it opens. On desktop the inset is always 0. */
+.raise-for-keyboard {
+  bottom: calc(6rem + var(--keyboard-inset, 0px));
+}
+@media (min-width: 1024px) {
+  .raise-for-keyboard {
+    bottom: 2rem;
+  }
+}
 
 /* shimmer for loading */
 @keyframes shimmer {

@@ -26,6 +26,7 @@ import { useApp } from "@/lib/app-context";
 import { Button } from "@/components/ui";
 import { Wordmark } from "@/components/Logo";
 import { CommandPalette } from "@/components/CommandPalette";
+import { KeyboardManager } from "@/components/KeyboardManager";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { initials } from "@/lib/format";
 import { getModuleUsage, incrementUsage, moduleHref } from "@/lib/module-usage";
@@ -120,6 +121,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-bg min-h-dvh">
+      <KeyboardManager />
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/6 bg-black/30 p-4 backdrop-blur-xl lg:flex dark:border-white/6 dark:bg-black/30">
         <Link href="/app" className="mb-6 px-2 pt-1">
@@ -189,8 +191,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:border-white/8 dark:bg-black/60">
+      {/* Mobile bottom nav — raised above the Android keyboard when it opens */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:border-white/8 dark:bg-black/60"
+        style={{ bottom: "var(--keyboard-inset, 0px)" }}
+      >
         <div className="mx-auto flex max-w-md items-center justify-around px-1.5 py-2 sm:px-2">
           {mobileVisible.map((n) => {
             const active = isActive(n.href);
@@ -257,6 +262,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         aria-label="Captura rápida"
         className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition active:scale-95 lg:hidden"
         style={{
+          bottom: "calc(6rem + var(--keyboard-inset, 0px))",
           background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
           boxShadow: "0 12px 32px -12px var(--app-primary, #6366f1)",
         }}
@@ -271,7 +277,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Voltar ao topo"
-          className="fixed bottom-24 left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 text-zinc-300 shadow-xl backdrop-blur transition hover:text-white lg:bottom-8 lg:left-auto lg:right-8"
+          className="raise-for-keyboard fixed left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 text-zinc-300 shadow-xl backdrop-blur transition hover:text-white lg:left-auto lg:right-8"
         >
           <ArrowUp className="h-5 w-5" />
         </button>

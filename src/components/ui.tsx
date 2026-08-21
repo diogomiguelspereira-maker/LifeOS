@@ -306,13 +306,15 @@ export function Modal({
   const panel = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+      style={{ bottom: "var(--keyboard-inset, 0px)" }}
       onClick={onClose}
     >
       <div
         className={cn(
-          "w-full max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain rounded-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-scale-in dark:bg-zinc-950",
+          "w-full overflow-y-auto overscroll-contain rounded-3xl border border-white/10 bg-zinc-950 p-5 shadow-2xl animate-scale-in dark:bg-zinc-950",
           maxWidth
         )}
+        style={{ maxHeight: "calc(100dvh - 2rem - var(--keyboard-inset, 0px))" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
