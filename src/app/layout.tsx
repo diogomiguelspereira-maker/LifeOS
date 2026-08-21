@@ -29,10 +29,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  viewportFit: "cover",
-  // On Android the on-screen keyboard resizes the layout instead of covering
-  // inputs, so the Nova composer and forms stay visible while typing.
-  interactiveWidget: "resizes-content",
+  // NOTE: keep the meta standard. `viewport-fit=cover` and
+  // `interactive-widget=resizes-content` caused the page to zoom toward the
+  // top-left ~1s after load inside the Android TWA (Chrome re-applies the
+  // window insets after the first frame, shrinking the layout viewport).
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
