@@ -617,6 +617,7 @@ function WishModal({
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [url, setUrl] = useState("");
+  const [image, setImage] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("medium");
 
@@ -625,6 +626,7 @@ function WishModal({
       setName(wish?.name ?? "");
       setPrice(wish?.price != null ? String(wish.price) : "");
       setUrl(wish?.url ?? "");
+      setImage(wish?.image ?? "");
       setCategory(wish?.category ?? "");
       setPriority(wish?.priority ?? "medium");
     }
@@ -636,6 +638,7 @@ function WishModal({
       name: name.trim(),
       price: price ? parseFloat(price.replace(",", ".")) : null,
       url: url || null,
+      image: image || null,
       category: category || null,
       priority,
     };
@@ -673,6 +676,9 @@ function WishModal({
         </Field>
         <Field label="URL">
           <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+        </Field>
+        <Field label={t.wishlist.image}>
+          <Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://… (url da imagem)" />
         </Field>
         <Button className="w-full" onClick={save} disabled={!name.trim()}>
           {t.common.save}

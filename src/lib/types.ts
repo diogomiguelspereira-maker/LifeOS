@@ -338,12 +338,37 @@ export interface WishlistItem {
   user_id: string;
   name: string;
   price: number | null;
+  image: string | null;
   url: string | null;
   priority: "critical" | "high" | "medium" | "low";
   category: string | null;
   desired_date: string | null;
   notes: string | null;
   purchased: boolean;
+}
+
+export interface WishlistShare {
+  id: string;
+  user_id: string;
+  token: string;
+  label: string | null;
+  expires_at: string | null;
+  used_at: string | null;
+  unlimited: boolean;
+  created_at: string;
+}
+
+export interface SharedWishlistItem {
+  id: string;
+  name: string;
+  price: number | null;
+  image: string | null;
+  url: string | null;
+  category: string | null;
+  owner_name: string | null;
+  owner_email: string | null;
+  share_label: string | null;
+  is_unlimited?: boolean;
 }
 
 export interface FocusSession {

@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Command,
   Flame,
+  Gift,
   Home,
   LayoutGrid,
   LogOut,
@@ -41,6 +42,7 @@ const NAV = [
   { href: "/app/nova", labelKey: "ai", icon: Sparkles },
   { href: "/app/notes", labelKey: "notes", icon: StickyNote },
   { href: "/app/people", labelKey: "people", icon: Users },
+  { href: "/app/wishlist", labelKey: "wishlist", icon: Gift },
   { href: "/app/stats", labelKey: "stats", icon: BarChart3 },
   { href: "/app/monitor", labelKey: "monitor", icon: Activity },
   { href: "/app/more", labelKey: "more", icon: LayoutGrid },
@@ -48,7 +50,7 @@ const NAV = [
 ] as const;
 
 // Odd count so Nova sits exactly in the center of the 5-slot bar.
-const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/calendar"];
+const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/wishlist"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, t, signOut, updateProfile } = useApp();
