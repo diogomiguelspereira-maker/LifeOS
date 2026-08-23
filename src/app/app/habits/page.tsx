@@ -196,7 +196,7 @@ export default function HabitsPage() {
                   </button>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className={cn("text-sm font-semibold", done ? "text-zinc-500" : "text-zinc-100")}>
+                      <p className={cn("text-sm font-semibold", done ? "text-zinc-500" : "text-zinc-800 dark:text-zinc-100")}>
                         {h.name}
                       </p>
                       <button
@@ -230,7 +230,7 @@ export default function HabitsPage() {
                         <span
                           key={i}
                           title={day.date}
-                          className={cn("h-2 flex-1 rounded-full", day.done ? "" : "bg-white/8")}
+                          className={cn("h-2 flex-1 rounded-full", day.done ? "" : "bg-zinc-100 dark:bg-white/8")}
                           style={day.done ? { background: h.color } : undefined}
                         />
                       ))}
@@ -301,7 +301,7 @@ function AddHabitModal({
                   "h-10 w-10 rounded-xl border text-sm font-medium transition",
                   target === String(n)
                     ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300"
-                    : "border-white/10 text-zinc-500 hover:bg-white/5"
+                    : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {n}
@@ -317,7 +317,7 @@ function AddHabitModal({
                 onClick={() => setIcon(i)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition",
-                  icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 hover:bg-white/5"
+                  icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {i}

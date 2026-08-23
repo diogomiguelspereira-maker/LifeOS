@@ -105,7 +105,7 @@ export default function TravelPage() {
           <Card key={tr.id}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-base font-semibold text-zinc-100">{tr.destination}</p>
+                <p className="text-base font-semibold text-zinc-800 dark:text-zinc-100">{tr.destination}</p>
                 <p className="text-xs text-zinc-500">
                   {tr.start_date ?? "—"} → {tr.end_date ?? "—"} · {days} {t.travel.days}
                 </p>
@@ -132,7 +132,7 @@ export default function TravelPage() {
                   <span className="text-zinc-500">
                     {t.travel.spent}: {Math.round(spent)}€ / {tr.budget}€
                   </span>
-                  <span className="text-zinc-400">{Math.round(pct)}%</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">{Math.round(pct)}%</span>
                 </div>
                 <Progress value={pct} color={pct > 100 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-emerald-500 to-teal-400"} />
               </div>
@@ -147,7 +147,7 @@ export default function TravelPage() {
                     <Badge color={i.type === "flight" ? "blue" : i.type === "hotel" ? "violet" : i.type === "restaurant" ? "amber" : "zinc"}>
                       {(t.travel as Record<string, string>)[i.type] ?? t.common.other}
                     </Badge>
-                    <span className="text-zinc-200">{i.title}</span>
+                    <span className="text-zinc-700 dark:text-zinc-200">{i.title}</span>
                     {i.cost != null && <span className="ml-auto text-xs text-zinc-500">{i.cost}€</span>}
                     <button
                       onClick={async () => {
@@ -177,7 +177,7 @@ export default function TravelPage() {
                         "rounded-full border px-2 py-0.5 text-[11px] transition",
                         i.checked
                           ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 line-through"
-                          : "border-white/10 text-zinc-400 hover:bg-white/5"
+                          : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
                       )}
                     >
                       {i.title}

@@ -179,7 +179,7 @@ export default function WishlistPage() {
               onClick={() => setFilter(f)}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                filter === f ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-white/10 text-zinc-400 hover:bg-white/5"
+                filter === f ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >
               {t.wishlist[f]}
@@ -205,7 +205,7 @@ export default function WishlistPage() {
             <Card key={item.id} className={cn("group flex flex-col transition", item.purchased && "opacity-60")}>
               {/* Product image */}
               {item.image ? (
-                <div className="relative -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-800/50">
+                <div className="relative -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/50">
                   <img
                     src={item.image}
                     alt={item.name}
@@ -230,7 +230,7 @@ export default function WishlistPage() {
                   )}
                 </div>
               ) : (
-                <div className="-mx-4 -mt-4 mb-3 flex aspect-video items-center justify-center rounded-t-2xl bg-zinc-800/30">
+                <div className="-mx-4 -mt-4 mb-3 flex aspect-video items-center justify-center rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/30">
                   <ImageIcon className="h-8 w-8 text-zinc-600" />
                 </div>
               )}
@@ -239,7 +239,7 @@ export default function WishlistPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <span>{PRIORITY_ICONS[item.priority]}</span>
-                    <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-100")}>
+                    <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
                       {item.name}
                     </p>
                   </div>
@@ -255,13 +255,13 @@ export default function WishlistPage() {
                 <InlinePrice
                   value={item.price}
                   currency={currency}
-                  className="text-lg font-bold text-zinc-100"
+                  className="text-lg font-bold text-zinc-800 dark:text-zinc-100"
                   onSave={async (v) => { await updateItem(item, { price: v }); }}
                 />
                 <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => { setEditingItem(item); setAddOpen(true); }}
-                    className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                    className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-zinc-700 dark:text-zinc-200"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -269,7 +269,7 @@ export default function WishlistPage() {
                     onClick={() => togglePurchased(item)}
                     className={cn(
                       "rounded-lg p-1.5 transition",
-                      item.purchased ? "text-emerald-400 hover:bg-emerald-500/10" : "text-zinc-500 hover:text-emerald-400 hover:bg-white/8"
+                      item.purchased ? "text-emerald-400 hover:bg-emerald-500/10" : "text-zinc-500 hover:text-emerald-400 hover:bg-zinc-100 dark:bg-white/8"
                     )}
                     title={item.purchased ? t.wishlist.undoPurchase : t.wishlist.markPurchased}
                   >
@@ -287,7 +287,7 @@ export default function WishlistPage() {
               {/* Cost per use */}
               {item.price ? (
                 <p className="mt-1 text-[11px] text-zinc-500">
-                  {t.shopping.costPerUse}: <b className="text-zinc-400">{formatMoney(costPerUse(item.price, 100), currency)}</b> / 100 {t.shopping.uses}
+                  {t.shopping.costPerUse}: <b className="text-zinc-500 dark:text-zinc-400">{formatMoney(costPerUse(item.price, 100), currency)}</b> / 100 {t.shopping.uses}
                 </p>
               ) : null}
 
@@ -308,7 +308,7 @@ export default function WishlistPage() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] text-zinc-500 transition hover:bg-white/5 hover:text-zinc-300"
+                  className="mt-2 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] text-zinc-500 transition hover:bg-zinc-50 dark:bg-white/5 hover:text-zinc-600 dark:text-zinc-300"
                 >
                   <Link2 className="h-3 w-3" />
                   <span className="truncate">{new URL(item.url).hostname.replace("www.", "")}</span>
@@ -346,7 +346,7 @@ export default function WishlistPage() {
               <p className={cn("text-2xl font-bold", affordResult.verdict === "yes" ? "text-emerald-400" : "text-amber-400")}>
                 {affordResult.verdict === "yes" ? "YES ✓" : t.shopping.notYet}
               </p>
-              <p className="mt-1 text-sm text-zinc-300">{affordResult.reasoning}</p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{affordResult.reasoning}</p>
               {affordResult.waitWeeks && (
                 <p className="mt-1.5 text-xs text-zinc-500">
                   {t.shopping.waitWeeks}: ~{affordResult.waitWeeks} {t.finance.days === "dias" ? "semanas" : "weeks"}
@@ -356,13 +356,13 @@ export default function WishlistPage() {
             <div className="grid grid-cols-2 gap-2 text-center">
               <div className="rounded-xl bg-white/4 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterBalance}</p>
-                <p className={cn("text-lg font-bold", affordResult.afterBalance < 0 ? "text-rose-400" : "text-zinc-100")}>
+                <p className={cn("text-lg font-bold", affordResult.afterBalance < 0 ? "text-rose-400" : "text-zinc-800 dark:text-zinc-100")}>
                   {formatMoney(affordResult.afterBalance, currency)}
                 </p>
               </div>
               <div className="rounded-xl bg-white/4 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterSafe}</p>
-                <p className={cn("text-lg font-bold", affordResult.safeToSpendAfter < 0 ? "text-rose-400" : "text-zinc-100")}>
+                <p className={cn("text-lg font-bold", affordResult.safeToSpendAfter < 0 ? "text-rose-400" : "text-zinc-800 dark:text-zinc-100")}>
                   {formatMoney(affordResult.safeToSpendAfter, currency)}
                 </p>
               </div>
@@ -402,7 +402,7 @@ function InlinePrice({
     return (
       <button
         onClick={() => { setVal(value != null ? String(value) : ""); setEditing(true); }}
-        className={cn("rounded px-1 -mx-1 transition hover:bg-white/8 hover:text-indigo-300", className)}
+        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300", className)}
       >
         {value != null ? formatMoney(value, currency) : "—"}
       </button>
@@ -417,7 +417,7 @@ function InlinePrice({
       onChange={(e) => setVal(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
-      className="h-7 w-24 rounded-lg border border-white/15 bg-white/8 px-2 text-xs tabular-nums text-zinc-100 outline-none focus:border-indigo-400/60"
+      className="h-7 w-24 rounded-lg border border-zinc-300 dark:border-white/15 bg-zinc-100 dark:bg-white/8 px-2 text-xs tabular-nums text-zinc-800 dark:text-zinc-100 outline-none focus:border-indigo-400/60"
     />
   );
 }
@@ -594,7 +594,7 @@ function AddModal({
         {/* URL input | loading | error */}
         {(phase === "url" || phase === "loading" || phase === "error") && (
           <>
-            <p className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 px-3 py-2.5 text-xs leading-relaxed text-zinc-400">
+            <p className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 px-3 py-2.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
               <Sparkles className="mr-1.5 inline h-3.5 w-3.5 text-indigo-400" />
               {t.wishlist.addByUrlHint}
             </p>
@@ -625,7 +625,7 @@ function AddModal({
           <>
             <div className="overflow-hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04]">
               {scraped.image && (
-                <div className="flex items-center justify-center bg-zinc-800/40 p-4">
+                <div className="flex items-center justify-center bg-zinc-50 dark:bg-zinc-800/40 p-4">
                   <img
                     src={scraped.image}
                     alt={scraped.name}
@@ -635,7 +635,7 @@ function AddModal({
                 </div>
               )}
               <div className="space-y-1.5 p-4">
-                <p className="text-sm font-semibold text-zinc-100">{scraped.name || t.wishlist.untitled}</p>
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{scraped.name || t.wishlist.untitled}</p>
                 <div className="flex items-center gap-2">
                   {scraped.price ? (
                     <p className="text-xl font-bold text-emerald-300">
@@ -651,7 +651,7 @@ function AddModal({
                         onChange={(e) => setScrapedPrice(e.target.value)}
                         placeholder={currency}
                         autoFocus
-                        className="h-8 w-28 rounded-lg border border-amber-500/30 bg-amber-500/8 px-2 text-sm tabular-nums text-zinc-100 outline-none focus:border-amber-400/60"
+                        className="h-8 w-28 rounded-lg border border-amber-500/30 bg-amber-500/8 px-2 text-sm tabular-nums text-zinc-800 dark:text-zinc-100 outline-none focus:border-amber-400/60"
                       />
                     </div>
                   )}
@@ -667,7 +667,7 @@ function AddModal({
             </Button>
             <button
               onClick={() => { setPhase("url"); setScraped(null); }}
-              className="w-full text-center text-xs text-zinc-500 transition hover:text-zinc-300"
+              className="w-full text-center text-xs text-zinc-500 transition hover:text-zinc-600 dark:text-zinc-300"
             >
               ← {t.wishlist.tryAnother}
             </button>
@@ -684,7 +684,7 @@ function AddModal({
             </div>
             <button
               onClick={() => setPhase("manual")}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-3 text-sm font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-200"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/[0.03] py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-700 dark:text-zinc-200"
             >
               <GripHorizontal className="h-4 w-4" />
               {t.wishlist.addManually}
@@ -829,7 +829,7 @@ function ShareModal({ open, onClose, items }: { open: boolean; onClose: () => vo
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300">{t.wishlist.shareReady}</p>
             <div className="mt-2 flex items-center gap-2">
-              <code className="flex-1 truncate rounded-lg border border-emerald-500/20 bg-black/30 px-3 py-2 text-xs text-zinc-200">{createdUrl}</code>
+              <code className="flex-1 truncate rounded-lg border border-emerald-500/20 bg-black/30 px-3 py-2 text-xs text-zinc-700 dark:text-zinc-200">{createdUrl}</code>
               <Button size="sm" onClick={() => copyLink(createdUrl)}>
                 <Copy className="h-3.5 w-3.5" />
                 {copied === createdUrl ? t.wishlist.copied : t.wishlist.copy}
@@ -847,7 +847,7 @@ function ShareModal({ open, onClose, items }: { open: boolean; onClose: () => vo
                 return (
                   <div key={s.id} className="flex items-center justify-between rounded-lg bg-white/4 px-3 py-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-zinc-200">
+                      <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">
                         {s.label || s.token.slice(0, 12) + "…"}
                       </p>
                       <p className="text-[10px] text-zinc-500">
@@ -860,7 +860,7 @@ function ShareModal({ open, onClose, items }: { open: boolean; onClose: () => vo
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => copyLink(`${window.location.origin}/share/wishlist/${s.token}`)}
-                        className="rounded-lg p-1.5 text-zinc-500 transition hover:text-zinc-200"
+                        className="rounded-lg p-1.5 text-zinc-500 transition hover:text-zinc-700 dark:text-zinc-200"
                       >
                         <Copy className="h-3.5 w-3.5" />
                       </button>

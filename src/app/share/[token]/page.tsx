@@ -128,7 +128,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
           <CalendarDays className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold text-zinc-100">
+          <h1 className="truncate text-lg font-bold text-zinc-800 dark:text-zinc-100">
             {shareLabel || `${t.calendar.shareAgendaOf} ${ownerName ?? "LifeOS"}`}
           </h1>
           {shareLabel && ownerName && (
@@ -148,28 +148,28 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
       )}
 
       {status === "invalid" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
             <Lock className="h-6 w-6" />
           </div>
-          <p className="text-base font-semibold text-zinc-200">{t.calendar.shareUnavailableTitle}</p>
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.calendar.shareUnavailableTitle}</p>
           <p className="max-w-sm text-sm text-zinc-500">{t.calendar.shareUnavailable}</p>
         </div>
       )}
 
       {status === "error" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
             <Lock className="h-6 w-6" />
           </div>
-          <p className="text-base font-semibold text-zinc-200">{t.common.error}</p>
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.common.error}</p>
           <p className="max-w-sm text-sm text-zinc-500">{t.calendar.shareLoadFailed}</p>
         </div>
       )}
 
       {status === "empty" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
-          <p className="text-base font-semibold text-zinc-200">{t.calendar.shareNoEvents}</p>
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.calendar.shareNoEvents}</p>
         </div>
       )}
 
@@ -187,7 +187,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
             )}
             <button
               onClick={downloadIcs}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-zinc-200 transition hover:bg-white/10"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3 py-1.5 text-[11px] font-medium text-zinc-700 dark:text-zinc-200 transition hover:bg-white/10"
             >
               📥 {t.calendar.shareDownloadIcs}
             </button>
@@ -197,11 +197,11 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
             const d = new Date(`${key}T00:00:00`);
             const todayKey = localDayKey(new Date());
             return (
-              <section key={key} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+              <section key={key} className="rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] p-4">
                 <h2
                   className={cn(
                     "mb-3 text-xs font-semibold uppercase tracking-wider",
-                    key === todayKey ? "text-indigo-400" : "text-zinc-400"
+                    key === todayKey ? "text-indigo-400" : "text-zinc-500 dark:text-zinc-400"
                   )}
                 >
                   {d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
@@ -213,7 +213,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
                       <span className="mt-0.5 h-3 w-3 shrink-0 rounded-full" style={{ background: ev.color }} />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline gap-x-2">
-                          <p className="text-sm font-medium text-zinc-100">{ev.title}</p>
+                          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">{ev.title}</p>
                           <span className="flex items-center gap-1 text-[11px] tabular-nums text-zinc-500">
                             <Clock className="h-3 w-3" />
                             {ev.all_day

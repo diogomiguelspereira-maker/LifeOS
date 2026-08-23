@@ -226,7 +226,7 @@ function NovaChat() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-base font-bold text-zinc-100">{t.nova.title}</p>
+            <p className="text-base font-bold text-zinc-800 dark:text-zinc-100">{t.nova.title}</p>
             <p className="text-xs text-zinc-500">
               {online === null ? "…" : online ? (
                 <span className="text-emerald-400">● online</span>
@@ -276,7 +276,7 @@ function NovaChat() {
               <Sparkles className="h-8 w-8 text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-zinc-200">{t.nova.subtitle}</p>
+              <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{t.nova.subtitle}</p>
               <p className="mx-auto mt-1 max-w-xs text-xs text-zinc-500">
                 {profile?.name?.split(" ")[0] ? `Olá ${profile.name.split(" ")[0]}! ` : ""}Pergunta o que quiseres sobre o teu dinheiro, tarefas, calendário e objetivos.
               </p>
@@ -286,7 +286,7 @@ function NovaChat() {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="rounded-full border border-white/10 bg-white/4 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-indigo-400/40 hover:bg-indigo-500/10"
+                  className="rounded-full border border-zinc-200 dark:border-white/10 bg-white/4 px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 transition hover:border-indigo-400/40 hover:bg-indigo-500/10"
                 >
                   {s}
                 </button>
@@ -302,7 +302,7 @@ function NovaChat() {
                   "max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed animate-slide-up",
                   m.role === "user"
                     ? "rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white"
-                    : "rounded-bl-md bg-white/6 text-zinc-200 dark:bg-white/6"
+                    : "rounded-bl-md bg-zinc-100 dark:bg-white/6 text-zinc-700 dark:text-zinc-200 dark:bg-white/6"
                 )}
               >
                 {m.content}
@@ -310,7 +310,7 @@ function NovaChat() {
             </div>
           ))}
           {thinking && (
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
+            <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
               <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
               {t.nova.thinking}
             </div>
@@ -321,13 +321,13 @@ function NovaChat() {
 
       {/* input */}
       <div className="mt-3 flex items-end gap-2">
-        <div className="flex flex-1 items-center rounded-2xl border border-white/10 bg-white/5 px-4 focus-within:border-indigo-400/50">
+        <div className="flex flex-1 items-center rounded-2xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-4 focus-within:border-indigo-400/50">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
             placeholder={t.nova.placeholder}
-            className="h-12 w-full bg-transparent py-3 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none"
+            className="h-12 w-full bg-transparent py-3 text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none"
           />
         </div>
         <Button size="lg" className="h-12 rounded-2xl" onClick={() => send()} disabled={!input.trim() || thinking}>
@@ -340,13 +340,13 @@ function NovaChat() {
         {pending && (
           <div className="space-y-4">
             {pending.action.kind === "create_plan" ? (
-              <div className="rounded-xl bg-white/5 p-3">
+              <div className="rounded-xl bg-zinc-50 dark:bg-white/5 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
                   {t.nova.confirmTitle}
                 </p>
                 <div className="mt-2 space-y-1.5">
                   {((pending.action.payload.items ?? []) as { kind: string; title: string; estimated_minutes?: number }[]).map((it, i) => (
-                    <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-300">
+                    <div key={i} className="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300">
                       <span>{it.kind === "event" ? "📅" : "✅"}</span>
                       <span className="truncate">{it.title}</span>
                       {it.kind === "task" && it.estimated_minutes != null && (
@@ -357,11 +357,11 @@ function NovaChat() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl bg-white/5 p-3">
+              <div className="rounded-xl bg-zinc-50 dark:bg-white/5 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
                   {pending.action.kind.replace("create_", "create ")}
                 </p>
-                <p className="mt-1.5 text-sm text-zinc-200">{JSON.stringify(pending.action.payload, null, 2)}</p>
+                <p className="mt-1.5 text-sm text-zinc-700 dark:text-zinc-200">{JSON.stringify(pending.action.payload, null, 2)}</p>
               </div>
             )}
             <div className="flex gap-2">

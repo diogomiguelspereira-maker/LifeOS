@@ -181,7 +181,7 @@ export default function DatesPage() {
                 >
                   <span className="text-xl">{TYPE_ICON[item.type]}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-100">{item.title}</p>
+                    <p className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">{item.title}</p>
                     <p className="truncate text-[11px] text-zinc-500">{item.sub}</p>
                   </div>
                   <Badge color={overdue ? "red" : item.type === "birthday" ? "pink" : item.type === "bill" ? "amber" : "blue"}>

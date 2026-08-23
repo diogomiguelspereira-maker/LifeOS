@@ -279,14 +279,14 @@ function TasksPageInner() {
 
       {/* Quick add */}
       <div className="flex gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
+        <div className="flex flex-1 items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3">
           <Zap className="h-4 w-4 shrink-0 text-amber-400" />
           <input
             value={quick}
             onChange={(e) => setQuick(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && quickAdd()}
             placeholder={`${t.tasks.quickAdd} — “${t.tasks.quickAdd === "Quick add task" ? "Buy groceries tomorrow at 18:00" : "Comprar mercearias amanhã às 18:00"}”`}
-            className="h-11 w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 outline-none"
+            className="h-11 w-full bg-transparent text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none"
           />
         </div>
         <Button variant="secondary" onClick={quickAdd}>
@@ -303,12 +303,12 @@ function TasksPageInner() {
       )}
       {breakdown && (
         <div className="rounded-xl border border-indigo-500/25 bg-indigo-500/8 px-4 py-3">
-          <p className="text-sm text-zinc-200">
+          <p className="text-sm text-zinc-700 dark:text-zinc-200">
             ✨ <span className="font-medium">“{breakdown.taskTitle}”</span> — {t.tasks.breakdown}
           </p>
           <ul className="mt-2 space-y-1">
             {breakdown.items.map((it, i) => (
-              <li key={i} className="flex items-center gap-2 text-xs text-zinc-400">
+              <li key={i} className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                 <span className="text-emerald-400">▸</span>
                 <span>
                   {i + 1}. {it.title}
@@ -366,7 +366,7 @@ function TasksPageInner() {
               "rounded-full border px-3 py-1 text-xs font-medium transition",
               micro === b.id
                 ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
-                : "border-white/10 text-zinc-400 hover:bg-white/5"
+                : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
             {b.label}
@@ -376,7 +376,7 @@ function TasksPageInner() {
 
       <Card>
         {tasks.length > 0 && (
-          <div className="border-b border-white/5 px-4 py-3">
+          <div className="border-b border-zinc-200 dark:border-white/5 px-4 py-3">
             <div className="mb-1.5 flex items-center justify-between text-[11px] text-zinc-500">
               <span>
                 {doneCount}/{tasks.length} {t.tasks.completed}
@@ -420,7 +420,7 @@ function TasksPageInner() {
                         <span
                           className={cn(
                             "truncate text-sm font-medium",
-                            task.status === "done" ? "text-zinc-500 line-through" : "text-zinc-100"
+                            task.status === "done" ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100"
                           )}
                         >
                           {task.title}
@@ -495,8 +495,8 @@ function TasksPageInner() {
 
                   {/* Expanded: notes, subtasks, study plan */}
                   {expanded === task.id && (
-                    <div className="space-y-3 border-t border-white/5 px-2 py-3">
-                      {task.notes && <p className="text-xs text-zinc-400">{task.notes}</p>}
+                    <div className="space-y-3 border-t border-zinc-200 dark:border-white/5 px-2 py-3">
+                      {task.notes && <p className="text-xs text-zinc-500 dark:text-zinc-400">{task.notes}</p>}
 
                       {subs.length > 0 && (
                         <div>
@@ -520,7 +520,7 @@ function TasksPageInner() {
                                 <span
                                   className={cn(
                                     "truncate",
-                                    sub.status === "done" ? "text-zinc-500 line-through" : "text-zinc-300"
+                                    sub.status === "done" ? "text-zinc-500 line-through" : "text-zinc-600 dark:text-zinc-300"
                                   )}
                                 >
                                   {sub.title}
@@ -548,7 +548,7 @@ function TasksPageInner() {
                               {t.tasks.createBlocks}
                             </Button>
                           </div>
-                          <p className="mt-1.5 text-xs text-zinc-400">
+                          <p className="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                             Faltam {plan.daysRemaining} {t.tasks.daysLeft} · {plan.totalMinutes} min · {plan.sessionsNeeded}{" "}
                             {t.tasks.sessionsWord} de {plan.sessionMinutes} min · {cadenceLabel(plan.cadenceDays)}
                           </p>
@@ -578,8 +578,8 @@ function TasksPageInner() {
 
       {undoTask && (
         <div className="raise-for-keyboard fixed inset-x-0 z-50 flex justify-center px-4">
-          <div className="flex items-center gap-3 rounded-full border border-white/10 bg-zinc-900/95 px-4 py-2.5 shadow-2xl backdrop-blur">
-            <p className="text-xs text-zinc-300">{t.tasks.taskDeleted}</p>
+          <div className="flex items-center gap-3 rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900/95 px-4 py-2.5 shadow-2xl backdrop-blur">
+            <p className="text-xs text-zinc-600 dark:text-zinc-300">{t.tasks.taskDeleted}</p>
             <button onClick={restoreTask} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
               {t.common.undo}
             </button>
@@ -769,7 +769,7 @@ function TaskModal({
                 "rounded-full border px-3 py-1 text-xs font-medium transition",
                 dueDate === localDateStr(new Date()) && chip.label === t.common.today
                   ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
-                  : "border-white/10 text-zinc-500 hover:bg-white/5"
+                  : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >
               {chip.label}

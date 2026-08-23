@@ -54,7 +54,7 @@ function LoginForm() {
       <div className="mb-8 flex flex-col items-center gap-3">
         <Logo size="lg" />
         <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">{t.auth.loginTitle}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{t.auth.loginTitle}</h1>
           <p className="mt-1 text-sm text-zinc-500">{t.auth.loginSubtitle}</p>
         </div>
       </div>
@@ -93,9 +93,9 @@ function LoginForm() {
         </form>
 
         <div className="my-4 flex items-center gap-3">
-          <div className="h-px flex-1 bg-white/8" />
+          <div className="h-px flex-1 bg-zinc-100 dark:bg-white/8" />
           <span className="text-[11px] uppercase tracking-wider text-zinc-600">ou</span>
-          <div className="h-px flex-1 bg-white/8" />
+          <div className="h-px flex-1 bg-zinc-100 dark:bg-white/8" />
         </div>
 
         <Button variant="outline" className="w-full" onClick={handleGoogle} disabled={googleLoading}>

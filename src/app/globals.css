@@ -269,15 +269,21 @@ html.light .aurora {
 /* scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(120, 120, 140, 0.4) transparent;
+  scrollbar-color: rgba(120, 120, 140, 0.25) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(120, 120, 140, 0.4);
+  background: rgba(120, 120, 140, 0.25);
   border-radius: 8px;
+}
+html.dark * {
+  scrollbar-color: rgba(120, 120, 140, 0.4) transparent;
+}
+html.dark *::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 140, 0.4);
 }
 
 /* animations
@@ -411,10 +417,13 @@ html.light .aurora {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, rgba(120, 120, 140, 0.08) 25%, rgba(120, 120, 140, 0.18) 50%, rgba(120, 120, 140, 0.08) 75%);
+  background: linear-gradient(90deg, #e4e4e7 25%, #d4d4d8 50%, #e4e4e7 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: 0.75rem;
+}
+html.dark .skeleton {
+  background: linear-gradient(90deg, rgba(120, 120, 140, 0.08) 25%, rgba(120, 120, 140, 0.18) 50%, rgba(120, 120, 140, 0.08) 75%);
 }
 
 /* mobile compatibility */

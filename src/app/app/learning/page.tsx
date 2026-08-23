@@ -97,17 +97,17 @@ export default function LearningPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.learning.totalHours}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{totalHours.toFixed(1)}h</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{totalHours.toFixed(1)}h</p>
           <p className="text-xs text-zinc-500">{t.learning.thisMonth}: {monthHours.toFixed(1)}h</p>
         </Card>
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.learning.books}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{books.length}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{books.length}</p>
           <p className="text-xs text-zinc-500">{t.learning.reading}: {reading} · {t.learning.finished}: {finished}</p>
         </Card>
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.learning.courses}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{courses.length}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{courses.length}</p>
           <p className="text-xs text-zinc-500">{t.learning.hours}: {courses.reduce((s, c) => s + c.hours, 0)}h</p>
         </Card>
       </div>
@@ -133,7 +133,7 @@ export default function LearningPage() {
             <Card key={b.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">{b.title}</p>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{b.title}</p>
                   <p className="text-[11px] text-zinc-500">{b.author ?? ""}</p>
                 </div>
                 <button onClick={() => removeBook(b.id)} className="rounded-lg p-1 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100">
@@ -156,7 +156,7 @@ export default function LearningPage() {
                     }}
                     className={cn(
                       "flex-1 rounded-lg border px-1.5 py-1 text-[10px] font-medium transition",
-                      b.status === s ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-white/10 text-zinc-500 hover:bg-white/5"
+                      b.status === s ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     )}
                   >
                     {t.learning[s]}
@@ -177,7 +177,7 @@ export default function LearningPage() {
               {courses.map((c) => (
                 <div key={c.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-zinc-200">{c.name}</span>
+                    <span className="font-medium text-zinc-700 dark:text-zinc-200">{c.name}</span>
                     <span className="text-xs text-zinc-500">{c.platform ?? ""} · {c.progress}%</span>
                   </div>
                   <Progress value={c.progress} />
@@ -197,8 +197,8 @@ export default function LearningPage() {
             <div className="space-y-1.5">
               {study.slice(0, 30).map((s) => (
                 <div key={s.id} className="flex items-center gap-3 py-1.5 text-sm">
-                  <span className="text-zinc-400">{s.date}</span>
-                  <span className="text-zinc-200">{s.subject ?? t.learning.study}</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">{s.date}</span>
+                  <span className="text-zinc-700 dark:text-zinc-200">{s.subject ?? t.learning.study}</span>
                   <Badge color="violet" className="ml-auto">
                     {s.minutes}′
                   </Badge>

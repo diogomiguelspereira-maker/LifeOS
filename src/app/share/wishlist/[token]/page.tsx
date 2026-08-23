@@ -65,7 +65,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
           <Gift className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-bold text-zinc-100">
+          <h1 className="truncate text-lg font-bold text-zinc-800 dark:text-zinc-100">
             {shareLabel || `${t.wishlist.shareTitle} ${ownerName ?? "LifeOS"}`}
           </h1>
           {shareLabel && ownerName && (
@@ -73,9 +73,9 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
           )}
         </div>
         {total > 0 && (
-          <div className="ml-auto shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-right">
+          <div className="ml-auto shrink-0 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-4 py-2 text-right">
             <p className="text-[10px] uppercase tracking-wider text-zinc-500">{items.length} {t.wishlist.items}</p>
-            <p className="text-lg font-bold text-zinc-100">{formatPrice(total)}</p>
+            <p className="text-lg font-bold text-zinc-800 dark:text-zinc-100">{formatPrice(total)}</p>
           </div>
         )}
       </header>
@@ -89,28 +89,28 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
       )}
 
       {status === "invalid" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
             <Lock className="h-6 w-6" />
           </div>
-          <p className="text-base font-semibold text-zinc-200">{t.calendar.shareUnavailableTitle}</p>
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.calendar.shareUnavailableTitle}</p>
           <p className="max-w-sm text-sm text-zinc-500">{t.calendar.shareUnavailable}</p>
         </div>
       )}
 
       {status === "error" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
             <Lock className="h-6 w-6" />
           </div>
-          <p className="text-base font-semibold text-zinc-200">{t.common.error}</p>
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.common.error}</p>
           <p className="max-w-sm text-sm text-zinc-500">{t.calendar.shareLoadFailed}</p>
         </div>
       )}
 
       {status === "empty" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] px-6 py-16 text-center">
-          <p className="text-base font-semibold text-zinc-200">{t.wishlist.shareEmpty}</p>
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+          <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.wishlist.shareEmpty}</p>
         </div>
       )}
 
@@ -130,10 +130,10 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
-              <div key={item.id} className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition hover:border-white/15">
+              <div key={item.id} className="group rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] p-4 transition hover:border-zinc-300 dark:border-white/15">
                 {/* Product image */}
                 {item.image ? (
-                  <div className="-mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-800/50">
+                  <div className="-mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/50">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -143,19 +143,19 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
                     />
                   </div>
                 ) : (
-                  <div className="-mx-4 -mt-4 mb-3 flex aspect-video items-center justify-center rounded-t-2xl bg-zinc-800/30">
+                  <div className="-mx-4 -mt-4 mb-3 flex aspect-video items-center justify-center rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/30">
                     <ShoppingBag className="h-8 w-8 text-zinc-600" />
                   </div>
                 )}
 
-                <h3 className="text-sm font-semibold text-zinc-100">{item.name}</h3>
+                <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{item.name}</h3>
 
                 {item.category && (
                   <p className="mt-0.5 text-[11px] text-zinc-500">{item.category}</p>
                 )}
 
                 <div className="mt-2 flex items-center justify-between">
-                  <p className="text-lg font-bold text-zinc-100">
+                  <p className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
                     {formatPrice(item.price)}
                   </p>
                   {item.url && (
@@ -176,7 +176,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 block truncate text-[10px] text-zinc-600 hover:text-zinc-400"
+                    className="mt-2 block truncate text-[10px] text-zinc-600 hover:text-zinc-500 dark:text-zinc-400"
                   >
                     {new URL(item.url).hostname.replace("www.", "")}
                   </a>

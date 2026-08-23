@@ -80,8 +80,8 @@ export default function LifeAdminPage() {
       <PageHeader title={t.lifeadmin.title} subtitle={t.lifeadmin.subtitle} />
 
       <Card className="flex items-center justify-between">
-        <p className="text-sm text-zinc-300">{t.lifeadmin.thisMonth}</p>
-        <p className="text-2xl font-bold text-zinc-100">{total}</p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">{t.lifeadmin.thisMonth}</p>
+        <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">{total}</p>
       </Card>
 
       {total === 0 && (
@@ -99,7 +99,7 @@ export default function LifeAdminPage() {
           <div className="space-y-1">
             {sections.overdue.slice(0, 6).map((x) => (
               <div key={x.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
-                <span className="flex items-center gap-2 text-zinc-200">
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
                   <CheckSquare className="h-4 w-4 text-red-400" />
                   {x.title}
                 </span>
@@ -119,11 +119,11 @@ export default function LifeAdminPage() {
           <div className="space-y-1">
             {sections.bills.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
-                <span className="flex items-center gap-2 text-zinc-200">
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
                   <Wallet className="h-4 w-4 text-amber-400" />
                   {s.name}
                 </span>
-                <span className="text-xs text-zinc-400">
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   {formatMoney(s.amount, currency)} · {s.next_billing_date}
                 </span>
               </div>
@@ -141,7 +141,7 @@ export default function LifeAdminPage() {
           <div className="space-y-1">
             {sections.expiring.map((d) => (
               <div key={d.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
-                <span className="flex items-center gap-2 text-zinc-200">
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
                   <FileText className="h-4 w-4 text-sky-400" />
                   {d.name}
                 </span>
@@ -158,11 +158,11 @@ export default function LifeAdminPage() {
           <div className="space-y-1">
             {sections.toCancel.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
-                <span className="flex items-center gap-2 text-zinc-200">
-                  <Sparkles className="h-4 w-4 text-zinc-400" />
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
+                  <Sparkles className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
                   {s.name}
                 </span>
-                <span className="text-xs text-zinc-400">{formatMoney(s.amount, currency)}</span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatMoney(s.amount, currency)}</span>
               </div>
             ))}
           </div>
@@ -178,7 +178,7 @@ export default function LifeAdminPage() {
           <div className="space-y-1">
             {sections.birthdays.map(({ c, inDays }) => (
               <div key={c.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm">
-                <span className="flex items-center gap-2 text-zinc-200">
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200">
                   <Gift className="h-4 w-4 text-pink-400" />
                   {c.name}
                 </span>

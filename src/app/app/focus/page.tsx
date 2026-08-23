@@ -145,7 +145,7 @@ function FocusPageInner() {
               />
             </svg>
             <div className="text-center">
-              <p className="text-5xl font-bold tabular-nums tracking-tight text-zinc-100">
+              <p className="text-5xl font-bold tabular-nums tracking-tight text-zinc-800 dark:text-zinc-100">
                 {mm}:{ss}
               </p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -164,7 +164,7 @@ function FocusPageInner() {
             </Button>
             <div className="ml-2 flex items-center gap-1.5">
               <Flame className={cn("h-5 w-5", cycle > 0 ? "text-orange-400" : "text-zinc-600")} />
-              <span className="text-sm font-semibold text-zinc-300">{cycle}</span>
+              <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">{cycle}</span>
             </div>
           </div>
 
@@ -205,12 +205,12 @@ function FocusPageInner() {
           <div className="grid grid-cols-2 gap-3">
             <Card>
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.focus.today}</p>
-              <p className="mt-1 text-2xl font-bold text-zinc-100">{todaySessions.length}</p>
+              <p className="mt-1 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{todaySessions.length}</p>
               <p className="text-xs text-zinc-500">{todayMinutes} {t.focus.minutes}</p>
             </Card>
             <Card>
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.focus.sessions}</p>
-              <p className="mt-1 text-2xl font-bold text-zinc-100">{sessions.length}</p>
+              <p className="mt-1 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{sessions.length}</p>
               <p className="text-xs text-zinc-500">{totalFocus} {t.focus.minutes}</p>
             </Card>
           </div>
@@ -227,7 +227,7 @@ function FocusPageInner() {
                     <div key={s.id} className="flex items-center gap-3 rounded-lg px-2 py-2">
                       <Timer className="h-4 w-4 shrink-0 text-indigo-400" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-zinc-200">{task?.title ?? t.focus.deepWork}</p>
+                        <p className="truncate text-sm text-zinc-700 dark:text-zinc-200">{task?.title ?? t.focus.deepWork}</p>
                         <p className="text-[11px] text-zinc-500">{new Date(s.started_at).toLocaleDateString("pt-PT", { day: "numeric", month: "short" })} · {formatTime(s.started_at)}</p>
                       </div>
                       <Badge color="violet">{s.minutes}′</Badge>

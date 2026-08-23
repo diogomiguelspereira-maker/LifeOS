@@ -71,13 +71,13 @@ export default function MorePage() {
   }, [profile?.preferences]);
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight text-zinc-100">{t.nav.more}</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{t.nav.more}</h1>
       <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3">
         {items.map((i) => (
           <Link key={i.href} href={i.href}>
-            <Card className="flex flex-col items-center gap-2 py-6 transition hover:bg-white/8">
+            <Card className="flex flex-col items-center gap-2 py-6 transition hover:bg-zinc-100 dark:bg-white/8">
               <i.icon className="h-6 w-6 text-indigo-400" />
-              <span className="text-sm font-medium text-zinc-200">{i.label(t)}</span>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{i.label(t)}</span>
             </Card>
           </Link>
         ))}

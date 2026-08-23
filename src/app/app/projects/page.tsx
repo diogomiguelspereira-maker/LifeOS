@@ -147,7 +147,7 @@ export default function ProjectsPage() {
                       <FolderKanban className="h-4.5 w-4.5" style={{ color: p.color }} />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-100">{p.name}</p>
+                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{p.name}</p>
                       {p.description && <p className="text-[11px] text-zinc-500">{p.description}</p>}
                     </div>
                   </div>
@@ -157,7 +157,7 @@ export default function ProjectsPage() {
                         setEditing(p);
                         setEditOpen(true);
                       }}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-zinc-700 dark:text-zinc-200"
                     >
                       ✏️
                     </button>
@@ -179,7 +179,7 @@ export default function ProjectsPage() {
                       <span className="text-zinc-500">
                         {t.projects.spent}: {formatMoney(spent, currency)} / {formatMoney(p.budget, currency)}
                       </span>
-                      <span className={cn(pct > 100 ? "text-red-400" : "text-zinc-400")}>{pct}%</span>
+                      <span className={cn(pct > 100 ? "text-red-400" : "text-zinc-500 dark:text-zinc-400")}>{pct}%</span>
                     </div>
                     <Progress value={pct} color={pct > 100 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-indigo-500 to-violet-400"} />
                   </div>
@@ -201,7 +201,7 @@ export default function ProjectsPage() {
                     <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.projects.tasks}</p>
                     <div className="space-y-1">
                       {ptasks.slice(0, 4).map((task) => (
-                        <div key={task.id} className="flex items-center gap-2 text-sm text-zinc-300">
+                        <div key={task.id} className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
                           <span className="h-3 w-3 shrink-0 rounded-full border border-white/20" />
                           <span className="truncate">{task.title}</span>
                           {task.estimated_minutes != null && <span className="ml-auto text-[11px] text-zinc-600">{task.estimated_minutes}m</span>}
@@ -214,7 +214,7 @@ export default function ProjectsPage() {
                 {goal && (
                   <div className="mt-3 rounded-xl bg-white/4 px-3 py-2">
                     <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="text-zinc-400">
+                      <span className="text-zinc-500 dark:text-zinc-400">
                         🎯 {goal.name} · {formatMoney(goal.current_amount, currency)} / {formatMoney(goal.target_amount, currency)}
                       </span>
                       <span className="text-zinc-500">{gPct}%</span>
@@ -294,7 +294,7 @@ export default function ProjectsPage() {
                     setGoalLinkFor(null);
                   }
                 }}
-                className="flex w-full items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-left text-sm text-zinc-200 transition hover:bg-white/10"
+                className="flex w-full items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/8 bg-white/4 px-3 py-2.5 text-left text-sm text-zinc-700 dark:text-zinc-200 transition hover:bg-white/10"
               >
                 <span>{g.icon}</span>
                 <span className="truncate">{g.name}</span>

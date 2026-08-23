@@ -142,7 +142,7 @@ export default function ReviewPage() {
                 <div className="space-y-1.5">
                   {nextBills.map((s) => (
                     <div key={s.id} className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-200">{s.name}</span>
+                      <span className="text-zinc-700 dark:text-zinc-200">{s.name}</span>
                       <span className="text-xs text-zinc-500">
                         {formatMoney(s.amount, currency)} · {s.next_billing_date}
                       </span>
@@ -157,8 +157,8 @@ export default function ReviewPage() {
                     {byCat.map((c) => (
                       <div key={c.category} className="flex items-center gap-2 text-xs">
                         <span className="h-2 w-2 rounded-full" style={{ background: c.color }} />
-                        <span className="text-zinc-400">{c.category}</span>
-                        <span className="ml-auto font-medium text-zinc-200">{formatMoney(c.value, currency)}</span>
+                        <span className="text-zinc-500 dark:text-zinc-400">{c.category}</span>
+                        <span className="ml-auto font-medium text-zinc-700 dark:text-zinc-200">{formatMoney(c.value, currency)}</span>
                       </div>
                     ))}
                   </div>
@@ -174,13 +174,13 @@ export default function ReviewPage() {
                     <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${c.ok ? "bg-emerald-500/20 text-emerald-400" : "border border-white/20 text-zinc-600"}`}>
                       {c.ok ? "✓" : "·"}
                     </span>
-                    <span className={c.ok ? "text-zinc-300" : "text-zinc-500"}>{c.label}</span>
+                    <span className={c.ok ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-500"}>{c.label}</span>
                   </div>
                 ))}
               </div>
               <div className="mt-4">
                 <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-zinc-400">Progresso geral dos objetivos</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">Progresso geral dos objetivos</span>
                   <span className="text-zinc-500">{goalPct}%</span>
                 </div>
                 <Progress value={goalPct} />
@@ -202,10 +202,10 @@ export default function ReviewPage() {
                 return (
                   <div key={mi} className="relative">
                     <span className="absolute -left-4 top-1 h-2.5 w-2.5 rounded-full bg-indigo-400 ring-4 ring-indigo-500/20" />
-                    <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">{mn}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{mn}</p>
                     <div className="mt-1 space-y-1">
                       {evs.map((e, i) => (
-                        <p key={i} className="text-sm text-zinc-200">
+                        <p key={i} className="text-sm text-zinc-700 dark:text-zinc-200">
                           {e.icon} {e.text}
                         </p>
                       ))}
@@ -222,7 +222,7 @@ export default function ReviewPage() {
                 {activeGoals.map((g) => (
                   <div key={g.id}>
                     <div className="mb-1 flex justify-between text-xs">
-                      <span className="text-zinc-300">{g.icon} {g.name}</span>
+                      <span className="text-zinc-600 dark:text-zinc-300">{g.icon} {g.name}</span>
                       <span className="text-zinc-500">{percent(g.current_amount, g.target_amount)}%</span>
                     </div>
                     <Progress value={percent(g.current_amount, g.target_amount)} />

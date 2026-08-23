@@ -114,7 +114,7 @@ export default function DigitalPage() {
               const b = expiryBadge(d.expiry_date);
               return (
                 <div key={d.id} className="flex items-center justify-between text-sm">
-                  <span className="text-zinc-200">{d.name}</span>
+                  <span className="text-zinc-700 dark:text-zinc-200">{d.name}</span>
                   <Badge color={b.color}>{b.label}</Badge>
                 </div>
               );
@@ -138,7 +138,7 @@ export default function DigitalPage() {
             const list = assetGroups[type];
             return (
               <div key={type}>
-                <p className="mb-2 text-sm font-semibold text-zinc-300">{(t.digital as Record<string, string>)[ASSET_LABEL_KEYS[type]]}</p>
+                <p className="mb-2 text-sm font-semibold text-zinc-600 dark:text-zinc-300">{(t.digital as Record<string, string>)[ASSET_LABEL_KEYS[type]]}</p>
                 {list.length === 0 ? (
                   <p className="text-xs text-zinc-600">{t.digital.noData}</p>
                 ) : (
@@ -149,7 +149,7 @@ export default function DigitalPage() {
                         <Card key={a.id} className="group !p-3">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <p className="text-sm font-medium text-zinc-200">{a.name}</p>
+                              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{a.name}</p>
                               {a.details && <p className="text-[11px] text-zinc-500">{a.details}</p>}
                               <p className="mt-1 text-[11px] text-zinc-500">
                                 {a.purchase_date ? `${t.digital.purchased}: ${a.purchase_date}` : ""}
@@ -191,9 +191,9 @@ export default function DigitalPage() {
               {documents.map((d) => {
                 const b = expiryBadge(d.expiry_date);
                 return (
-                  <div key={d.id} className="group flex items-center gap-3 rounded-xl border border-white/6 px-3 py-2.5">
+                  <div key={d.id} className="group flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/6 px-3 py-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-zinc-200">{d.name}</p>
+                      <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{d.name}</p>
                       <p className="text-[11px] text-zinc-500">
                         {t.digital.category}: {(t.digital as Record<string, string>)[d.category] ?? d.category}
                         {d.number ? ` · ${d.number}` : ""}

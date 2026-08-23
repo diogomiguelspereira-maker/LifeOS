@@ -135,7 +135,7 @@ export default function BudgetsPage() {
           </div>
           <div>
             <p className="text-xs font-semibold text-indigo-300">{t.budgets.aiNote}</p>
-            <p className="mt-1 text-sm leading-relaxed text-zinc-300">{novaNote}</p>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{novaNote}</p>
           </div>
         </div>
       </Card>
@@ -148,7 +148,7 @@ export default function BudgetsPage() {
             {plan.map((p) => (
               <div key={p.key}>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="font-medium text-zinc-200">{p.label}</span>
+                  <span className="font-medium text-zinc-700 dark:text-zinc-200">{p.label}</span>
                   <span className="text-xs text-zinc-500">
                     {formatMoney(p.spent, currency)} / {formatMoney(p.limit, currency)}
                   </span>
@@ -180,8 +180,8 @@ export default function BudgetsPage() {
                   return (
                     <div key={c.category} className="flex items-center gap-2 text-sm">
                       <span className="text-base">{c.icon}</span>
-                      <span className="text-zinc-300">{c.category}</span>
-                      <span className="ml-auto text-zinc-400">{formatMoney(c.value, currency)}</span>
+                      <span className="text-zinc-600 dark:text-zinc-300">{c.category}</span>
+                      <span className="ml-auto text-zinc-500 dark:text-zinc-400">{formatMoney(c.value, currency)}</span>
                       <Badge color="zinc">{t.common.unavailable}</Badge>
                     </div>
                   );
@@ -190,7 +190,7 @@ export default function BudgetsPage() {
                 return (
                   <div key={c.category}>
                     <div className="mb-1 flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2 text-zinc-300">
+                      <span className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
                         <span>{c.icon}</span>
                         {c.category}
                       </span>
@@ -268,7 +268,7 @@ function BudgetEditModal({
   return (
     <Modal open={open} onClose={onClose} title={t.budgets.setBudget}>
       <div className="space-y-4">
-        <p className="rounded-xl bg-white/5 px-3 py-2 text-xs text-zinc-400">
+        <p className="rounded-xl bg-zinc-50 dark:bg-white/5 px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">
           {t.budgets.income}: {formatMoney(income, currency)}
         </p>
         <div className="grid grid-cols-2 gap-3">

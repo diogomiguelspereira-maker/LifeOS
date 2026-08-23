@@ -97,7 +97,7 @@ export default function StatsPage() {
 
       <Card>
         <CardHeader title={t.stats.spendingTrend} />
-        <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
+        <div className="flex flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400">
           <Badge color="green">{t.money.monthlyIncome}: {formatMoney(income, currency)}</Badge>
           <Badge color="red">{t.money.monthlyExpenses}: {formatMoney(expenses, currency)}</Badge>
           <Badge color="blue">{t.money.savingsRate}: {savingsRate}%</Badge>
@@ -111,7 +111,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <Card>
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</p>
-      <p className="mt-1.5 text-2xl font-bold tracking-tight text-zinc-100">{value}</p>
+      <p className="mt-1.5 text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{value}</p>
       {sub && <p className="mt-0.5 text-[11px] text-zinc-500">{sub}</p>}
     </Card>
   );

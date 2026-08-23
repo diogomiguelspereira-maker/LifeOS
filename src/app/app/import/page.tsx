@@ -166,7 +166,7 @@ export default function ImportPage() {
 
       <Card>
         <CardHeader title={t.importData.step1} />
-        <p className="mb-2 text-xs leading-relaxed text-zinc-400">{t.importData.hint}</p>
+        <p className="mb-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{t.importData.hint}</p>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -192,7 +192,7 @@ export default function ImportPage() {
             {rows.map((r, i) => (
               <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-white/4">
                 <span className="w-20 shrink-0 tabular-nums text-zinc-500 sm:w-24">{r.date}</span>
-                <span className="min-w-[100px] flex-1 truncate text-zinc-200">{r.description}</span>
+                <span className="min-w-[100px] flex-1 truncate text-zinc-700 dark:text-zinc-200">{r.description}</span>
                 <span className={cn("w-20 shrink-0 text-right font-semibold tabular-nums sm:w-24", r.amount < 0 ? "text-rose-400" : "text-emerald-400")}>
                   {r.amount.toFixed(2)}€
                 </span>

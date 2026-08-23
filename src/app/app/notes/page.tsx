@@ -119,13 +119,13 @@ function NotesPageInner() {
           ]}
         />
         {tab === "notes" && (
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 sm:max-w-xs">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3 sm:max-w-xs">
             <Search className="h-4 w-4 shrink-0 text-zinc-500" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t.notes.search}
-              className="h-10 w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 outline-none"
+              className="h-10 w-full bg-transparent text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none"
             />
           </div>
         )}
@@ -140,7 +140,7 @@ function NotesPageInner() {
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
                 onlyFavs
                   ? "border-amber-400/40 bg-amber-500/10 text-amber-300"
-                  : "border-white/10 text-zinc-500 hover:bg-white/5"
+                  : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >
               ⭐ {t.notes.favorites}
@@ -155,11 +155,11 @@ function NotesPageInner() {
               {filtered.map((note) => (
                 <Card
                   key={note.id}
-                  className="group cursor-pointer transition hover:bg-white/8"
+                  className="group cursor-pointer transition hover:bg-zinc-100 dark:bg-white/8"
                 >
                   <div onClick={() => { setEditing(note); setNoteOpen(true); }}>
                     <div className="mb-2 flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-zinc-100">{note.title}</p>
+                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{note.title}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleFav(note); }}
                         className={cn("text-base transition", note.is_favorite ? "opacity-100" : "opacity-30 hover:opacity-100")}
@@ -167,7 +167,7 @@ function NotesPageInner() {
                         ⭐
                       </button>
                     </div>
-                    <p className="line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-zinc-400">
+                    <p className="line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                       {note.content || "—"}
                     </p>
                   </div>
@@ -202,12 +202,12 @@ function NotesPageInner() {
               {journal.map((entry) => (
                 <Card key={entry.id}>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <p className="text-sm font-semibold text-zinc-100">
+                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
                       {new Date(entry.entry_date).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
                     </p>
                     {entry.mood && <span className="text-xl">{entry.mood}</span>}
                   </div>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">{entry.content}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{entry.content}</p>
                   {entry.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {entry.tags.map((tag) => (
@@ -336,7 +336,7 @@ function JournalModal({
                 onClick={() => setMood(m)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition",
-                  mood === m ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 hover:bg-white/5"
+                  mood === m ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {m}

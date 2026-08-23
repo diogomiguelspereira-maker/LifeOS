@@ -103,19 +103,19 @@ export default function CareerPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.career.roadmap}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{goals.filter((g) => g.status === "active").length}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{goals.filter((g) => g.status === "active").length}</p>
           <p className="text-xs text-zinc-500">{t.career.noData}</p>
         </Card>
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.career.skills}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{skills.length}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{skills.length}</p>
           <p className="text-xs text-zinc-500">
             {t.career.level}: {avgSkill}/5
           </p>
         </Card>
         <Card>
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.career.applications}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{activeApps}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{activeApps}</p>
           <p className="text-xs text-zinc-500">
             {t.career.offer}: {offers}
           </p>
@@ -143,7 +143,7 @@ export default function CareerPage() {
             <Card key={g.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">{g.title}</p>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.title}</p>
                   <p className="text-[11px] text-zinc-500">{g.timeline ?? ""}</p>
                 </div>
                 <button
@@ -177,7 +177,7 @@ export default function CareerPage() {
               {skills.map((s) => (
                 <div key={s.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-zinc-200">{s.name}</span>
+                    <span className="font-medium text-zinc-700 dark:text-zinc-200">{s.name}</span>
                     <span className="text-xs text-zinc-500">
                       {t.career.level} {s.level}/5 → {t.career.target} {s.target_level}/5
                     </span>
@@ -201,7 +201,7 @@ export default function CareerPage() {
             <Card key={a.id} className="group">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-100">{a.position}</p>
+                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{a.position}</p>
                   <p className="text-[11px] text-zinc-500">
                     {a.company} · {a.applied_date}
                     {a.salary ? ` · ${a.salary}€` : ""}

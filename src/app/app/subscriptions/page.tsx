@@ -93,7 +93,7 @@ export default function SubscriptionsPage() {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.perMonth}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{formatMoney(monthly, currency)}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(monthly, currency)}</p>
         </Card>
         <Card className="relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-rose-500 to-orange-500" />
@@ -103,7 +103,7 @@ export default function SubscriptionsPage() {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.warnings}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{upcoming.length}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{upcoming.length}</p>
           <p className="mt-1 text-xs text-zinc-500">{t.subs.renewalSoon}</p>
         </Card>
       </div>
@@ -115,7 +115,7 @@ export default function SubscriptionsPage() {
           <div className="mt-2 space-y-1.5">
             {upcoming.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="min-w-0 truncate text-zinc-200">{s.name}</span>
+                <span className="min-w-0 truncate text-zinc-700 dark:text-zinc-200">{s.name}</span>
                 <Badge color="amber" className="shrink-0">
                   {t.subs.renews} {formatDate(s.next_billing_date!)} · {formatMoney(monthlyCost(s), currency)}
                 </Badge>
@@ -149,7 +149,7 @@ export default function SubscriptionsPage() {
             {subs.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className={cn("text-sm font-medium", s.is_active ? "text-zinc-100" : "text-zinc-500 line-through")}>
+                  <p className={cn("text-sm font-medium", s.is_active ? "text-zinc-800 dark:text-zinc-100" : "text-zinc-500 line-through")}>
                     {s.name}
                     {s.to_cancel && <Badge color="red" className="ml-2">{t.subs.toCancel}</Badge>}
                     {s.is_unused && <Badge color="zinc" className="ml-2">{t.subs.unused}</Badge>}
@@ -162,7 +162,7 @@ export default function SubscriptionsPage() {
                 <div className="flex items-center gap-3">
                   <span
                     title={t.subs.used}
-                    className={cn("rounded-lg px-2 py-1 text-[11px] font-medium", s.is_unused ? "bg-white/5 text-zinc-500" : "bg-emerald-500/10 text-emerald-400")}
+                    className={cn("rounded-lg px-2 py-1 text-[11px] font-medium", s.is_unused ? "bg-zinc-50 dark:bg-white/5 text-zinc-500" : "bg-emerald-500/10 text-emerald-400")}
                   >
                     {s.is_unused ? t.subs.unused : t.subs.used}
                   </span>

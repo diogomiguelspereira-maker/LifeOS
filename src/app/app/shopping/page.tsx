@@ -195,10 +195,10 @@ export default function ShoppingPage() {
                   onClick={() => setActiveList(l.id)}
                   className={cn(
                     "w-full rounded-xl border px-3 py-2.5 text-left transition",
-                    activeList === l.id ? "border-indigo-400/40 bg-indigo-500/10" : "border-white/8 hover:bg-white/5"
+                    activeList === l.id ? "border-indigo-400/40 bg-indigo-500/10" : "border-zinc-200 dark:border-white/8 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
-                  <p className="text-sm font-medium text-zinc-200">{l.name}</p>
+                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{l.name}</p>
                   <p className="text-[11px] text-zinc-500">
                     {l.category} · {done}/{cnt.length}
                   </p>
@@ -237,7 +237,7 @@ export default function ShoppingPage() {
                           {item.checked && <Check className="h-3 w-3 text-white" />}
                         </button>
                         <div className="min-w-0 flex-1">
-                          <p className={cn("text-sm", item.checked ? "text-zinc-500 line-through" : "text-zinc-100")}>{item.name}</p>
+                          <p className={cn("text-sm", item.checked ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>{item.name}</p>
                           <p className="text-[11px] text-zinc-500">
                             ×{item.quantity} ·{" "}
                             <InlinePrice
@@ -253,7 +253,7 @@ export default function ShoppingPage() {
                         <Badge color={PRIORITY_COLORS[item.priority]}>{t.shopping[item.priority]}</Badge>
                         <button
                           onClick={() => { setEditingItem(item); setItemOpen(true); }}
-                          className="rounded-lg p-1 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                          className="rounded-lg p-1 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-zinc-700 dark:text-zinc-200"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </button>
@@ -271,8 +271,8 @@ export default function ShoppingPage() {
       ) : (
         <>
           <Card className="flex items-center justify-between">
-            <p className="text-sm text-zinc-300">{t.shopping.totalWishlist}</p>
-            <p className="text-2xl font-bold text-zinc-100">{formatMoney(wishTotal, currency)}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">{t.shopping.totalWishlist}</p>
+            <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(wishTotal, currency)}</p>
           </Card>
           <div className="grid gap-3 sm:grid-cols-2">
             {wishlist.length === 0 && (
@@ -284,7 +284,7 @@ export default function ShoppingPage() {
               <Card key={w.id} className="group">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className={cn("truncate text-sm font-semibold", w.purchased ? "text-zinc-500 line-through" : "text-zinc-100")}>{w.name}</p>
+                    <p className={cn("truncate text-sm font-semibold", w.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>{w.name}</p>
                     <p className="text-[11px] text-zinc-500">{w.category ?? ""}</p>
                   </div>
                   <Badge color={PRIORITY_COLORS[w.priority]}>{t.shopping[w.priority]}</Badge>
@@ -293,7 +293,7 @@ export default function ShoppingPage() {
                   <InlinePrice
                     value={w.price}
                     currency={currency}
-                    className="text-sm font-bold text-zinc-100"
+                    className="text-sm font-bold text-zinc-800 dark:text-zinc-100"
                     onSave={async (v) => {
                       await supabase.from("wishlist_items").update({ price: v }).eq("id", w.id);
                       load();
@@ -302,7 +302,7 @@ export default function ShoppingPage() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => { setEditingWish(w); setWishOpen(true); }}
-                      className="rounded-lg p-1 text-zinc-500 transition hover:bg-white/8 hover:text-zinc-200"
+                      className="rounded-lg p-1 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-zinc-700 dark:text-zinc-200"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -322,7 +322,7 @@ export default function ShoppingPage() {
                 </div>
                 {w.price ? (
                   <p className="mt-1.5 text-[11px] text-zinc-500">
-                    {t.shopping.costPerUse}: <b className="text-zinc-300">{formatMoney(costPerUse(w.price, 100), currency)}</b> / 100 {t.shopping.uses}
+                    {t.shopping.costPerUse}: <b className="text-zinc-600 dark:text-zinc-300">{formatMoney(costPerUse(w.price, 100), currency)}</b> / 100 {t.shopping.uses}
                   </p>
                 ) : null}
                 {w.price && moneyCtx && (
@@ -378,7 +378,7 @@ export default function ShoppingPage() {
               <p className={cn("text-2xl font-bold", affordResult.verdict === "yes" ? "text-emerald-400" : "text-amber-400")}>
                 {affordResult.verdict === "yes" ? "YES ✓" : t.shopping.notYet}
               </p>
-              <p className="mt-1 text-sm text-zinc-300">{affordResult.reasoning}</p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{affordResult.reasoning}</p>
               {affordResult.waitWeeks && (
                 <p className="mt-1.5 text-xs text-zinc-500">
                   {t.shopping.waitWeeks}: ~{affordResult.waitWeeks} {t.finance.days === "dias" ? "semanas" : "weeks"}
@@ -388,13 +388,13 @@ export default function ShoppingPage() {
             <div className="grid grid-cols-2 gap-2 text-center">
               <div className="rounded-xl bg-white/4 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterBalance}</p>
-                <p className={cn("text-lg font-bold", affordResult.afterBalance < 0 ? "text-rose-400" : "text-zinc-100")}>
+                <p className={cn("text-lg font-bold", affordResult.afterBalance < 0 ? "text-rose-400" : "text-zinc-800 dark:text-zinc-100")}>
                   {formatMoney(affordResult.afterBalance, currency)}
                 </p>
               </div>
               <div className="rounded-xl bg-white/4 p-3">
                 <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.shopping.afterSafe}</p>
-                <p className={cn("text-lg font-bold", affordResult.safeToSpendAfter < 0 ? "text-rose-400" : "text-zinc-100")}>
+                <p className={cn("text-lg font-bold", affordResult.safeToSpendAfter < 0 ? "text-rose-400" : "text-zinc-800 dark:text-zinc-100")}>
                   {formatMoney(affordResult.safeToSpendAfter, currency)}
                 </p>
               </div>
@@ -489,7 +489,7 @@ function InlinePrice({
           setVal(value != null ? String(value) : "");
           setEditing(true);
         }}
-        className={cn("rounded px-1 -mx-1 transition hover:bg-white/8 hover:text-indigo-300", className)}
+        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300", className)}
       >
         {value != null ? formatMoney(value, currency) : "—"}
       </button>
@@ -507,7 +507,7 @@ function InlinePrice({
         if (e.key === "Enter") commit();
         if (e.key === "Escape") setEditing(false);
       }}
-      className="h-7 w-24 rounded-lg border border-white/15 bg-white/8 px-2 text-xs tabular-nums text-zinc-100 outline-none focus:border-indigo-400/60"
+      className="h-7 w-24 rounded-lg border border-zinc-300 dark:border-white/15 bg-zinc-100 dark:bg-white/8 px-2 text-xs tabular-nums text-zinc-800 dark:text-zinc-100 outline-none focus:border-indigo-400/60"
     />
   );
 }

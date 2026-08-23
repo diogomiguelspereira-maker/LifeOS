@@ -115,7 +115,7 @@ export default function WellnessPage() {
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.sleep}</p>
             <Moon className="h-4 w-4 text-indigo-400" />
           </div>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
             {todaySleep?.hours ? `${todaySleep.hours}h` : "—"}
           </p>
           <p className="mt-1 text-xs text-zinc-500">
@@ -134,7 +134,7 @@ export default function WellnessPage() {
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.water}</p>
             <Droplets className="h-4 w-4 text-sky-400" />
           </div>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{todayWater?.glasses ?? 0} 🥛</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{todayWater?.glasses ?? 0} 🥛</p>
           <p className="mt-1 text-xs text-zinc-500">{t.wellness.glasses} · meta 8</p>
           <Button variant="ghost" size="sm" className="mt-2" onClick={addWater}>
             <Plus className="h-3.5 w-3.5" />
@@ -149,7 +149,7 @@ export default function WellnessPage() {
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.exercise}</p>
             <Zap className="h-4 w-4 text-emerald-400" />
           </div>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">{weekExercise}</p>
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{weekExercise}</p>
           <p className="mt-1 text-xs text-zinc-500">{t.wellness.daysExercised} / semana</p>
           <Button variant="ghost" size="sm" className="mt-2" onClick={() => setExerciseOpen(true)}>
             <Plus className="h-3.5 w-3.5" />
@@ -161,7 +161,7 @@ export default function WellnessPage() {
         <Card className="relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-rose-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.mood} / {t.wellness.energy}</p>
-          <p className="mt-1.5 text-2xl font-bold text-zinc-100">
+          <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
             {avgMood ? "😀" : "—"} {avgMood.toFixed(1)} · ⚡ {avgEnergy.toFixed(1)}
           </p>
           <p className="mt-1 text-xs text-zinc-500">14 dias</p>
@@ -182,7 +182,7 @@ export default function WellnessPage() {
             {sleep.slice(0, 14).reverse().map((s) => (
               <div key={s.date} className="flex flex-1 flex-col items-center gap-1">
                 <div
-                  className={cn("w-full rounded-t-lg", s.hours > 0 ? "bg-gradient-to-t from-indigo-500/40 to-indigo-400" : "bg-white/5")}
+                  className={cn("w-full rounded-t-lg", s.hours > 0 ? "bg-gradient-to-t from-indigo-500/40 to-indigo-400" : "bg-zinc-50 dark:bg-white/5")}
                   style={{ height: `${Math.min(100, (s.hours / 10) * 100)}px` }}
                   title={`${s.date}: ${s.hours}h`}
                 />
@@ -238,7 +238,7 @@ function SleepModal({ open, onClose, onSaved }: { open: boolean; onClose: () => 
                 onClick={() => setQuality(String(q))}
                 className={cn(
                   "h-10 w-10 rounded-xl border text-sm font-medium transition",
-                  quality === String(q) ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300" : "border-white/10 text-zinc-500 hover:bg-white/5"
+                  quality === String(q) ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {q}
@@ -343,7 +343,7 @@ function WellnessModal({ open, onClose, onSaved }: { open: boolean; onClose: () 
                   onClick={() => setMood(String(m))}
                   className={cn(
                     "h-9 w-9 rounded-xl border text-base transition",
-                    mood === String(m) ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 hover:bg-white/5"
+                    mood === String(m) ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
                   {["😞", "😕", "😐", "🙂", "😄"][m - 1]}
@@ -359,7 +359,7 @@ function WellnessModal({ open, onClose, onSaved }: { open: boolean; onClose: () 
                   onClick={() => setEnergy(String(e))}
                   className={cn(
                     "h-9 w-9 rounded-xl border text-base transition",
-                    energy === String(e) ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 hover:bg-white/5"
+                    energy === String(e) ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
                   {["🪫", "🔋", "⚡", "⚡⚡", "🚀"][e - 1]}

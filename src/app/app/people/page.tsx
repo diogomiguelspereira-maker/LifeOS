@@ -85,20 +85,20 @@ export default function PeoplePage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-zinc-100">{c.name}</p>
+                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{c.name}</p>
                       <p className="text-[11px] text-zinc-500">{c.relationship ?? ""}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1 opacity-60 transition hover:opacity-100">
                       <button
                         onClick={() => { setEditing(c); setOpen(true); }}
-                        className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/8 hover:text-zinc-100"
+                        className="rounded-lg p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-zinc-800 dark:text-zinc-100"
                         title={t.common.edit}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => remove(c.id)}
-                        className="rounded-lg p-1.5 text-zinc-400 transition hover:bg-white/8 hover:text-red-400"
+                        className="rounded-lg p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-red-400"
                         title={t.common.delete}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

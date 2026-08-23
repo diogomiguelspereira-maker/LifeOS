@@ -255,10 +255,10 @@ export default function RoutinesPage() {
           <button
             key={p.name}
             onClick={() => fillFromPreset(p)}
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center transition hover:border-indigo-400/40 hover:bg-white/[0.06]"
+            className="flex flex-col items-center gap-1.5 rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/[0.03] p-4 text-center transition hover:border-indigo-400/40 hover:bg-white/[0.06]"
           >
             <span className="text-2xl">{p.icon}</span>
-            <span className="text-sm font-medium text-zinc-200">{p.name}</span>
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{p.name}</span>
             <span className="text-[11px] text-zinc-500">{p.steps.length} {t.routines.steps.toLowerCase()}</span>
           </button>
         ))}
@@ -301,7 +301,7 @@ export default function RoutinesPage() {
                       <button
                         key={s.id}
                         onClick={() => toggleStep(s)}
-                        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/5"
+                        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-zinc-50 dark:bg-white/5"
                       >
                         <span
                           className={cn(
@@ -312,7 +312,7 @@ export default function RoutinesPage() {
                           {isDone && <Check className="h-3 w-3 text-emerald-400" />}
                         </span>
                         <span className="w-12 shrink-0 text-xs tabular-nums text-zinc-500">{s.time}</span>
-                        <span className={cn("truncate text-sm", isDone ? "text-zinc-500 line-through" : "text-zinc-200")}>
+                        <span className={cn("truncate text-sm", isDone ? "text-zinc-500 line-through" : "text-zinc-700 dark:text-zinc-200")}>
                           {s.title}
                         </span>
                         <span className="ml-auto text-[11px] text-zinc-600">{s.duration_minutes}m</span>
@@ -321,7 +321,7 @@ export default function RoutinesPage() {
                   })}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-white/8 pt-3">
+                <div className="mt-3 flex items-center justify-between border-t border-zinc-200 dark:border-white/8 pt-3">
                   <Badge color={done === list.length && list.length > 0 ? "green" : "zinc"}>
                     {done}/{list.length} {t.routines.todayProgress}
                   </Badge>
@@ -369,7 +369,7 @@ export default function RoutinesPage() {
                   onClick={() => setIcon(i)}
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-xl border text-lg transition",
-                    icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 bg-white/5 hover:bg-white/10"
+                    icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 hover:bg-white/10"
                   )}
                 >
                   {i}
@@ -393,7 +393,7 @@ export default function RoutinesPage() {
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-medium text-zinc-400">{t.routines.steps}</span>
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{t.routines.steps}</span>
               <Button variant="ghost" size="sm" onClick={() => setStepRows((rows) => [...rows, { title: "", time: startTime, duration: 15 }])}>
                 <Plus className="h-3.5 w-3.5" />
                 {t.routines.addStep}
@@ -439,8 +439,8 @@ export default function RoutinesPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5">
-            <span className="text-sm text-zinc-300">{t.routines.active}</span>
+          <div className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-white/5 px-3 py-2.5">
+            <span className="text-sm text-zinc-600 dark:text-zinc-300">{t.routines.active}</span>
             <Switch checked={active} onChange={setActive} />
           </div>
 

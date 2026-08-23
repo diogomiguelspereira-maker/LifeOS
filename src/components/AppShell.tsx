@@ -125,7 +125,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-bg min-h-dvh">
       <KeyboardManager />
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-white/6 bg-black/30 p-4 backdrop-blur-xl lg:flex dark:border-white/6 dark:bg-black/30">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-zinc-200 bg-white/50 p-4 backdrop-blur-xl lg:flex dark:border-white/6 dark:bg-black/30">
         <Link href="/app" className="mb-6 px-2 pt-1">
           <Wordmark />
         </Link>
@@ -137,8 +137,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 isActive(n.href)
-                  ? "bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-zinc-100"
-                  : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200 dark:text-zinc-500 dark:hover:text-zinc-200"
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-gradient-to-r dark:from-indigo-500/15 dark:to-violet-500/10 dark:text-zinc-100"
+                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"
               )}
             >
               <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) && "text-indigo-400")} />
@@ -146,10 +146,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="mt-4 space-y-1 border-t border-white/6 pt-3 dark:border-white/6">
+        <div className="mt-4 space-y-1 border-t border-zinc-200 pt-3 dark:border-white/6">
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 transition hover:bg-white/5 hover:text-red-400"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-white/5 dark:hover:text-red-400"
           >
             <LogOut className="h-[18px] w-[18px]" />
             {t.common.logout}
@@ -159,7 +159,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {initials(profile?.name)}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-zinc-200">{profile?.name ?? "—"}</p>
+              <p className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">{profile?.name ?? "—"}</p>
               <p className="truncate text-[11px] text-zinc-500">{profile?.email}</p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/6 bg-black/40 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden dark:border-white/6 dark:bg-black/40">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200 bg-white/80 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md lg:hidden dark:border-white/6 dark:bg-black/40">
         <Link href="/app" onClick={() => router.push("/app")}>
           <Wordmark />
         </Link>
@@ -195,7 +195,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav — raised above the Android keyboard when it opens */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-white/8 bg-black/60 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:border-white/8 dark:bg-black/60"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden dark:border-white/8 dark:bg-black/60"
         style={{ bottom: "var(--keyboard-inset, 0px)" }}
       >
         <div className="mx-auto flex max-w-md items-center justify-around px-1.5 py-2 sm:px-2">
@@ -279,7 +279,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Voltar ao topo"
-          className="raise-for-keyboard fixed left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-zinc-900/80 text-zinc-300 shadow-xl backdrop-blur transition hover:text-white lg:left-auto lg:right-8"
+          className="raise-for-keyboard fixed left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white/80 text-zinc-600 shadow-lg backdrop-blur transition hover:text-zinc-800 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:text-white lg:left-auto lg:right-8"
         >
           <ArrowUp className="h-5 w-5" />
         </button>

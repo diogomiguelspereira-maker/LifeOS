@@ -237,16 +237,16 @@ function MoneyPageInner() {
                   {c.icon ?? "📦"}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-200">{c.category}</p>
+                  <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{c.category}</p>
                   <p className="text-[11px] text-zinc-500">
                     {i === 0 ? `${t.money.top1Label} · ` : ""}
                     {formatMoney(c.value, currency)}
                   </p>
                 </div>
-                <span className="text-sm font-semibold tabular-nums text-zinc-100">{formatMoney(c.value, currency)}</span>
+                <span className="text-sm font-semibold tabular-nums text-zinc-800 dark:text-zinc-100">{formatMoney(c.value, currency)}</span>
               </div>
             ))}
-            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs leading-relaxed text-zinc-400">
+            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
               💡 {t.money.insightLine.replace("{cat}", monthlyInsight.top?.category ?? "—").replace("{value}", formatMoney(monthlyInsight.top?.value ?? 0, currency)).replace("{perDay}", formatMoney(monthlyInsight.perDay, currency))}
             </p>
           </div>
@@ -293,8 +293,8 @@ function MoneyPageInner() {
                 {byCategory.slice(0, 6).map((c) => (
                   <div key={c.category} className="flex items-center gap-2 text-xs">
                     <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c.color }} />
-                    <span className="truncate text-zinc-400">{c.category}</span>
-                    <span className="ml-auto font-medium text-zinc-200">
+                    <span className="truncate text-zinc-500 dark:text-zinc-400">{c.category}</span>
+                    <span className="ml-auto font-medium text-zinc-700 dark:text-zinc-200">
                       {formatMoney(c.value, currency)}
                     </span>
                   </div>
@@ -320,7 +320,7 @@ function MoneyPageInner() {
             {accounts.map((a) => (
               <div
                 key={a.id}
-                className="group flex items-center gap-3 rounded-xl border border-white/6 bg-white/4 px-3 py-3 transition hover:border-white/10 hover:bg-white/6"
+                className="group flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/6 bg-white/4 px-3 py-3 transition hover:border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:bg-white/6"
               >
                 <span
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
@@ -329,12 +329,12 @@ function MoneyPageInner() {
                   {a.icon ?? "🏦"}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-zinc-100">{a.name}</p>
+                  <p className="truncate text-sm font-semibold text-zinc-800 dark:text-zinc-100">{a.name}</p>
                   <p className="text-[11px] text-zinc-500">
                     {ACCOUNT_TYPES.find((x) => x.value === a.type)?.label.replace(/^[^\s]+\s/, "") ?? a.type}
                   </p>
                 </div>
-                <p className="shrink-0 text-sm font-bold tabular-nums tracking-tight text-zinc-100">
+                <p className="shrink-0 text-sm font-bold tabular-nums tracking-tight text-zinc-800 dark:text-zinc-100">
                   {formatMoney(a.balance, currency)}
                 </p>
                 <div className="flex shrink-0 items-center gap-1.5">
@@ -343,7 +343,7 @@ function MoneyPageInner() {
                       setEditingAccount(a);
                       setAccountOpen(true);
                     }}
-                    className="rounded-lg border border-white/10 p-1.5 text-zinc-400 transition hover:border-indigo-400/40 hover:text-indigo-300"
+                    className="rounded-lg border border-zinc-200 dark:border-white/10 p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:border-indigo-400/40 hover:text-indigo-300"
                     title={t.common.edit}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -353,7 +353,7 @@ function MoneyPageInner() {
                       await supabase.from("accounts").delete().eq("id", a.id);
                       load();
                     }}
-                    className="rounded-lg border border-white/10 p-1.5 text-zinc-400 transition hover:border-red-400/40 hover:text-red-400"
+                    className="rounded-lg border border-zinc-200 dark:border-white/10 p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:border-red-400/40 hover:text-red-400"
                     title={t.common.delete}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -370,13 +370,13 @@ function MoneyPageInner() {
         <CardHeader
           title={t.money.transactions}
           action={
-            <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2">
+            <div className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-2">
               <Search className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.common.search}
-                className="h-8 w-28 bg-transparent text-xs text-zinc-100 placeholder:text-zinc-500 outline-none sm:w-40"
+                className="h-8 w-28 bg-transparent text-xs text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none sm:w-40"
               />
             </div>
           }
@@ -393,7 +393,7 @@ function MoneyPageInner() {
                   <div
                     className={cn(
                       "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-                      income ? "bg-emerald-500/12" : "bg-white/6"
+                      income ? "bg-emerald-500/12" : "bg-zinc-100 dark:bg-white/6"
                     )}
                   >
                     {income ? (
@@ -417,7 +417,7 @@ function MoneyPageInner() {
                             e.currentTarget.blur();
                           }
                         }}
-                        className="h-7 w-full rounded-lg border border-indigo-400/60 bg-white/5 px-2 text-sm font-medium text-zinc-100 outline-none ring-2 ring-indigo-500/20"
+                        className="h-7 w-full rounded-lg border border-indigo-400/60 bg-zinc-50 dark:bg-white/5 px-2 text-sm font-medium text-zinc-800 dark:text-zinc-100 outline-none ring-2 ring-indigo-500/20"
                         placeholder={cat?.name ?? t.common.title}
                       />
                     ) : (
@@ -425,7 +425,7 @@ function MoneyPageInner() {
                         type="button"
                         onClick={() => startRename(tx)}
                         title={t.common.edit}
-                        className="block w-full truncate text-left text-sm font-medium text-zinc-200 transition hover:text-indigo-300"
+                        className="block w-full truncate text-left text-sm font-medium text-zinc-700 dark:text-zinc-200 transition hover:text-indigo-300"
                       >
                         {tx.description || cat?.name || t.common.title}
                       </button>
@@ -437,7 +437,7 @@ function MoneyPageInner() {
                   <p
                     className={cn(
                       "text-sm font-semibold",
-                      income ? "text-emerald-400" : "text-zinc-100"
+                      income ? "text-emerald-400" : "text-zinc-800 dark:text-zinc-100"
                     )}
                   >
                     {income ? "+" : "−"}
@@ -446,7 +446,7 @@ function MoneyPageInner() {
                   <div className="flex shrink-0 items-center">
                     <button
                       onClick={() => duplicateTx(tx)}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-indigo-300"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300"
                       title={t.common.duplicate}
                     >
                       <Copy className="h-4 w-4" />
@@ -456,14 +456,14 @@ function MoneyPageInner() {
                         setEditingTx(tx);
                         setTxOpen(true);
                       }}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-indigo-300"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300"
                       title={t.common.edit}
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => deleteTx(tx.id)}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 hover:text-red-400"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-red-400"
                       title={t.common.delete}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -513,7 +513,7 @@ function SummaryCard({
     <Card className="relative overflow-hidden">
       <div className={cn("absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r", accent)} />
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</p>
-      <p className="mt-1.5 text-lg font-bold tracking-tight text-zinc-100">{value}</p>
+      <p className="mt-1.5 text-lg font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{value}</p>
       {delta && (
         <p className={cn("mt-1 text-[10px] font-medium", delta.tone === "up" ? "text-emerald-400" : "text-rose-400")}>
           {delta.text}
@@ -652,7 +652,7 @@ function TransactionModal({
               "rounded-xl border py-2.5 text-sm font-medium transition",
               type === "expense"
                 ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
-                : "border-white/10 text-zinc-500 hover:bg-white/5"
+                : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
             {t.money.expense}
@@ -666,7 +666,7 @@ function TransactionModal({
               "rounded-xl border py-2.5 text-sm font-medium transition",
               type === "income"
                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                : "border-white/10 text-zinc-500 hover:bg-white/5"
+                : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
             {t.money.income}
@@ -818,7 +818,7 @@ function AccountModal({
                 onClick={() => setIcon(ic)}
                 className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-xl text-lg transition hover:scale-110",
-                  icon === ic ? "bg-white/12 ring-2 ring-indigo-400" : "bg-white/4"
+                  icon === ic ? "bg-zinc-200 dark:bg-white/12 ring-2 ring-indigo-400" : "bg-white/4"
                 )}
               >
                 {ic}

@@ -78,7 +78,7 @@ export default function SocialPage() {
       </div>
 
       <Card>
-        <p className="mb-3 text-sm font-semibold text-zinc-100">{t.social.shared}</p>
+        <p className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{t.social.shared}</p>
         {expenses.length === 0 ? (
           <EmptyState icon="🤝" title={t.social.noData} />
         ) : (
@@ -86,15 +86,15 @@ export default function SocialPage() {
             {expenses.map((e) => {
               const share = e.participants.length ? e.amount / (e.participants.length + 1) : e.amount;
               return (
-                <div key={e.id} className="group flex items-center gap-3 rounded-xl border border-white/6 px-3 py-2.5">
+                <div key={e.id} className="group flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/6 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-200">{e.title}</p>
+                    <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{e.title}</p>
                     <p className="truncate text-[11px] text-zinc-500">
                       {e.date} · {t.social.paidBy}: {e.paid_by} · {e.participants.join(", ") || "—"}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-zinc-100">{e.amount.toFixed(2)}€</p>
+                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{e.amount.toFixed(2)}€</p>
                     <p className="text-[11px] text-zinc-500">
                       {t.social.eachOwes}: {share.toFixed(2)}€
                     </p>

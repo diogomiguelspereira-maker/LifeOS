@@ -103,7 +103,7 @@ function OnboardingInner() {
     <div className="app-bg flex min-h-dvh flex-col items-center justify-center p-4">
       <div className="mb-6 flex items-center gap-2">
         <Logo />
-        <span className="text-lg font-bold text-zinc-100">
+        <span className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
           Life<span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">OS</span>
         </span>
       </div>
@@ -119,7 +119,7 @@ function OnboardingInner() {
           ))}
         </div>
 
-        <h1 className="mb-1 text-xl font-bold text-zinc-100">{t.onboarding.welcome}</h1>
+        <h1 className="mb-1 text-xl font-bold text-zinc-800 dark:text-zinc-100">{t.onboarding.welcome}</h1>
         <p className="mb-6 text-sm text-zinc-500">{t.onboarding.subtitle}</p>
 
         {step === 0 && (
@@ -137,7 +137,7 @@ function OnboardingInner() {
                     className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
                       ageRange === a
                         ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300"
-                        : "border-white/10 text-zinc-500 hover:bg-white/5"
+                        : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     }`}
                   >
                     {a}
@@ -195,7 +195,7 @@ function OnboardingInner() {
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition ${
                       goalName === g.name
                         ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300"
-                        : "border-white/10 text-zinc-500 hover:bg-white/5"
+                        : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     }`}
                   >
                     <span className="text-base">{g.icon}</span>

@@ -111,7 +111,7 @@ export default function AuditPage() {
             {overdue.map((task) => (
               <div key={task.id} className="flex items-center gap-2 text-sm">
                 <span>⏰</span>
-                <span className="truncate text-zinc-200">{task.title}</span>
+                <span className="truncate text-zinc-700 dark:text-zinc-200">{task.title}</span>
                 <Badge color="red">atrasada</Badge>
                 <span className="ml-auto flex gap-1.5">
                   <Button size="sm" variant="secondary" onClick={async () => { await supabase.from("tasks").update({ status: "done", completed_at: new Date().toISOString() }).eq("id", task.id); load(); }}>
@@ -126,7 +126,7 @@ export default function AuditPage() {
             {unusedSubs.map((s) => (
               <div key={s.id} className="flex items-center gap-2 text-sm">
                 <span>💸</span>
-                <span className="truncate text-zinc-200">{s.name}</span>
+                <span className="truncate text-zinc-700 dark:text-zinc-200">{s.name}</span>
                 <Badge color="amber">não usada</Badge>
                 <span className="ml-auto flex gap-1.5">
                   <Button size="sm" variant="secondary" onClick={async () => { await supabase.from("subscriptions").update({ to_cancel: true }).eq("id", s.id); load(); }}>
@@ -138,7 +138,7 @@ export default function AuditPage() {
             {duplicates.map((group, gi) => (
               <div key={gi} className="flex items-center gap-2 text-sm">
                 <span>📑</span>
-                <span className="truncate text-zinc-200">{group[0].title}</span>
+                <span className="truncate text-zinc-700 dark:text-zinc-200">{group[0].title}</span>
                 <Badge color="zinc">{group.length}× duplicada</Badge>
                 <span className="ml-auto">
                   <Button size="sm" variant="danger" onClick={async () => { await supabase.from("tasks").delete().in("id", group.slice(1).map((x) => x.id)); load(); }}>
@@ -150,7 +150,7 @@ export default function AuditPage() {
             {stuckGoals.map((g) => (
               <div key={g.id} className="flex items-center gap-2 text-sm">
                 <span>{g.icon}</span>
-                <span className="truncate text-zinc-200">{g.name}</span>
+                <span className="truncate text-zinc-700 dark:text-zinc-200">{g.name}</span>
                 <Badge color="amber">sem progresso</Badge>
                 <span className="ml-auto">
                   <Button size="sm" variant="danger" onClick={async () => { await supabase.from("savings_goals").delete().eq("id", g.id); load(); }}>
@@ -162,7 +162,7 @@ export default function AuditPage() {
             {expiring.map((d) => (
               <div key={d.id} className="flex items-center gap-2 text-sm">
                 <span>📄</span>
-                <span className="truncate text-zinc-200">{d.name}</span>
+                <span className="truncate text-zinc-700 dark:text-zinc-200">{d.name}</span>
                 <Badge color="red">expira {formatDate(d.expiry_date!)}</Badge>
               </div>
             ))}
@@ -178,13 +178,13 @@ export default function AuditPage() {
             const items = findings.filter((f) => f.group === group);
             if (!items.length) return null;
             return (
-              <div key={group} className="rounded-xl border border-white/8 bg-white/4 px-3 py-3">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <div key={group} className="rounded-xl border border-zinc-200 dark:border-white/8 bg-white/4 px-3 py-3">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   {group === "keep" ? "✅ KEEP" : group === "improve" ? "📈 IMPROVE" : group === "remove" ? "🗑️ REMOVE" : "🚀 START"}
                 </p>
                 <div className="space-y-1.5">
                   {items.map((f, i) => (
-                    <p key={i} className="text-xs leading-relaxed text-zinc-300">
+                    <p key={i} className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
                       {f.icon} {f.text}
                     </p>
                   ))}

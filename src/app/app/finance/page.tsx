@@ -201,7 +201,7 @@ export default function FinancePage() {
             <Card className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.payday}</p>
-              <p className="mt-1.5 text-2xl font-bold text-zinc-100">
+              <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
                 {payday ? `${payday.days} ${t.finance.daysUntil}` : "—"}
               </p>
               <p className="mt-1 text-xs text-zinc-500">
@@ -217,7 +217,7 @@ export default function FinancePage() {
             <Card className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-cyan-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.dailyLimit}</p>
-              <p className="mt-1.5 text-2xl font-bold text-zinc-100">
+              <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
                 {formatMoney(dailyLimit(safe.amount, payday?.days ?? 1), currency)}
               </p>
               <p className="mt-1 text-xs text-zinc-500">
@@ -227,7 +227,7 @@ export default function FinancePage() {
             <Card className="relative overflow-hidden">
               <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.emergencyFund}</p>
-              <p className="mt-1.5 text-2xl font-bold text-zinc-100">{formatMoney(eff, currency)}</p>
+              <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(eff, currency)}</p>
               <p className="mt-1 text-xs text-zinc-500">
                 {t.finance.recommended}: {formatMoney(eff * 2, currency)} · {t.finance.monthsExpenses}
               </p>
@@ -295,7 +295,7 @@ export default function FinancePage() {
               {income.filter((s) => s.active).map((s) => (
                 <div key={s.id} className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2">
                   <div>
-                    <p className="text-sm font-medium text-zinc-200">{s.name}</p>
+                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{s.name}</p>
                     <p className="text-[11px] text-zinc-500">
                       {s.type === "salary" ? t.finance.salary : s.type === "freelance" ? t.finance.freelance : t.finance.bonus} · dia {s.day_of_month}
                     </p>
@@ -306,7 +306,7 @@ export default function FinancePage() {
               {subs.filter((s) => s.is_active).map((s) => (
                 <div key={s.id} className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2">
                   <div>
-                    <p className="text-sm font-medium text-zinc-200">{s.name}</p>
+                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{s.name}</p>
                     <p className="text-[11px] text-zinc-500">
                       {s.next_billing_date ? `${t.subs.renews} ${formatDate(s.next_billing_date)}` : ""}
                     </p>
@@ -367,8 +367,8 @@ export default function FinancePage() {
               ) : (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2">
-                    <span className="text-sm font-medium text-zinc-300">{t.common.today}</span>
-                    <span className="text-sm font-bold text-zinc-100">{formatMoney(running, currency)}</span>
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{t.common.today}</span>
+                    <span className="text-sm font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(running, currency)}</span>
                   </div>
                   {days.map((row, i) => {
                     const key = `${row.date.toISOString().slice(0, 10)}-${row.label}`;
@@ -381,7 +381,7 @@ export default function FinancePage() {
                           <span className="w-8 shrink-0 text-[10px] text-zinc-500">
                             {row.date.toLocaleDateString("pt-PT", { day: "numeric", month: "short" })}
                           </span>
-                          <span className="text-sm text-zinc-300">
+                          <span className="text-sm text-zinc-600 dark:text-zinc-300">
                             {row.icon} {row.label}
                           </span>
                         </div>
@@ -412,8 +412,8 @@ export default function FinancePage() {
                   {bonusSplit.map((b) => (
                     <div key={b.label} className="flex items-center gap-2 text-sm">
                       <span className="h-2.5 w-2.5 rounded-full" style={{ background: b.color }} />
-                      <span className="flex-1 text-zinc-300">{b.label}</span>
-                      <span className="font-medium text-zinc-100">{formatMoney(b.value, currency)}</span>
+                      <span className="flex-1 text-zinc-600 dark:text-zinc-300">{b.label}</span>
+                      <span className="font-medium text-zinc-800 dark:text-zinc-100">{formatMoney(b.value, currency)}</span>
                     </div>
                   ))}
                 </div>
@@ -428,14 +428,14 @@ export default function FinancePage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Card>
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.monthSpent}</p>
-              <p className="mt-1 text-2xl font-bold text-zinc-100">{formatMoney(totals.monthlyExpenses, currency)}</p>
+              <p className="mt-1 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(totals.monthlyExpenses, currency)}</p>
               <Badge color={spentDiff > 0 ? "red" : "green"} className="mt-1">
                 {spentDiff > 0 ? "▲" : "▼"} {formatMoney(Math.abs(spentDiff), currency)} {t.finance.vsLastMonth}
               </Badge>
             </Card>
             <Card>
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.costAnalyzer}</p>
-              <p className="mt-1 text-2xl font-bold text-zinc-100">{formatMoney(monthlySubs, currency)}<span className="text-sm text-zinc-500"> /mês</span></p>
+              <p className="mt-1 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(monthlySubs, currency)}<span className="text-sm text-zinc-500"> /mês</span></p>
               <p className="mt-1 text-xs text-zinc-500">{formatMoney(monthlySubs * 12, currency)} /ano</p>
             </Card>
           </div>
@@ -450,11 +450,11 @@ export default function FinancePage() {
                 <div className="space-y-2">
                   {merchants.map(([name, value]) => (
                     <div key={name} className="flex items-center gap-2 text-sm">
-                      <span className="w-32 truncate text-zinc-300">{name}</span>
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/8">
+                      <span className="w-32 truncate text-zinc-600 dark:text-zinc-300">{name}</span>
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-white/8">
                         <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${percent(value, merchants[0][1])}%` }} />
                       </div>
-                      <span className="w-20 text-right font-medium text-zinc-200">{formatMoney(value, currency)}</span>
+                      <span className="w-20 text-right font-medium text-zinc-700 dark:text-zinc-200">{formatMoney(value, currency)}</span>
                     </div>
                   ))}
                 </div>
@@ -507,7 +507,7 @@ export default function FinancePage() {
                   <Card key={c.id} className="group">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-zinc-100">{c.name}</p>
+                        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{c.name}</p>
                         <p className="text-[11px] text-zinc-500">
                           {formatDate(c.start_date)} → {formatDate(c.end_date)}
                           {c.kind === "save_amount" && c.target > 0 && ` · ${formatMoney(c.target, currency)}`}
@@ -521,7 +521,7 @@ export default function FinancePage() {
                           }}
                           className={cn(
                             "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
-                            c.completed ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-white/10 text-zinc-500 hover:bg-white/5"
+                            c.completed ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                           )}
                         >
                           {c.completed ? "✓" : t.common.done}

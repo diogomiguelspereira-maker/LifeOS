@@ -99,7 +99,7 @@ function GoalsPageInner() {
                       {g.icon}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-100">{g.name}</p>
+                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.name}</p>
                       <p className="text-xs text-zinc-500">
                         {formatMoney(g.current_amount, currency)} / {formatMoney(g.target_amount, currency)}
                       </p>
@@ -116,7 +116,7 @@ function GoalsPageInner() {
                 <div className="mt-3">
                   <Progress value={pct} color="bg-gradient-to-r from-indigo-500 to-violet-500" />
                   <div className="mt-1.5 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-zinc-200">{Math.round(pct)}%</span>
+                    <span className="font-semibold text-zinc-700 dark:text-zinc-200">{Math.round(pct)}%</span>
                     <span className="text-zinc-500">{t.goals.progress}</span>
                   </div>
                 </div>
@@ -125,7 +125,7 @@ function GoalsPageInner() {
                   {g.deadline && (
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-500">{t.goals.estimatedCompletion}</span>
-                      <span className="font-medium text-zinc-300">
+                      <span className="font-medium text-zinc-600 dark:text-zinc-300">
                         {new Date(g.deadline).toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}
                       </span>
                     </div>
@@ -133,7 +133,7 @@ function GoalsPageInner() {
                   {g.monthly_contribution > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-500">{t.goals.monthlyContribution}</span>
-                      <span className="font-medium text-zinc-300">{formatMoney(g.monthly_contribution, currency)}</span>
+                      <span className="font-medium text-zinc-600 dark:text-zinc-300">{formatMoney(g.monthly_contribution, currency)}</span>
                     </div>
                   )}
                 </div>
@@ -245,7 +245,7 @@ function AddGoalModal({
                 onClick={() => setIcon(i)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition",
-                  icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-white/10 hover:bg-white/5"
+                  icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {i}

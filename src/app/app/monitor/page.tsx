@@ -93,7 +93,7 @@ function statusTone(s: Status): string {
       ? "border-amber-500/20 bg-amber-500/5"
       : s === "bad"
         ? "border-rose-500/20 bg-rose-500/5"
-        : "border-white/8 bg-white/[0.035]";
+        : "border-zinc-200 dark:border-white/8 bg-white/[0.035]";
 }
 
 /* ---------- page ---------- */
@@ -605,17 +605,17 @@ export default function MonitorPage() {
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <p className="text-3xl font-bold tracking-tight text-zinc-100">{lifeScore.score}</p>
+              <p className="text-3xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{lifeScore.score}</p>
               <p className="text-[10px] uppercase tracking-wider text-zinc-500">{t.monitor.lifeScore}</p>
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-semibold text-zinc-100">{scoreLabel}</p>
+            <p className="text-lg font-semibold text-zinc-800 dark:text-zinc-100">{scoreLabel}</p>
             <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-1.5 sm:grid-cols-3 lg:grid-cols-4">
               {lifeScore.parts.map((p) => (
                 <div key={p.label}>
                   <div className="mb-0.5 flex items-center justify-between text-[11px]">
-                    <span className="truncate text-zinc-400">{p.label}</span>
+                    <span className="truncate text-zinc-500 dark:text-zinc-400">{p.label}</span>
                     <span className="ml-2 shrink-0 text-zinc-500">{p.pct}%</span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
@@ -641,17 +641,17 @@ export default function MonitorPage() {
           action={alerts.length ? <Badge color="red">{alerts.length}</Badge> : undefined}
         />
         {alerts.length === 0 ? (
-          <p className="py-1 text-sm text-zinc-400">{t.monitor.noAlerts}</p>
+          <p className="py-1 text-sm text-zinc-500 dark:text-zinc-400">{t.monitor.noAlerts}</p>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
             {alerts.map((a, i) => (
               <Link
                 key={i}
                 href={a.href}
-                className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition hover:bg-white/8 ${statusTone(a.status)}`}
+                className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition hover:bg-zinc-100 dark:bg-white/8 ${statusTone(a.status)}`}
               >
                 <span className="text-base">{a.icon}</span>
-                <span className="min-w-0 flex-1 truncate text-zinc-200">{a.text}</span>
+                <span className="min-w-0 flex-1 truncate text-zinc-700 dark:text-zinc-200">{a.text}</span>
                 <ArrowRight className="h-3.5 w-3.5 shrink-0 text-zinc-600" />
               </Link>
             ))}
@@ -663,20 +663,20 @@ export default function MonitorPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {areas.map((a) => (
           <Link key={a.key} href={a.href}>
-            <Card className={`h-full transition hover:bg-white/8 ${statusTone(a.status)}`}>
+            <Card className={`h-full transition hover:bg-zinc-100 dark:bg-white/8 ${statusTone(a.status)}`}>
               <div className="mb-2.5 flex items-center gap-2.5">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/15">
                   <a.icon className="h-4 w-4 text-indigo-400" />
                 </span>
-                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-200">{a.title}</p>
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-700 dark:text-zinc-200">{a.title}</p>
                 <span className={`h-2 w-2 shrink-0 rounded-full ${statusDot(a.status)}`} />
               </div>
-              <p className="truncate text-lg font-bold tracking-tight text-zinc-100">{a.main}</p>
+              <p className="truncate text-lg font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{a.main}</p>
               <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
                 {a.sub.map((s, si) => (
                   <p key={si} className="truncate text-[11px] text-zinc-500">
-                    <span className="text-zinc-400">{s.label}: </span>
-                    <span className={s.tone ?? "text-zinc-300"}>{s.value}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">{s.label}: </span>
+                    <span className={s.tone ?? "text-zinc-600 dark:text-zinc-300"}>{s.value}</span>
                   </p>
                 ))}
               </div>

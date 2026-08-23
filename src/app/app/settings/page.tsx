@@ -351,7 +351,7 @@ function SettingsPageInner() {
         </div>
         <div className="mt-3 flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
           <div>
-            <p className="text-sm font-medium text-zinc-200">🐷 {t.settings.saveMode}</p>
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">🐷 {t.settings.saveMode}</p>
             <p className="text-[11px] text-zinc-500">{t.settings.saveModeHint}</p>
           </div>
           <Switch
@@ -476,7 +476,7 @@ function SettingsPageInner() {
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/4 px-3 py-3">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-zinc-200">{t.settings.connectGoogle}</p>
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{t.settings.connectGoogle}</p>
               <p className="break-words text-xs text-zinc-500">
                 {t.settings.googleStatus}:{" "}
                 {!googleStatus ? (
@@ -534,7 +534,7 @@ function SettingsPageInner() {
           )}
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/4 px-3 py-3">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-zinc-200">🏦 {t.settings.bank}</p>
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">🏦 {t.settings.bank}</p>
               <p className="break-words text-xs text-zinc-500">
                 {t.settings.bankHint}{" "}
                 {!bankStatus ? (
@@ -573,7 +573,7 @@ function SettingsPageInner() {
               {bankStatus.links.map((l) => (
                 <div key={l.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-white/4 px-3 py-2.5">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-zinc-200">🏦 {l.institution_name}</p>
+                    <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">🏦 {l.institution_name}</p>
                     <p className="text-[11px] text-zinc-500">
                       {l.status === "linked" ? (
                         <span className="text-emerald-400">✓ {t.settings.bankLinked}</span>
@@ -615,7 +615,7 @@ function SettingsPageInner() {
           <div className="rounded-xl bg-white/4 px-3 py-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-zinc-200">🔌 {t.settings.integrationsTitle}</p>
+                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">🔌 {t.settings.integrationsTitle}</p>
                 <p className="text-xs text-zinc-500">{t.settings.integrationsHint}</p>
               </div>
               <Button variant="outline" size="sm" disabled={tokenBusy} onClick={createToken}>
@@ -640,14 +640,14 @@ function SettingsPageInner() {
                     {copiedKey === newToken ? t.settings.integrationsCopied : t.settings.integrationsCopy}
                   </Button>
                 </div>
-                <div className="mt-3 space-y-1 text-[11px] leading-relaxed text-zinc-400">
+                <div className="mt-3 space-y-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                   <p>
                     · {t.settings.integrationsWebhookUrl}:{" "}
-                    <code className="text-zinc-300">POST {typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/webhook</code>
+                    <code className="text-zinc-600 dark:text-zinc-300">POST {typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/webhook</code>
                   </p>
                   <p>
                     · {t.settings.integrationsExportUrl}:{" "}
-                    <code className="text-zinc-300">GET {typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/export?type=tasks</code>
+                    <code className="text-zinc-600 dark:text-zinc-300">GET {typeof window !== "undefined" ? window.location.origin : ""}/api/integrations/export?type=tasks</code>
                   </p>
                 </div>
               </div>
@@ -659,7 +659,7 @@ function SettingsPageInner() {
                 tokens.map((tk) => (
                   <div key={tk.id} className="flex items-center justify-between gap-2 rounded-xl bg-white/4 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-zinc-200">🔑 {tk.name ?? "n8n"}</p>
+                      <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">🔑 {tk.name ?? "n8n"}</p>
                       <p className="text-[11px] text-zinc-500">
                         {tk.token.slice(0, 12)}… · {t.settings.integrationsLastUsed}:{" "}
                         {tk.last_used_at ? new Date(tk.last_used_at).toLocaleDateString("pt-PT") : "—"}
@@ -675,7 +675,7 @@ function SettingsPageInner() {
           </div>
           <div className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-3">
             <div>
-              <p className="text-sm font-medium text-zinc-200">{t.settings.ai}</p>
+              <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{t.settings.ai}</p>
               <p className="text-xs text-zinc-500">
                 {t.settings.ai} · API OpenAI-compatível ·{" "}
                 {aiStatus === null ? "…" : aiStatus ? (
@@ -702,7 +702,7 @@ function SettingsPageInner() {
                 key={c.name}
                 className="flex items-center justify-between gap-2 rounded-xl bg-white/4 px-3 py-2"
               >
-                <span className="min-w-0 truncate font-mono text-xs text-zinc-300">{c.name}</span>
+                <span className="min-w-0 truncate font-mono text-xs text-zinc-600 dark:text-zinc-300">{c.name}</span>
                 {c.ok ? (
                   <Badge color="green" className="shrink-0">✓ {t.settings.diagOk}</Badge>
                 ) : (
@@ -745,7 +745,7 @@ function SettingsPageInner() {
 
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title={t.settings.deleteAccount}>
         <div className="space-y-4">
-          <p className="text-sm text-zinc-300">{t.settings.deleteConfirm}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">{t.settings.deleteConfirm}</p>
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setDeleteOpen(false)}>
               {t.common.cancel}
@@ -760,7 +760,7 @@ function SettingsPageInner() {
       {/* Connect bank */}
       <Modal open={bankOpen} onClose={() => setBankOpen(false)} title={t.settings.bankModalTitle} maxWidth="max-w-lg">
         <div className="space-y-4">
-          <p className="text-xs leading-relaxed text-zinc-400">
+          <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             {t.settings.bankHint}{" "}
             {t.settings.bankCallbackHint.replace("{url}", `${typeof window !== "undefined" ? window.location.origin : ""}/api/bank/callback`)}
           </p>
@@ -792,14 +792,14 @@ function SettingsPageInner() {
                   <button
                     key={i.id}
                     onClick={() => connectBank(i)}
-                    className="flex w-full items-center gap-3 rounded-xl bg-white/4 px-3 py-2.5 text-left transition hover:bg-white/8"
+                    className="flex w-full items-center gap-3 rounded-xl bg-white/4 px-3 py-2.5 text-left transition hover:bg-zinc-100 dark:bg-white/8"
                   >
                     {i.logo ? (
                       <img src={i.logo} alt="" className="h-6 w-6 shrink-0 rounded" />
                     ) : (
                       <span className="text-lg">🏦</span>
                     )}
-                    <span className="truncate text-sm font-medium text-zinc-200">{i.name}</span>
+                    <span className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{i.name}</span>
                   </button>
                 ))
             )}

@@ -88,7 +88,7 @@ export default function AiMemoryPage() {
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
                 personality === p
                   ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
-                  : "border-white/10 text-zinc-400 hover:bg-white/5"
+                  : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >
               {t.personality[p]}
@@ -107,7 +107,7 @@ export default function AiMemoryPage() {
                 "rounded-full border px-3 py-1 text-xs font-medium transition",
                 memoryEnabled
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                  : "border-white/10 text-zinc-400"
+                  : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400"
               )}
             >
               {memoryEnabled ? t.aimemory.enable : t.aimemory.disabled}
@@ -131,8 +131,8 @@ export default function AiMemoryPage() {
                   </p>
                   <div className="space-y-1.5">
                     {list.map((m) => (
-                      <div key={m.id} className="group flex items-center gap-2 rounded-xl border border-white/6 px-3 py-2">
-                        <span className="text-sm font-medium text-zinc-300">{m.key}</span>
+                      <div key={m.id} className="group flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/6 px-3 py-2">
+                        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{m.key}</span>
                         <span className="flex-1 text-sm text-zinc-500">{m.value}</span>
                         <button
                           onClick={async () => {

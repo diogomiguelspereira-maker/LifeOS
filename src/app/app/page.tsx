@@ -395,18 +395,18 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             {now.toLocaleDateString(profile?.language === "en" ? "en-GB" : profile?.language === "es" ? "es-ES" : profile?.language === "fr" ? "fr-FR" : "pt-PT", { weekday: "long", day: "numeric", month: "long" })}
           </p>
-          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
+          <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-3xl">
             {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]} 👋
           </h1>
-          <p className="mt-1 text-sm text-zinc-400">{contextLine}</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{contextLine}</p>
         </div>
         <div className="flex items-center gap-2">
           {saveMode && <Badge color="green">🐷 {t.settings.saveMode}</Badge>}
           <div className="mr-1 hidden text-right sm:block">
-            <p className="text-lg font-bold tabular-nums leading-none text-zinc-100">
+            <p className="text-lg font-bold tabular-nums leading-none text-zinc-800 dark:text-zinc-100">
               {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
             </p>
             <p className="text-[10px] text-zinc-500">{t.common.today}</p>
@@ -439,7 +439,7 @@ export default function DashboardPage() {
               "rounded-full border px-3 py-1.5 text-xs font-medium transition",
               mode === m
                 ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
-                : "border-white/10 text-zinc-400 hover:bg-white/5"
+                : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
             {t.modes[m]}
@@ -468,7 +468,7 @@ export default function DashboardPage() {
                   "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
                   energy === val
                     ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-200"
-                    : "border-white/10 text-zinc-400 hover:bg-white/5"
+                    : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {icon} {label}
@@ -483,11 +483,11 @@ export default function DashboardPage() {
             <button
               key={i}
               onClick={() => doSuggestion(s)}
-              className="flex w-full items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
+              className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
             >
               <span className="text-xl">{s.icon}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-zinc-200">{s.title}</p>
+                <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{s.title}</p>
                 <p className="text-[11px] text-zinc-500">
                   {s.duration ? `${s.duration} min · ` : ""}
                   {s.reason}
@@ -517,7 +517,7 @@ export default function DashboardPage() {
               <button
                 key={m}
                 onClick={() => setBoredIdeas(boredomIdeas(m, nowCtx))}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-white/8 bg-white/4 px-3 py-4 text-sm text-zinc-200 transition hover:bg-white/10"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-zinc-200 dark:border-white/8 bg-white/4 px-3 py-4 text-sm text-zinc-700 dark:text-zinc-200 transition hover:bg-white/10"
               >
                 <span className="text-2xl">{icon}</span>
                 {label}
@@ -530,11 +530,11 @@ export default function DashboardPage() {
               <button
                 key={i}
                 onClick={() => doSuggestion(s)}
-                className="flex w-full items-center gap-3 rounded-xl border border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
+                className="flex w-full items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/8 bg-white/4 px-3 py-3 text-left transition hover:bg-white/10"
               >
                 <span className="text-xl">{s.icon}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-200">{s.title}</p>
+                  <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{s.title}</p>
                   <p className="text-[11px] text-zinc-500">
                     {s.duration ? `${s.duration} min · ` : ""}
                     {s.reason}
@@ -554,19 +554,19 @@ export default function DashboardPage() {
         <div className="space-y-2">
           {layout.map((w, i) => (
             <div key={w.id} className="flex items-center justify-between rounded-xl bg-white/4 px-3 py-2.5">
-              <span className="text-sm text-zinc-200">{widgetLabel(t, w.id)}</span>
+              <span className="text-sm text-zinc-700 dark:text-zinc-200">{widgetLabel(t, w.id)}</span>
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => move(w.id, -1)}
                   disabled={i === 0}
-                  className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 disabled:opacity-30"
+                  className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 disabled:opacity-30"
                 >
                   <ArrowUpDown className="h-4 w-4 rotate-90" />
                 </button>
                 <button
                   onClick={() => move(w.id, 1)}
                   disabled={i === layout.length - 1}
-                  className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/8 disabled:opacity-30"
+                  className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 disabled:opacity-30"
                 >
                   <ArrowUpDown className="h-4 w-4 -rotate-90" />
                 </button>
@@ -603,7 +603,7 @@ function BriefingWidget({ t, briefing }: { t: (typeof import("@/lib/i18n"))["pt"
       <CardHeader title={t.dashboard.briefing} />
       <div className="space-y-1.5">
         {briefing.map((line, i) => (
-          <p key={i} className="text-sm leading-relaxed text-zinc-300">
+          <p key={i} className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
             {line}
           </p>
         ))}
@@ -621,7 +621,7 @@ function MoneyWidget({ t, currency, totals, prevExpenses }: { t: (typeof import(
     <Card>
       <CardHeader title={t.dashboard.moneyOverview} />
       <div className="mb-3 flex items-end justify-between">
-        <p className="text-3xl font-bold tracking-tight text-zinc-100">{formatMoney(totals.totalBalance, currency)}</p>
+        <p className="text-3xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{formatMoney(totals.totalBalance, currency)}</p>
         <Badge color="green">{t.dashboard.available}: {formatMoney(totals.available, currency)}</Badge>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
@@ -630,7 +630,7 @@ function MoneyWidget({ t, currency, totals, prevExpenses }: { t: (typeof import(
         <MiniStat label={t.money.savingsRate} value={`${totals.savingsRate}%`} tone="text-sky-400" />
       </div>
       {delta != null && (
-        <p className={cn("mt-2.5 border-t border-white/5 pt-2 text-[11px]", delta <= 0 ? "text-emerald-400" : "text-rose-400")}>
+        <p className={cn("mt-2.5 border-t border-zinc-200 dark:border-white/5 pt-2 text-[11px]", delta <= 0 ? "text-emerald-400" : "text-rose-400")}>
           {delta <= 0 ? "▼" : "▲"} {Math.abs(delta)}% {t.money.vsLastMonth}
         </p>
       )}
@@ -648,7 +648,7 @@ function BirthdaysWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]
       />
       <div className="space-y-1.5">
         {events.map((ev) => (
-          <p key={ev.id} className="text-sm text-zinc-200">
+          <p key={ev.id} className="text-sm text-zinc-700 dark:text-zinc-200">
             🎉 <span className="font-medium">{ev.title.replace(/^🎂\s*/, "")}</span>
           </p>
         ))}
@@ -669,9 +669,9 @@ function TasksWidget({ t, tasks, onToggle }: { t: (typeof import("@/lib/i18n"))[
       ) : (
         <div className="space-y-1">
           {tasks.slice(0, 5).map((task) => (
-            <button key={task.id} onClick={() => onToggle(task)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-white/5">
+            <button key={task.id} onClick={() => onToggle(task)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-zinc-50 dark:bg-white/5">
               <span className="h-5 w-5 shrink-0 rounded-full border border-white/20" />
-              <span className="truncate text-sm text-zinc-200">{task.title}</span>
+              <span className="truncate text-sm text-zinc-700 dark:text-zinc-200">{task.title}</span>
               {task.priority === "high" && <Badge color="red">!</Badge>}
             </button>
           ))}
@@ -696,7 +696,7 @@ function EventsWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]; e
             <div key={ev.id} className="flex items-center gap-2.5">
               <span className="h-8 w-1 shrink-0 rounded-full" style={{ background: ev.color }} />
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-zinc-200">{ev.title}</p>
+                <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{ev.title}</p>
                 <p className="text-[11px] text-zinc-500">
                   {formatDate(ev.start_at)}
                   {!ev.all_day && ` · ${new Date(ev.start_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}`}
@@ -727,7 +727,7 @@ function GoalsWidget({ t, currency, goals }: { t: (typeof import("@/lib/i18n"))[
             return (
               <div key={g.id}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5 text-zinc-200">
+                  <span className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-200">
                     <span>{g.icon}</span>
                     {g.name}
                   </span>
@@ -769,7 +769,7 @@ function RoutineWidget({
       {steps.length > 0 && (
         <div className="mb-3 flex items-center gap-3">
           <Progress value={(done / steps.length) * 100} className="flex-1" color="bg-gradient-to-r from-violet-500 to-fuchsia-500" />
-          <span className="text-xs font-semibold text-zinc-300">
+          <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
             {done}/{steps.length}
           </span>
         </div>
@@ -780,7 +780,7 @@ function RoutineWidget({
           const isCurrent = i === currentIndex;
           const isNext = i === nextIndex;
           return (
-            <button key={s.id} onClick={() => onToggle(s)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-white/5">
+            <button key={s.id} onClick={() => onToggle(s)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition hover:bg-zinc-50 dark:bg-white/5">
               <span
                 className={cn(
                   "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition",
@@ -790,7 +790,7 @@ function RoutineWidget({
                 {isDone && <Check className="h-3 w-3 text-emerald-400" />}
               </span>
               <span className="w-11 shrink-0 text-xs tabular-nums text-zinc-500">{s.time}</span>
-              <span className={cn("truncate text-sm", isDone ? "text-zinc-500 line-through" : isCurrent ? "font-medium text-zinc-100" : "text-zinc-300")}>
+              <span className={cn("truncate text-sm", isDone ? "text-zinc-500 line-through" : isCurrent ? "font-medium text-zinc-800 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-300")}>
                 {s.title}
               </span>
               {isCurrent && !isDone && <Badge color="green">{t.routines.now}</Badge>}
@@ -820,7 +820,7 @@ function HabitsWidget({ t, habits, done, total, onToggle }: { t: (typeof import(
       />
       <div className="mb-3 flex items-center gap-3">
         <Progress value={(done / total) * 100} className="flex-1" />
-        <span className="text-xs font-semibold text-zinc-300">
+        <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
           {done}/{total}
         </span>
       </div>
@@ -859,7 +859,7 @@ function BillsWidget({ t, currency, subs }: { t: (typeof import("@/lib/i18n"))["
         <div className="space-y-2">
           {sorted.map((s) => (
             <div key={s.id} className="flex items-center justify-between text-sm">
-              <span className="text-zinc-200">{s.name}</span>
+              <span className="text-zinc-700 dark:text-zinc-200">{s.name}</span>
               <span className="text-xs text-zinc-500">
                 {formatMoney(s.amount, currency)} · {s.next_billing_date ? formatDate(s.next_billing_date) : ""}
               </span>
@@ -868,8 +868,8 @@ function BillsWidget({ t, currency, subs }: { t: (typeof import("@/lib/i18n"))["
         </div>
       )}
       {monthly > 0 && (
-        <p className="mt-3 rounded-xl bg-white/4 px-3 py-2 text-xs text-zinc-400">
-          {t.common.monthly}: <b className="text-zinc-200">{formatMoney(monthly, currency)}</b>
+        <p className="mt-3 rounded-xl bg-white/4 px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+          {t.common.monthly}: <b className="text-zinc-700 dark:text-zinc-200">{formatMoney(monthly, currency)}</b>
         </p>
       )}
     </Card>
@@ -899,8 +899,8 @@ function ChartWidget({ t, currency, byCat }: { t: (typeof import("@/lib/i18n"))[
             {byCat.slice(0, 5).map((c) => (
               <div key={c.category} className="flex items-center gap-2 text-xs">
                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: c.color }} />
-                <span className="truncate text-zinc-400">{c.category}</span>
-                <span className="ml-auto font-medium text-zinc-200">{formatMoney(c.value, currency)}</span>
+                <span className="truncate text-zinc-500 dark:text-zinc-400">{c.category}</span>
+                <span className="ml-auto font-medium text-zinc-700 dark:text-zinc-200">{formatMoney(c.value, currency)}</span>
               </div>
             ))}
           </div>
@@ -928,7 +928,7 @@ function PrioritiesWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]
               <div className={cn("flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 transition", toneCls[p.tone])}>
                 <span className="text-lg">{p.icon}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-200">{p.title}</p>
+                  <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{p.title}</p>
                   <p className="text-[11px] text-zinc-500">{p.reason}</p>
                 </div>
                 {p.href && <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" />}
@@ -960,7 +960,7 @@ function TimelineWidget({ t, currency, items }: { t: (typeof import("@/lib/i18n"
             <div key={i} className="flex items-center gap-3 text-sm">
               <span className="w-10 shrink-0 font-mono text-[11px] text-zinc-500">{it.time}</span>
               <span className="shrink-0 text-base">{it.icon}</span>
-              <span className="truncate text-zinc-300">
+              <span className="truncate text-zinc-600 dark:text-zinc-300">
                 {it.kind === "money" && it.amount != null
                   ? `${it.amount > 0 ? "+" : "−"}${formatMoney(Math.abs(it.amount), currency)} ${it.text}`
                   : it.text}
@@ -994,28 +994,28 @@ function SummaryWidget({ t, currency, stats, tod, tx }: { t: (typeof import("@/l
         <MiniStat label="🎯" value={`${stats.focusMinutes}m`} tone="text-sky-400" />
         <MiniStat label="🔥" value={`${stats.habitsDone}/${stats.habitsTotal}`} tone="text-amber-400" />
       </div>
-      <div className="mt-2 flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
-        <span className="text-xs font-medium text-zinc-400">💰 {t.dashboard.dailyProfit ?? "Profit diário"}</span>
+      <div className="mt-2 flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-white/5 px-3 py-2">
+        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">💰 {t.dashboard.dailyProfit ?? "Profit diário"}</span>
         <span className={`text-sm font-bold ${profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
           {profit >= 0 ? "+" : ""}{formatMoney(profit, currency)}
         </span>
       </div>
-      <div className="mt-2 flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
-        <span className="text-xs font-medium text-zinc-400">📈 {t.dashboard.weeklyProfit ?? "Profit semanal"}</span>
+      <div className="mt-2 flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-white/5 px-3 py-2">
+        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">📈 {t.dashboard.weeklyProfit ?? "Profit semanal"}</span>
         <span className={`text-sm font-bold ${weeklyProfit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
           {weeklyProfit >= 0 ? "+" : ""}{formatMoney(weeklyProfit, currency)}
         </span>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <div className="flex rounded-lg bg-white/5 p-0.5">
-          <button onClick={() => setTrendDays(7)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 7 ? "bg-white/10 text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend7d}</button>
-          <button onClick={() => setTrendDays(30)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 30 ? "bg-white/10 text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend30d}</button>
+        <div className="flex rounded-lg bg-zinc-50 dark:bg-white/5 p-0.5">
+          <button onClick={() => setTrendDays(7)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 7 ? "bg-white/10 text-zinc-700 dark:text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend7d}</button>
+          <button onClick={() => setTrendDays(30)} className={`rounded-md px-2.5 py-0.5 text-[10px] font-medium transition ${trendDays === 30 ? "bg-white/10 text-zinc-700 dark:text-zinc-200" : "text-zinc-500"}`}>{t.dashboard.trend30d}</button>
         </div>
         <div className="flex-1">
           <ProfitSparkline trend={trend} currency={currency} />
         </div>
       </div>
-      <p className="mt-2.5 text-xs text-zinc-400">{verdict}</p>
+      <p className="mt-2.5 text-xs text-zinc-500 dark:text-zinc-400">{verdict}</p>
     </Card>
   );
 }
@@ -1035,19 +1035,19 @@ function TomorrowWidget({ t, currency, prep }: { t: (typeof import("@/lib/i18n")
           {prep.events.slice(0, 3).map((ev) => (
             <div key={ev.id} className="flex items-center gap-2.5">
               <span className="h-6 w-1 shrink-0 rounded-full" style={{ background: ev.color }} />
-              <span className="truncate text-zinc-200">{ev.title}</span>
+              <span className="truncate text-zinc-700 dark:text-zinc-200">{ev.title}</span>
               {!ev.all_day && <span className="ml-auto shrink-0 font-mono text-[11px] text-zinc-500">{formatTime(ev.start_at)}</span>}
             </div>
           ))}
           {prep.tasks.length > 0 && (
-            <p className="text-zinc-400">📌 {prep.tasks.length} tarefa(s) com prazo amanhã</p>
+            <p className="text-zinc-500 dark:text-zinc-400">📌 {prep.tasks.length} tarefa(s) com prazo amanhã</p>
           )}
           {prep.bills.length > 0 && (
-            <p className="truncate text-zinc-400">💳 {prep.bills.map((b) => `${b.name} ${formatMoney(b.amount, currency)}`).join(" · ")}</p>
+            <p className="truncate text-zinc-500 dark:text-zinc-400">💳 {prep.bills.map((b) => `${b.name} ${formatMoney(b.amount, currency)}`).join(" · ")}</p>
           )}
           {prep.leaveHint && (
-            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs text-zinc-400">
-              🚗 Sai às <b className="text-zinc-200">{prep.leaveHint.time}</b> para {prep.leaveHint.location} (estimativa ~20 min)
+            <p className="rounded-xl bg-white/4 px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">
+              🚗 Sai às <b className="text-zinc-700 dark:text-zinc-200">{prep.leaveHint.time}</b> para {prep.leaveHint.location} (estimativa ~20 min)
             </p>
           )}
         </div>
@@ -1075,7 +1075,7 @@ function NextWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; item
           {items.slice(0, 4).map((item, i) => (
             <div key={i} className="flex items-start gap-2.5">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-              <p className="text-sm leading-relaxed text-zinc-300">{item.text}</p>
+              <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{item.text}</p>
             </div>
           ))}
         </div>
@@ -1176,7 +1176,7 @@ function ProfitSparkline({ trend, currency }: { trend: ProfitDay[]; currency: st
   return (
     <div className="relative">
       {active && (
-        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded-lg bg-zinc-800 px-2 py-1 text-[10px] text-zinc-200 shadow-lg whitespace-nowrap">
+        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded-lg bg-zinc-50 dark:bg-zinc-800 px-2 py-1 text-[10px] text-zinc-700 dark:text-zinc-200 shadow-lg whitespace-nowrap">
           {active.date}: <span className={active.profit >= 0 ? "text-emerald-400" : "text-rose-400"}>{active.profit >= 0 ? "+" : ""}{formatMoney(active.profit, currency)}</span>
         </div>
       )}
@@ -1208,7 +1208,7 @@ function ProfitSparkline({ trend, currency }: { trend: ProfitDay[]; currency: st
       </svg>
       <div className="flex justify-between px-0.5 mt-0.5">
         {trend.map((d, i) => (
-          <span key={d.date} className={`text-[9px] ${i === hovered ? "text-zinc-300" : "text-zinc-600"}`}>{d.label}</span>
+          <span key={d.date} className={`text-[9px] ${i === hovered ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-600"}`}>{d.label}</span>
         ))}
       </div>
     </div>

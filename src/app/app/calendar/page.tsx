@@ -280,7 +280,7 @@ function CalendarPageInner() {
           <Button variant="outline" size="icon" onClick={() => shift(1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <span className="ml-1 text-sm font-semibold capitalize text-zinc-200">{title}</span>
+          <span className="ml-1 text-sm font-semibold capitalize text-zinc-700 dark:text-zinc-200">{title}</span>
         </div>
         <Segmented<View>
           value={view}
@@ -304,7 +304,7 @@ function CalendarPageInner() {
           <p className="text-sm font-semibold text-amber-400">⚠️ {conflicts.length} conflito(s) no calendário</p>
           <div className="mt-2 space-y-1">
             {conflicts.slice(0, 3).map((c, i) => (
-              <p key={i} className="text-xs text-zinc-400">
+              <p key={i} className="text-xs text-zinc-500 dark:text-zinc-400">
                 {c.a.title} ↔ {c.b.title} — {new Date(c.a.start_at).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}
               </p>
             ))}
@@ -422,18 +422,18 @@ function MonthGrid({
               onClick={() => onSelect(d)}
               className={cn(
                 "relative flex min-h-12 flex-col items-stretch gap-0.5 rounded-lg border p-1 text-left transition sm:min-h-20",
-                inMonth ? "border-white/5 bg-white/3 hover:bg-white/8" : "border-transparent bg-transparent opacity-40"
+                inMonth ? "border-zinc-200 dark:border-white/5 bg-white/3 hover:bg-zinc-100 dark:bg-white/8" : "border-transparent bg-transparent opacity-40"
               )}
             >
               {evs.length > 0 && (
-                <span className="absolute right-0.5 top-0.5 rounded-full bg-white/10 px-1.5 text-[9px] font-semibold text-zinc-300">
+                <span className="absolute right-0.5 top-0.5 rounded-full bg-white/10 px-1.5 text-[9px] font-semibold text-zinc-600 dark:text-zinc-300">
                   {evs.length}
                 </span>
               )}
               <span
                 className={cn(
                   "mx-auto flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
-                  isToday ? "bg-gradient-to-br from-indigo-500 to-violet-500 text-white" : "text-zinc-400"
+                  isToday ? "bg-gradient-to-br from-indigo-500 to-violet-500 text-white" : "text-zinc-500 dark:text-zinc-400"
                 )}
               >
                 {d.getDate()}
@@ -491,7 +491,7 @@ function WeekView({
           const isToday = key === todayKey;
           return (
             <Card key={key} className={cn("p-2", isToday && "border-indigo-500/40")}>
-              <p className={cn("mb-2 text-center text-xs font-semibold capitalize", isToday ? "text-indigo-400" : "text-zinc-400")}>
+              <p className={cn("mb-2 text-center text-xs font-semibold capitalize", isToday ? "text-indigo-400" : "text-zinc-500 dark:text-zinc-400")}>
                 {d.toLocaleDateString("pt-PT", { weekday: "short" })}
                 <span className="ml-1 text-zinc-500">{d.getDate()}</span>
               </p>
@@ -534,7 +534,7 @@ function DayView({
     <Card className="p-3">
       <div className="relative">
         {Array.from({ length: 24 }, (_, h) => (
-          <div key={h} className="flex h-14 items-start gap-2 border-t border-white/5">
+          <div key={h} className="flex h-14 items-start gap-2 border-t border-zinc-200 dark:border-white/5">
             <span className="w-10 pt-1 text-right text-[10px] tabular-nums text-zinc-500">
               {h.toString().padStart(2, "0")}:00
             </span>
@@ -689,14 +689,14 @@ function ImportModal({
   return (
     <Modal open={open} onClose={onClose} title={t.calendar.importModal} maxWidth="max-w-lg">
       <div className="space-y-4">
-        <p className="text-xs leading-relaxed text-zinc-400">{t.calendar.importPasteHint}</p>
+        <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{t.calendar.importPasteHint}</p>
         <Field label={t.calendar.importTitle}>
           <Input value={defaultTitle} onChange={(e) => setDefaultTitle(e.target.value)} />
         </Field>
         <Field label={`${t.calendar.importSchedule} — Data | Dia | Horário`}>
           <Textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} className="font-mono text-xs" />
         </Field>
-        <div className="rounded-xl bg-white/5 p-3">
+        <div className="rounded-xl bg-zinc-50 dark:bg-white/5 p-3">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
             {t.calendar.importPreview}
             {parsed.month ? ` · ${parsed.month.year}-${String(parsed.month.month).padStart(2, "0")}` : ""}
@@ -707,8 +707,8 @@ function ImportModal({
             <ul className="max-h-40 space-y-1 overflow-y-auto">
               {preview.slice(0, 60).map((s, i) => (
                 <li key={i} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="shrink-0 tabular-nums text-zinc-400">{s.date}</span>
-                  <span className="flex-1 truncate text-zinc-200">{s.title}</span>
+                  <span className="shrink-0 tabular-nums text-zinc-500 dark:text-zinc-400">{s.date}</span>
+                  <span className="flex-1 truncate text-zinc-700 dark:text-zinc-200">{s.title}</span>
                   <span className="shrink-0 tabular-nums text-zinc-500">
                     {s.start ? `${s.start}–${s.end}` : t.calendar.allDay}
                   </span>
@@ -905,10 +905,10 @@ function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               const status = shareStatus(s);
               const url = `${window.location.origin}/share/${s.token}`;
               return (
-                <div key={s.id} className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5">
+                <div key={s.id} className="flex items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/8 bg-white/[0.03] px-3 py-2.5">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-medium text-zinc-200">{s.label || t.calendar.title}</p>
+                      <p className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">{s.label || t.calendar.title}</p>
                       <span
                         className={cn(
                           "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
@@ -1023,8 +1023,8 @@ function EventModal({
             <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} disabled={allDay} />
           </Field>
         </div>
-        <div className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2.5">
-          <span className="text-sm text-zinc-300">{t.calendar.allDay}</span>
+        <div className="flex items-center justify-between rounded-xl bg-zinc-50 dark:bg-white/5 px-3 py-2.5">
+          <span className="text-sm text-zinc-600 dark:text-zinc-300">{t.calendar.allDay}</span>
           <Switch checked={allDay} onChange={setAllDay} />
         </div>
         {!allDay && (
@@ -1051,7 +1051,7 @@ function EventModal({
                     "rounded-full border px-3 py-1 text-xs font-medium transition",
                     active
                       ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
-                      : "border-white/10 text-zinc-500 hover:bg-white/5"
+                      : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
                   {min >= 60 ? `${min / 60}h` : `${min}m`}
@@ -1132,7 +1132,7 @@ function EventDetailsModal({
   return (
     <Modal open={!!ev} onClose={onClose} title={ev.title}>
       <div className="space-y-4">
-        <div className="flex items-center gap-2 rounded-xl px-0 text-sm text-zinc-300">
+        <div className="flex items-center gap-2 rounded-xl px-0 text-sm text-zinc-600 dark:text-zinc-300">
           <span className="h-3 w-3 rounded-full" style={{ background: ev.color }} />
           <span className="capitalize">
             {start.toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long" })}
@@ -1146,7 +1146,7 @@ function EventDetailsModal({
           )}
         </div>
         {ev.location && (
-          <p className="flex items-center gap-2 text-sm text-zinc-400">
+          <p className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
             <MapPin className="h-4 w-4" /> {ev.location}
           </p>
         )}
@@ -1156,7 +1156,7 @@ function EventDetailsModal({
           </div>
         )}
         {ev.description && !ev.description.startsWith("🎂:") && (
-          <p className="whitespace-pre-wrap rounded-xl bg-white/5 p-3 text-sm leading-relaxed text-zinc-300">
+          <p className="whitespace-pre-wrap rounded-xl bg-zinc-50 dark:bg-white/5 p-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
             {event.description}
           </p>
         )}
@@ -1167,7 +1167,7 @@ function EventDetailsModal({
               <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">🧳 Não te esqueças</p>
               <ul className="mt-1.5 space-y-1">
                 {hints.map((h, i) => (
-                  <li key={i} className="text-xs text-zinc-300">
+                  <li key={i} className="text-xs text-zinc-600 dark:text-zinc-300">
                     {h}
                   </li>
                 ))}
