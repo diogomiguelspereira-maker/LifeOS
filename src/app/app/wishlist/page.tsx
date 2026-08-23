@@ -58,17 +58,11 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
-  const [urlMode, setUrlMode] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
-  const [scraping, setScraping] = useState(false);
-  const [scrapeError, setScrapeError] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
   const [affordItem, setAffordItem] = useState<WishlistItem | null>(null);
   const [affordResult, setAffordResult] = useState<AffordResult | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "wanted" | "purchased">("all");
-  // Pre-fill form after URL scrape
-  const [prefill, setPrefill] = useState<{ name: string; price: string; image: string; url: string } | null>(null);
 
   const load = useCallback(async () => {
     const ws = await api.wishlist(supabase);
@@ -98,38 +92,6 @@ export default function WishlistPage() {
       setMoneyCtx({ available: totals.available, safe: Math.round(safe.amount), fundTarget, fundCurrent, income: totals.monthlyIncome, savingsRate: totals.savingsRate });
     })();
   }, [supabase]);
-
-  async function scrapeProduct() {
-    if (!urlInput.trim()) return;
-    setScraping(true);
-    setScrapeError(null);
-    try {
-      const res = await fetch("/api/wishlist/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlInput.trim() }),
-      });
-      const data = (await res.json()) as { ok?: boolean; name?: string | null; price?: string | null; image?: string | null; error?: string; hint?: string };
-      if (!res.ok || !data.ok) {
-        setScrapeError(data.error === "timeout" ? t.wishlist.scrapeTimeout : (data.hint ?? t.wishlist.scrapeFailed));
-        setScraping(false);
-        return;
-      }
-      // Switch to manual mode with pre-filled fields so the user can verify & adjust
-      setPrefill({
-        name: data.name || "",
-        price: (data.price ?? "").match(/([\d.,]+)/)?.[1]?.replace(",", ".") ?? "",
-        image: data.image ?? "",
-        url: urlInput.trim(),
-      });
-      setUrlMode(false);
-      setUrlInput("");
-      setScrapeError(null);
-    } catch {
-      setScrapeError(t.wishlist.scrapeFailed);
-    }
-    setScraping(false);
-  }
 
   async function removeItem(id: string) {
     await supabase.from("wishlist_items").delete().eq("id", id);
@@ -201,7 +163,7 @@ export default function WishlistPage() {
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">{t.wishlist.share}</span>
             </Button>
-            <Button onClick={() => { setUrlMode(false); setEditingItem(null); setAddOpen(true); }}>
+            <Button onClick={() => { setEditingItem(null); setAddOpen(true); }}>
               <Plus className="h-4 w-4" />
               {t.wishlist.add}
             </Button>
@@ -361,16 +323,8 @@ export default function WishlistPage() {
       <AddModal
         open={addOpen}
         item={editingItem}
-        urlMode={urlMode}
-        setUrlMode={setUrlMode}
-        urlInput={urlInput}
-        setUrlInput={setUrlInput}
-        scraping={scraping}
-        scrapeError={scrapeError}
-        prefill={prefill}
-        onScrape={scrapeProduct}
-        onClose={() => { setAddOpen(false); setEditingItem(null); setScrapeError(null); setPrefill(null); }}
-        onSaved={() => { load(); setPrefill(null); }}
+        onClose={() => { setAddOpen(false); setEditingItem(null); }}
+        onSaved={() => { load(); }}
         currency={currency}
       />
 
@@ -469,37 +423,25 @@ function InlinePrice({
 }
 
 /* ---------- Add/Edit Modal ---------- */
+type Phase = "url" | "loading" | "preview" | "error" | "manual";
+
 function AddModal({
   open,
   item,
-  urlMode,
-  setUrlMode,
-  urlInput,
-  setUrlInput,
-  scraping,
-  scrapeError,
-  prefill,
-  onScrape,
   onClose,
   onSaved,
   currency,
 }: {
   open: boolean;
   item: WishlistItem | null;
-  urlMode: boolean;
-  setUrlMode: (v: boolean) => void;
-  urlInput: string;
-  setUrlInput: (v: string) => void;
-  scraping: boolean;
-  scrapeError: string | null;
-  prefill: { name: string; price: string; image: string; url: string } | null;
-  onScrape: () => void;
   onClose: () => void;
   onSaved: () => void;
   currency: string;
 }) {
   const { t } = useApp();
   const supabase = useSupabase();
+
+  // Manual fields (for editing existing items or manual entry)
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
@@ -507,40 +449,70 @@ function AddModal({
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("medium");
 
-  // When prefill arrives (after a successful scrape), populate the manual form
-  useEffect(() => {
-    if (prefill && !item) {
-      setName(prefill.name);
-      setPrice(prefill.price);
-      setImage(prefill.image);
-      setUrl(prefill.url);
-      setCategory("");
-      setPriority("medium");
-    }
-  }, [prefill, item]);
+  // URL scrape state
+  const [phase, setPhase] = useState<Phase>("url");
+  const [urlInput, setUrlInput] = useState("");
+  const [scrapeError, setScrapeError] = useState<string | null>(null);
+  const [scraped, setScraped] = useState<{ name: string; price: string; image: string; url: string } | null>(null);
 
   useEffect(() => {
-    if (open) {
-      if (item) {
-        setName(item.name ?? "");
-        setPrice(item.price != null ? String(item.price) : "");
-        setImage(item.image ?? "");
-        setUrl(item.url ?? "");
-        setCategory(item.category ?? "");
-        setPriority(item.priority ?? "medium");
-      } else if (prefill) {
-        // Already handled by the prefill useEffect above
-      } else {
-        setName("");
-        setPrice("");
-        setImage("");
-        setUrl("");
-        setCategory("");
-        setPriority("medium");
-      }
-      if (!item) { setUrlMode(false); setUrlInput(""); }
+    if (!open) return;
+    if (item) {
+      setName(item.name ?? "");
+      setPrice(item.price != null ? String(item.price) : "");
+      setImage(item.image ?? "");
+      setUrl(item.url ?? "");
+      setCategory(item.category ?? "");
+      setPriority(item.priority ?? "medium");
+      setPhase("manual");
+    } else {
+      setName(""); setPrice(""); setImage(""); setUrl(""); setCategory(""); setPriority("medium");
+      setPhase("url"); setUrlInput(""); setScrapeError(null); setScraped(null);
     }
-  }, [open, item, prefill]);
+  }, [open, item]);
+
+  async function scrape() {
+    if (!urlInput.trim()) return;
+    setPhase("loading");
+    setScrapeError(null);
+    try {
+      const res = await fetch("/api/wishlist/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      });
+      const data = (await res.json()) as { ok?: boolean; name?: string | null; price?: string | null; image?: string | null; error?: string; hint?: string };
+      if (!res.ok || !data.ok) {
+        setScrapeError(data.error === "timeout" ? t.wishlist.scrapeTimeout : (data.hint ?? t.wishlist.scrapeFailed));
+        setPhase("error");
+        return;
+      }
+      setScraped({
+        name: data.name || "",
+        price: (data.price ?? "").match(/([\d.,]+)/)?.[1]?.replace(",", ".") ?? "",
+        image: data.image ?? "",
+        url: urlInput.trim(),
+      });
+      setPhase("preview");
+    } catch {
+      setScrapeError(t.wishlist.scrapeFailed);
+      setPhase("error");
+    }
+  }
+
+  async function addFromScrape() {
+    if (!scraped) return;
+    await supabase.from("wishlist_items").insert({
+      name: scraped.name || t.wishlist.untitled,
+      price: scraped.price ? parseFloat(scraped.price) : null,
+      image: scraped.image || null,
+      url: scraped.url || null,
+      category: null,
+      priority: "medium",
+    });
+    onSaved();
+    onClose();
+  }
 
   async function saveManual() {
     if (!name.trim()) return;
@@ -561,106 +533,170 @@ function AddModal({
     onClose();
   }
 
-  if (urlMode && !item) {
+  // ----- Editing existing item -----
+  if (item) {
     return (
-      <Modal open={open} onClose={onClose} title={t.wishlist.addByUrl}>
+      <Modal open={open} onClose={onClose} title={t.common.edit}>
         <div className="space-y-4">
-          <p className="text-xs text-zinc-400">{t.wishlist.addByUrlHint}</p>
-          <Field label="URL">
-            <Input
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="https://www.amazon.es/…"
-              autoFocus
-              onKeyDown={(e) => { if (e.key === "Enter") onScrape(); }}
-            />
+          <Field label={t.common.name}>
+            <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </Field>
-          {scrapeError && (
-            <p className="rounded-lg border border-red-500/20 bg-red-500/8 px-3 py-2 text-xs text-red-400">{scrapeError}</p>
-          )}
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setUrlMode(false)}>{t.common.back}</Button>
-            <Button className="flex-1" onClick={onScrape} disabled={scraping || !urlInput.trim()}>
-              {scraping ? t.common.loading : t.wishlist.scrape}
-            </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t.common.amount}>
+              <Input type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={currency} />
+            </Field>
+            <Field label={t.wishlist.priority}>
+              <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{PRIORITY_ICONS[p]} {t.shopping[p]}</option>
+                ))}
+              </Select>
+            </Field>
           </div>
-          <button
-            onClick={() => setUrlMode(false)}
-            className="w-full text-center text-xs text-zinc-500 hover:text-zinc-300"
-          >
-            {t.wishlist.addManually}
-          </button>
+          <Field label={t.common.category}>
+            <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t.wishlist.categoryHint} />
+          </Field>
+          <Field label="URL">
+            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+          </Field>
+          <Field label={t.wishlist.image}>
+            <Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://… (url da imagem)" />
+          </Field>
+          <Button className="w-full" onClick={saveManual} disabled={!name.trim()}>
+            {t.common.save}
+          </Button>
         </div>
       </Modal>
     );
   }
 
+  // ----- New item (URL-first flow) -----
   return (
-    <Modal open={open} onClose={onClose} title={item ? t.common.edit : t.wishlist.add}>
+    <Modal open={open} onClose={onClose} title={t.wishlist.add}>
       <div className="space-y-4">
-        <div className="flex gap-2">
-          <Button
-            variant={urlMode ? "outline" : "primary"}
-            size="sm"
-            className="flex-1"
-            onClick={() => !item && setUrlMode(false)}
-          >
-            <GripHorizontal className="h-3.5 w-3.5" />
-            {t.wishlist.manual}
-          </Button>
-          <Button
-            variant={urlMode ? "primary" : "outline"}
-            size="sm"
-            className="flex-1"
-            onClick={() => !item && setUrlMode(true)}
-            disabled={!!item}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            {t.wishlist.byUrl}
-          </Button>
-        </div>
-
-        {prefill && !item && (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-3 py-2.5">
-            <p className="text-[11px] font-medium text-emerald-300">
-              ✨ {t.wishlist.scrapedFromUrl}
+        {/* URL input | loading | error */}
+        {(phase === "url" || phase === "loading" || phase === "error") && (
+          <>
+            <p className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 px-3 py-2.5 text-xs leading-relaxed text-zinc-400">
+              <Sparkles className="mr-1.5 inline h-3.5 w-3.5 text-indigo-400" />
+              {t.wishlist.addByUrlHint}
             </p>
-            <p className="mt-0.5 truncate text-[10px] text-emerald-400/60">{prefill.url}</p>
-          </div>
+            <Field label="URL do produto">
+              <Input
+                value={urlInput}
+                onChange={(e) => { setUrlInput(e.target.value); if (phase === "error") setPhase("url"); }}
+                placeholder="https://www.amazon.es/…"
+                autoFocus
+                onKeyDown={(e) => { if (e.key === "Enter") scrape(); }}
+              />
+            </Field>
+            {scrapeError && (
+              <p className="rounded-lg border border-red-500/20 bg-red-500/8 px-3 py-2 text-xs text-red-400">{scrapeError}</p>
+            )}
+            <Button className="w-full" onClick={scrape} disabled={phase === "loading" || !urlInput.trim()}>
+              {phase === "loading" ? (
+                <span className="flex items-center gap-2">⏳ {t.common.loading}</span>
+              ) : (
+                <span className="flex items-center gap-2"><Sparkles className="h-4 w-4" /> {t.wishlist.scrape}</span>
+              )}
+            </Button>
+          </>
         )}
 
-        <Field label={t.common.name}>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="MacBook Pro, Ténis…" autoFocus />
-        </Field>
+        {/* Preview after successful scrape */}
+        {phase === "preview" && scraped && (
+          <>
+            <div className="overflow-hidden rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04]">
+              {scraped.image && (
+                <div className="flex items-center justify-center bg-zinc-800/40 p-4">
+                  <img
+                    src={scraped.image}
+                    alt={scraped.name}
+                    className="max-h-40 rounded-lg object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                </div>
+              )}
+              <div className="space-y-1.5 p-4">
+                <p className="text-sm font-semibold text-zinc-100">{scraped.name || t.wishlist.untitled}</p>
+                {scraped.price && (
+                  <p className="text-xl font-bold text-emerald-300">
+                    {formatMoney(parseFloat(scraped.price), currency)}
+                  </p>
+                )}
+                <p className="flex items-center gap-1 truncate text-[11px] text-zinc-500">
+                  <Link2 className="h-3 w-3 shrink-0" />
+                  {(() => { try { return new URL(scraped.url).hostname.replace("www.", ""); } catch { return scraped.url; } })()}
+                </p>
+              </div>
+            </div>
+            <Button className="w-full" onClick={addFromScrape}>
+              <Plus className="h-4 w-4" /> {t.wishlist.addToWishlist}
+            </Button>
+            <button
+              onClick={() => { setPhase("url"); setScraped(null); }}
+              className="w-full text-center text-xs text-zinc-500 transition hover:text-zinc-300"
+            >
+              ← {t.wishlist.tryAnother}
+            </button>
+          </>
+        )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t.common.amount}>
-            <Input type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={currency} />
-          </Field>
-          <Field label={t.wishlist.priority}>
-            <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
-              {PRIORITIES.map((p) => (
-                <option key={p} value={p}>{PRIORITY_ICONS[p]} {t.shopping[p]}</option>
-              ))}
-            </Select>
-          </Field>
-        </div>
+        {/* Add manually (only in url/loading/error phases) */}
+        {(phase === "url" || phase === "loading" || phase === "error") && (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/[0.06]" />
+              <span className="text-[10px] uppercase tracking-wider text-zinc-600">{t.wishlist.orAddManually}</span>
+              <div className="h-px flex-1 bg-white/[0.06]" />
+            </div>
+            <button
+              onClick={() => setPhase("manual")}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] py-3 text-sm font-medium text-zinc-400 transition hover:bg-white/[0.06] hover:text-zinc-200"
+            >
+              <GripHorizontal className="h-4 w-4" />
+              {t.wishlist.addManually}
+            </button>
+          </>
+        )}
 
-        <Field label={t.common.category}>
-          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t.wishlist.categoryHint} />
-        </Field>
-
-        <Field label="URL">
-          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
-        </Field>
-
-        <Field label={t.wishlist.image}>
-          <Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://… (url da imagem)" />
-        </Field>
-
-        <Button className="w-full" onClick={saveManual} disabled={!name.trim()}>
-          {t.common.save}
-        </Button>
+        {/* Manual form */}
+        {phase === "manual" && (
+          <>
+            <Field label={t.common.name}>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="MacBook Pro, Ténis…" autoFocus />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t.common.amount}>
+                <Input type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={currency} />
+              </Field>
+              <Field label={t.wishlist.priority}>
+                <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                  {PRIORITIES.map((p) => (
+                    <option key={p} value={p}>{PRIORITY_ICONS[p]} {t.shopping[p]}</option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+            <Field label={t.common.category}>
+              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t.wishlist.categoryHint} />
+            </Field>
+            <Field label="URL">
+              <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+            </Field>
+            <Field label={t.wishlist.image}>
+              <Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://… (url da imagem)" />
+            </Field>
+            <div className="flex gap-2">
+              <Button variant="secondary" className="flex-1" onClick={() => setPhase("url")}>
+                ← {t.common.back}
+              </Button>
+              <Button className="flex-1" onClick={saveManual} disabled={!name.trim()}>
+                {t.common.save}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </Modal>
   );

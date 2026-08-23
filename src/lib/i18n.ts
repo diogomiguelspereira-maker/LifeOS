@@ -806,6 +806,10 @@ export const pt = {
     shareBy: "por",
     shareEmpty: "Esta lista de desejos está vazia.",
     shareFooter: "Partilhado via",
+    untitled: "(sem título)",
+    addToWishlist: "Adicionar à lista",
+    orAddManually: "ou",
+    tryAnother: "Tentar outro link",
     items: "itens",
   },
   focus: {
@@ -1789,6 +1793,10 @@ export const en: Dict = {
     shareBy: "by",
     shareEmpty: "This wishlist is empty.",
     shareFooter: "Shared via",
+    untitled: "(untitled)",
+    addToWishlist: "Add to wishlist",
+    orAddManually: "or",
+    tryAnother: "Try another link",
     items: "items",
   },
   focus: {
@@ -2772,6 +2780,10 @@ export const es: Dict = {
     shareBy: "por",
     shareEmpty: "Esta lista de deseos está vacía.",
     shareFooter: "Compartido vía",
+    untitled: "(sin título)",
+    addToWishlist: "Añadir a la lista",
+    orAddManually: "o",
+    tryAnother: "Probar otro enlace",
     items: "artículos",
   },
   focus: {
@@ -3755,6 +3767,10 @@ export const fr: Dict = {
     shareBy: "par",
     shareEmpty: "Cette liste de souhaits est vide.",
     shareFooter: "Partagé via",
+    untitled: "(sans titre)",
+    addToWishlist: "Ajouter à la liste",
+    orAddManually: "ou",
+    tryAnother: "Essayer un autre lien",
     items: "articles",
   },
   focus: {
