@@ -50,7 +50,7 @@ export function NotificationsBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative rounded-lg p-2 text-zinc-400 transition hover:bg-white/8 hover:text-zinc-100 dark:hover:bg-white/8"
+        className="relative rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-white/8 dark:hover:text-zinc-100"
         aria-label={t.notif.title}
       >
         <Bell className="h-[18px] w-[18px]" />
@@ -64,9 +64,9 @@ export function NotificationsBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-white/10 bg-zinc-950/95 p-3 shadow-2xl backdrop-blur-xl animate-slide-up">
+          <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-zinc-200 bg-white p-3 shadow-modal backdrop-blur-xl animate-slide-up dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm font-semibold text-zinc-100">{t.notif.title}</p>
+              <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{t.notif.title}</p>
               {unread > 0 && (
                 <button
                   onClick={markAllRead}
@@ -86,12 +86,12 @@ export function NotificationsBell() {
                   key={n.id}
                   className={cn(
                     "flex gap-2.5 rounded-xl px-2.5 py-2 transition",
-                    !n.read && "bg-white/5"
+                    !n.read && "bg-indigo-50/80 dark:bg-white/5"
                   )}
                 >
                   <span className="text-base">{typeIcons[n.type] ?? "💡"}</span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-zinc-200">{n.title}</p>
+                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">{n.title}</p>
                     {n.body && <p className="mt-0.5 text-[11px] leading-snug text-zinc-500">{n.body}</p>}
                   </div>
                 </div>

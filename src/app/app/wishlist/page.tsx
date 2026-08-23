@@ -221,7 +221,7 @@ export default function WishlistPage() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur transition hover:bg-black/80"
+                      className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur transition hover:bg-black/80 dark:bg-black/60 dark:hover:bg-black/80"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <ExternalLink className="h-3 w-3" />

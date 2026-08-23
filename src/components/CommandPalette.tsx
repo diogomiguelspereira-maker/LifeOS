@@ -197,7 +197,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <Modal open={open} onClose={onClose} maxWidth="max-w-lg" title={showCapture ? t.cmd.capture : t.cmd.quickActions}>
-      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3">
+      <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 shadow-input dark:border-white/10 dark:bg-white/5 dark:shadow-none">
         <Search className="h-4 w-4 shrink-0 text-zinc-500" />
         <input
           ref={inputRef}
@@ -208,7 +208,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             else if (e.key === "Enter") submit();
           }}
           placeholder={t.cmd.placeholder}
-          className="h-11 w-full bg-transparent text-sm text-zinc-100 placeholder:text-zinc-500 outline-none"
+          className="h-11 w-full bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 outline-none dark:text-zinc-100 dark:placeholder:text-zinc-500"
         />
         <CornerDownLeft className="h-4 w-4 shrink-0 text-zinc-600" />
       </div>
@@ -219,7 +219,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">
             {CAPTURE_LABEL[capture.kind]} {t.cmd.capture}
           </p>
-          <div className="mt-1.5 space-y-0.5 text-sm text-zinc-200">
+          <div className="mt-1.5 space-y-0.5 text-sm text-zinc-600 dark:text-zinc-200">
             <p>
               {capture.kind === "expense" || capture.kind === "income" ? (
                 <>
@@ -267,14 +267,14 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               <button
                 key={`${r.type}-${i}`}
                 onClick={() => go(r.href)}
-                className="flex w-full items-center gap-2.5 rounded-xl border border-white/6 bg-white/4 px-3 py-2 text-left transition hover:bg-white/10"
+                className="flex w-full items-center gap-2.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-left transition hover:bg-zinc-100 dark:border-white/6 dark:bg-white/4 dark:hover:bg-white/10"
               >
                 <Icon className="h-4 w-4 shrink-0 text-indigo-400" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-zinc-200">{r.title}</p>
+                  <p className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-200">{r.title}</p>
                   <p className="truncate text-[10px] text-zinc-500">{r.sub}</p>
                 </div>
-                <span className="shrink-0 text-[10px] uppercase tracking-wider text-zinc-600">{r.type}</span>
+                <span className="shrink-0 text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-600">{r.type}</span>
               </button>
             );
           })}
@@ -288,7 +288,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             <button
               key={a.href}
               onClick={() => go(a.href)}
-              className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/4 px-3 py-2.5 text-left text-xs font-medium text-zinc-300 transition hover:bg-white/10"
+              className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-100 dark:border-white/8 dark:bg-white/4 dark:text-zinc-300 dark:hover:bg-white/10"
             >
               <a.icon className="h-4 w-4 text-indigo-400" />
               {a.label(t)}

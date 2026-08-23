@@ -862,7 +862,7 @@ function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               {t.calendar.shareLink}
             </p>
             <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded-lg bg-black/30 px-2.5 py-2 text-xs text-emerald-200">
+              <code className="min-w-0 flex-1 truncate rounded-lg bg-zinc-100 px-2.5 py-2 text-xs text-emerald-700 dark:bg-black/30 dark:text-emerald-200">
                 {createdUrl}
               </code>
               <Button variant="outline" size="sm" onClick={() => copyLink(createdUrl)}>
@@ -1072,7 +1072,7 @@ function EventModal({
               <button
                 key={c}
                 onClick={() => setColor(c)}
-                className={cn("h-8 w-8 rounded-full transition", color === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-950")}
+                className={cn("h-8 w-8 rounded-full transition", color === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-100 dark:ring-offset-zinc-950")}
                 style={{ background: c }}
               />
             ))}

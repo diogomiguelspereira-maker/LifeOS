@@ -73,7 +73,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
           )}
         </div>
         {total > 0 && (
-          <div className="ml-auto shrink-0 rounded-xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-4 py-2 text-right">
+          <div className="ml-auto shrink-0 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-right shadow-card dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
             <p className="text-[10px] uppercase tracking-wider text-zinc-500">{items.length} {t.wishlist.items}</p>
             <p className="text-lg font-bold text-zinc-800 dark:text-zinc-100">{formatPrice(total)}</p>
           </div>
@@ -89,8 +89,8 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
       )}
 
       {status === "invalid" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 bg-white px-6 py-16 text-center shadow-card dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-400 dark:bg-red-500/10">
             <Lock className="h-6 w-6" />
           </div>
           <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.calendar.shareUnavailableTitle}</p>
@@ -99,8 +99,8 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
       )}
 
       {status === "error" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 bg-white px-6 py-16 text-center shadow-card dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-400 dark:bg-red-500/10">
             <Lock className="h-6 w-6" />
           </div>
           <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.common.error}</p>
@@ -109,7 +109,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
       )}
 
       {status === "empty" && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] px-6 py-16 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-zinc-200 bg-white px-6 py-16 text-center shadow-card dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
           <p className="text-base font-semibold text-zinc-700 dark:text-zinc-200">{t.wishlist.shareEmpty}</p>
         </div>
       )}
@@ -130,7 +130,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((item) => (
-              <div key={item.id} className="group rounded-2xl border border-zinc-200 dark:border-white/10 bg-white/[0.04] p-4 transition hover:border-zinc-300 dark:border-white/15">
+              <div key={item.id} className="group rounded-2xl border border-zinc-200 bg-white p-4 shadow-card transition hover:border-zinc-300 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none dark:hover:border-white/15">
                 {/* Product image */}
                 {item.image ? (
                   <div className="-mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/50">

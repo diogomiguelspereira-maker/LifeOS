@@ -286,7 +286,7 @@ function NovaChat() {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="rounded-full border border-zinc-200 dark:border-white/10 bg-white/4 px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-300 transition hover:border-indigo-400/40 hover:bg-indigo-500/10"
+                  className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-600 transition hover:border-indigo-400/40 hover:bg-indigo-500/10 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300"
                 >
                   {s}
                 </button>

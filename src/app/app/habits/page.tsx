@@ -331,7 +331,7 @@ function AddHabitModal({
               <button
                 key={c}
                 onClick={() => setColor(c)}
-                className={cn("h-8 w-8 rounded-full transition", color === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-950")}
+                className={cn("h-8 w-8 rounded-full transition", color === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-100 dark:ring-offset-zinc-950")}
                 style={{ background: c }}
               />
             ))}

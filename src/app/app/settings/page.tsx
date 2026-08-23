@@ -422,7 +422,7 @@ function SettingsPageInner() {
                   onClick={() => setCustomTheme((s) => ({ ...s, primary: c }))}
                   className={cn(
                     "h-8 w-8 rounded-full transition",
-                    customTheme.primary === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-950"
+                    customTheme.primary === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-100 dark:ring-offset-zinc-950"
                   )}
                   style={{ background: c }}
                 />
@@ -437,7 +437,7 @@ function SettingsPageInner() {
                   onClick={() => setCustomTheme((s) => ({ ...s, secondary: c }))}
                   className={cn(
                     "h-8 w-8 rounded-full transition",
-                    customTheme.secondary === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-950"
+                    customTheme.secondary === c && "ring-2 ring-white ring-offset-2 ring-offset-zinc-100 dark:ring-offset-zinc-950"
                   )}
                   style={{ background: c }}
                 />
@@ -633,7 +633,7 @@ function SettingsPageInner() {
                   {t.settings.integrationsNew}
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="min-w-0 flex-1 break-all rounded-lg bg-black/30 px-2.5 py-2 text-[11px] text-emerald-200">
+                  <code className="min-w-0 flex-1 break-all rounded-lg bg-zinc-100 px-2.5 py-2 text-[11px] text-emerald-700 dark:bg-black/30 dark:text-emerald-200">
                     {newToken}
                   </code>
                   <Button variant="outline" size="sm" onClick={() => copyText(newToken)}>
