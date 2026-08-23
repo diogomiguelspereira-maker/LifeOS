@@ -8,6 +8,62 @@ interface ProductInfo {
   image: string | null;
 }
 
+/** Normalize a price string: "349,00" → 349.00, "1.299,99" → 1299.99 */
+function parsePriceNum(raw: string): number {
+  // If it has both . and , the thousands separator depends on which comes first
+  const cleaned = raw.trim();
+  if (!cleaned) return NaN;
+  // "1.299,99" → 1299.99  (European: . is thousands, , is decimal)
+  if (/\d\.\d{3}/.test(cleaned) && cleaned.includes(",")) {
+    return parseFloat(cleaned.replace(/\./g, "").replace(",", "."));
+  }
+  // "1,299.99" → 1299.99  (US: , is thousands, . is decimal)
+  if (/\d,\d{3}/.test(cleaned) && cleaned.includes(".")) {
+    return parseFloat(cleaned.replace(/,/g, ""));
+  }
+  // Simple: "349.00" or "349,00"
+  return parseFloat(cleaned.replace(",", "."));
+}
+
+/**
+ * Collect ALL price-like numbers with €/EUR nearby from the HTML,
+ * then pick the largest one that looks like a real product price
+ * (ignoring tiny values like shipping costs under €5).
+ */
+function bestPrice(html: string): string | null {
+  const seen = new Set<number>();
+  const patterns: RegExp[] = [
+    /€\s*(\d{1,6}(?:[.,]\d{1,2})?)/g,
+    /EUR\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi,
+    /(\d{1,6}(?:[.,]\d{1,2})?)\s*€/g,
+    /(\d{1,6}(?:[.,]\d{1,2})?)\s*EUR/gi,
+    /"price"\s*:\s*"?(\d{1,6}(?:[.,]\d{1,2})?)/gi,
+    /'price'\s*:\s*'?(\d{1,6}(?:[.,]\d{1,2})?)/gi,
+    /price["']?\s*[:=]\s*["']?(\d{1,6}(?:[.,]\d{2})?)/gi,
+    /data-price[=:]\s*["']?(\d{1,6}(?:[.,]\d{2})?)/gi,
+  ];
+
+  for (const pat of patterns) {
+    let pm: RegExpExecArray | null;
+    // Reset lastIndex for global regexes
+    pat.lastIndex = 0;
+    while ((pm = pat.exec(html)) !== null) {
+      const n = parsePriceNum(pm[1]);
+      if (!Number.isNaN(n) && n > 0) seen.add(n);
+    }
+  }
+
+  if (seen.size === 0) return null;
+
+  // Sort descending, prefer values ≥ 5 (filter out shipping costs)
+  const sorted = [...seen].sort((a, b) => b - a);
+  // Take the largest value that looks like a product price (≥ €5)
+  const best = sorted.find((n) => n >= 5) ?? sorted[0];
+
+  // Format: always use . as decimal separator
+  return best % 1 === 0 ? String(best) : best.toFixed(2);
+}
+
 /**
  * Extract product metadata from HTML using every trick available:
  * JSON-LD, Open Graph, Twitter Cards, microdata, schema.org, meta tags,
@@ -51,31 +107,34 @@ function extract(html: string): ProductInfo {
   const titleMatch = /<title[^>]*>([^<]+)<\/title>/i.exec(html);
   const titleTag = cleanTitle(titleMatch?.[1] ?? null);
 
-  // 6 ── Amazon-specific: span#productTitle, #priceblock_ourprice etc
+  // 6 ── Amazon-specific: span#productTitle, price selectors, etc
   const amazonTitle = matchIdOrClass(html, "productTitle");
-  const amazonPriceWhole = matchIdOrClass(html, "priceblock_ourprice")
+  
+  // Amazon has many price elements — try them all
+  const amazonPrice = matchClassText(html, "a-price-whole", "")
+    || matchIdOrClass(html, "priceblock_ourprice")
     || matchIdOrClass(html, "priceblock_dealprice")
-    || matchAttr(html, "data-asin-price");
+    || matchIdOrClass(html, "priceblock_saleprice")
+    || matchAttr(html, "data-asin-price")
+    || matchClassText(html, "a-price", "symbol");
+
   const amazonImage = matchIdSrc(html, "landingImage") || matchIdSrc(html, "imgTagWrapperId");
 
   // 7 ── Worten-specific
   const wortenPrice = matchClassText(html, "w-product__price", "current")
     || matchClassText(html, "product-price", "value");
 
-  // 8 ── Generic price regex patterns
-  const pricePatterns = [
-    /(?:€|EUR)\s*(\d{1,6}(?:[.,]\d{1,2})?)/,
-    /(\d{1,6}(?:[.,]\d{1,2})?)\s*(?:€|EUR)/,
-    /price["\s:=]+(\d{1,6}(?:[.,]\d{1,2})?)/i,
-    /"price"\s*:\s*["']?(\d{1,6}(?:[.,]\d{1,2})?)/i,
-  ];
-  let genericPrice: string | null = null;
-  for (const pat of pricePatterns) {
-    const pm = html.match(pat);
-    if (pm) { genericPrice = pm[1]; break; }
-  }
+  // 8 ── PCDIGA / Globaldata / RP / Fnac
+  const storePrice = matchClassText(html, "final-price", "")
+    || matchClassText(html, "current-price", "")
+    || matchClassText(html, "product-price-current", "")
+    || matchClassText(html, "f-faixa-preco", "")
+    || matchClassText(html, "price-current", "");
 
-  // 9 ── Image: try img with product/hero in alt/class/id
+  // 9 ── Generic: pick the best (largest) price from the document
+  const genericPrice = bestPrice(html);
+
+  // 10 ── Image: try img with product/hero in alt/class/id
   let productImage = ogImage || twImage || microImgSrc || microImage || amazonImage || null;
   if (!productImage) {
     const imgMatch = /<img[^>]+(?:class|id)=["'](?:[^"']*\b)?(?:product|hero|gallery|main)[^"']*["'][^>]+src=["']([^"']+)["']/i.exec(html)
@@ -85,9 +144,19 @@ function extract(html: string): ProductInfo {
 
   // Assemble result
   const name = ogTitle || microName || amazonTitle || titleTag || null;
-  const price = ogPrice
-    ? `${ogPrice} ${ogCurrency}`
-    : (amazonPriceWhole ? `${amazonPriceWhole} EUR` : (wortenPrice ?? genericPrice ?? null));
+
+  // Price priority: OG → Amazon → store-specific → best generic
+  let price: string | null = null;
+  if (ogPrice) {
+    price = `${ogPrice} ${ogCurrency}`;
+  } else {
+    const raw = amazonPrice ?? wortenPrice ?? storePrice ?? genericPrice;
+    if (raw) {
+      const num = parsePriceNum(raw);
+      price = Number.isNaN(num) ? raw : `${num} EUR`;
+    }
+  }
+
   const image = productImage || null;
 
   return { name, price: price ? price.replace(/\s+/g, " ").trim() : null, image };
@@ -111,11 +180,35 @@ function findProduct(obj: unknown): Record<string, unknown> | null {
 }
 
 function extractJsonLdPrice(product: Record<string, unknown>): string | null {
-  const offers = (product.offers as Record<string, unknown>[]) ?? [product.offers as Record<string, unknown>].filter(Boolean);
-  const offer = (Array.isArray(offers) ? offers[0] : offers) as Record<string, unknown> | undefined;
-  if (!offer?.price) return null;
-  const currency = (offer.priceCurrency as string) || "EUR";
-  return `${offer.price} ${currency}`;
+  // Normalize offers to an array
+  const rawOffers = product.offers;
+  let offersArr: Record<string, unknown>[] = [];
+  if (Array.isArray(rawOffers)) {
+    offersArr = rawOffers as Record<string, unknown>[];
+  } else if (rawOffers && typeof rawOffers === "object") {
+    offersArr = [rawOffers as Record<string, unknown>];
+  }
+  if (offersArr.length === 0) return null;
+
+  const offer = offersArr[0];
+  if (!offer) return null;
+
+  // Try direct price field first
+  let priceVal = offer.price;
+  let currency = (offer.priceCurrency as string) || "EUR";
+
+  // If no flat price, try priceSpecification (Amazon JSON-LD pattern)
+  if (priceVal == null && offer.priceSpecification) {
+    const spec = offer.priceSpecification as Record<string, unknown>;
+    priceVal = spec.price;
+    currency = (spec.priceCurrency as string) || currency;
+  }
+
+  if (priceVal == null) return null;
+
+  // Price might be a number or string
+  const priceStr = typeof priceVal === "number" ? String(priceVal) : String(priceVal);
+  return `${priceStr} ${currency}`;
 }
 
 function extractJsonLdImage(product: Record<string, unknown>): string | null {
@@ -193,15 +286,14 @@ function matchIdSrc(html: string, id: string): string | null {
 
 function matchClassText(html: string, className: string, contained: string): string | null {
   const escClass = className.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const escContained = contained.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const re = new RegExp(`<[^>]+class=["'][^"']*${escClass}[^"']*["'][^>]*>([\\s\\S]*?)<\\/[^>]+>`, "i");
   let cm: RegExpExecArray | null;
   const globalRe = new RegExp(re.source, "gi");
   while ((cm = globalRe.exec(html)) !== null) {
     const inner = cm[1];
-    const priceRe = new RegExp(`(?:€|EUR|${escContained})[\\s:]*?(\\d{1,6}(?:[.,]\\d{1,2})?)`, "i");
-    const pm = priceRe.exec(inner);
-    if (pm) return pm[1];
+    // Extract any number from the inner text
+    const numMatch = inner.match(/(\d{1,6}(?:[.,]\d{1,2})?)/);
+    if (numMatch) return numMatch[1];
   }
   return null;
 }
