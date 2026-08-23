@@ -811,6 +811,7 @@ export const pt = {
     addToWishlist: "Adicionar à lista",
     orAddManually: "ou",
     tryAnother: "Tentar outro link",
+    enterPrice: "Preço:",
     items: "itens",
   },
   focus: {
@@ -1799,6 +1800,7 @@ export const en: Dict = {
     addToWishlist: "Add to wishlist",
     orAddManually: "or",
     tryAnother: "Try another link",
+    enterPrice: "Price:",
     items: "items",
   },
   focus: {
@@ -2787,6 +2789,7 @@ export const es: Dict = {
     addToWishlist: "Añadir a la lista",
     orAddManually: "o",
     tryAnother: "Probar otro enlace",
+    enterPrice: "Precio:",
     items: "artículos",
   },
   focus: {
@@ -3775,6 +3778,7 @@ export const fr: Dict = {
     addToWishlist: "Ajouter à la liste",
     orAddManually: "ou",
     tryAnother: "Essayer un autre lien",
+    enterPrice: "Prix :",
     items: "articles",
   },
   focus: {
