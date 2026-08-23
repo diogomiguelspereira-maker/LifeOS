@@ -20,11 +20,11 @@ export function Button({
   const variants: Record<ButtonVariant, string> = {
     primary: "text-white hover:opacity-90",
     secondary:
-      "bg-warm-100 text-zinc-800 border border-zinc-200/60 shadow-sm hover:bg-warm-200 dark:bg-white/8 dark:text-zinc-100 dark:border-white/10 dark:hover:bg-white/12 dark:shadow-none",
+      "bg-zinc-100 text-zinc-800 border border-zinc-200/60 shadow-sm hover:bg-zinc-200 dark:bg-white/8 dark:text-zinc-100 dark:border-white/10 dark:hover:bg-white/12 dark:shadow-none",
     ghost:
-      "text-zinc-500 hover:text-zinc-800 hover:bg-warm-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-white/6",
+      "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-white/6",
     outline:
-      "border border-zinc-200 text-zinc-700 hover:bg-warm-50 shadow-xs dark:border-white/15 dark:text-zinc-200 dark:hover:bg-white/6 dark:shadow-none",
+      "border border-zinc-200 text-zinc-700 hover:bg-zinc-50 shadow-xs dark:border-white/15 dark:text-zinc-200 dark:hover:bg-white/6 dark:shadow-none",
     danger:
       "bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25",
   };
@@ -344,7 +344,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-warm-100 text-3xl dark:bg-white/[0.04]">{icon}</div>
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-3xl dark:bg-white/[0.04]">{icon}</div>
       <p className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">{title}</p>
       {subtitle && <p className="max-w-xs text-xs text-zinc-500">{subtitle}</p>}
     </div>
