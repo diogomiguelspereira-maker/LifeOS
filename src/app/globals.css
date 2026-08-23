@@ -2,6 +2,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Custom warm palette for light mode */
+@theme {
+  --color-warm-50: #faf9f7;
+  --color-warm-100: #f3f1ed;
+  --color-warm-200: #ebe7e1;
+  --color-warm-300: #ddd8d0;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.06);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-input: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
@@ -192,8 +204,8 @@ body {
 }
 
 html.light body {
-  background: #fafafa;
-  color: #18181b;
+  background: linear-gradient(180deg, #faf9f7 0%, #f3f1ed 100%);
+  color: #1a1a1a;
 }
 
 /* soft app background (transparent so the ambient aurora shows through).
@@ -204,9 +216,7 @@ html.light body {
     radial-gradient(900px 400px at -10% 20%, var(--app-glow-b, rgba(168, 85, 247, 0.08)), transparent 55%);
 }
 html.light .app-bg {
-  background:
-    radial-gradient(1200px 500px at 80% -10%, var(--app-glow-a, rgba(99, 102, 241, 0.12)), transparent 60%),
-    radial-gradient(900px 400px at -10% 20%, var(--app-glow-b, rgba(168, 85, 247, 0.07)), transparent 55%);
+  background: none;
 }
 
 /* Ambient aurora — fixed drifting color blobs behind everything. Theme-aware
@@ -241,7 +251,10 @@ html.light .app-bg {
   animation: auroraDrift2 34s ease-in-out infinite alternate;
 }
 html.light .aurora {
-  opacity: 0.5;
+  opacity: 0.18;
+}
+html.light .aurora-blob {
+  filter: blur(120px);
 }
 @keyframes auroraDrift1 {
   from {
@@ -269,14 +282,14 @@ html.light .aurora {
 /* scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(120, 120, 140, 0.25) transparent;
+  scrollbar-color: rgba(200, 195, 188, 0.6) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(120, 120, 140, 0.25);
+  background: rgba(200, 195, 188, 0.6);
   border-radius: 8px;
 }
 html.dark * {
@@ -417,7 +430,7 @@ html.dark *::-webkit-scrollbar-thumb {
   }
 }
 .skeleton {
-  background: linear-gradient(90deg, #e4e4e7 25%, #d4d4d8 50%, #e4e4e7 75%);
+  background: linear-gradient(90deg, #f0efed 25%, #e6e4e0 50%, #f0efed 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: 0.75rem;
