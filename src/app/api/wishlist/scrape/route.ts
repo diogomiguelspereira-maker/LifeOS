@@ -338,12 +338,15 @@ export async function POST(request: Request) {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 12000);
 
-    // Multiple User-Agents to try — some stores block bot-looking ones
+    // Rotate User-Agents — Amazon etc. block datacenter IPs, but we try our best
     const userAgents = [
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Mobile/15E148 Safari/604.1",
     ];
 
     let res: Response | null = null;
@@ -355,11 +358,11 @@ export async function POST(request: Request) {
           signal: controller.signal,
           headers: {
             "User-Agent": ua,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "pt-PT,pt;q=0.9,en;q=0.8",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
             "Accept-Encoding": "gzip, deflate, br",
-            "Cache-Control": "no-cache",
-            "Pragma": "no-cache",
+            "Cache-Control": "max-age=0",
+            "DNT": "1",
             "Sec-Fetch-Dest": "document",
             "Sec-Fetch-Mode": "navigate",
             "Sec-Fetch-Site": "none",
@@ -377,15 +380,23 @@ export async function POST(request: Request) {
       if (lastErr instanceof Error && lastErr.name === "AbortError") {
         return NextResponse.json({ error: "timeout", hint: "O site demorou muito. Tenta adicionar manualmente." }, { status: 504 });
       }
-      return NextResponse.json({ error: "fetch-failed" }, { status: 502 });
+      return NextResponse.json({ error: "fetch-failed", hint: "Não foi possível aceder ao site. Tenta adicionar manualmente." }, { status: 502 });
     }
 
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
-      return NextResponse.json({ error: "not-html" }, { status: 415 });
-    }
-
+    // Accept any content type — Amazon sometimes returns weird types
     const html = await res.text();
+
+    // Detect Amazon bot/captcha page
+    if (html.includes("api-services-support@amazon") || html.includes("Enter the characters below") || html.includes("Type the characters") || html.length < 500) {
+      return NextResponse.json({
+        ok: true,
+        name: null,
+        price: null,
+        image: null,
+        hint: "A loja bloqueou o acesso automático. Tenta adicionar manualmente.",
+        blocked: true,
+      });
+    }
     const info = extract(html);
 
     // If we got basically nothing, report it

@@ -476,21 +476,118 @@ function AddModal({
     setPhase("loading");
     setScrapeError(null);
     try {
+      // Try server-side scrape first
       const res = await fetch("/api/wishlist/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: urlInput.trim() }),
       });
-      const data = (await res.json()) as { ok?: boolean; name?: string | null; price?: string | null; image?: string | null; error?: string; hint?: string };
+      const data = (await res.json()) as { ok?: boolean; name?: string | null; price?: string | null; image?: string | null; error?: string; hint?: string; blocked?: boolean };
+      
       if (!res.ok || !data.ok) {
         setScrapeError(data.error === "timeout" ? t.wishlist.scrapeTimeout : (data.hint ?? t.wishlist.scrapeFailed));
         setPhase("error");
         return;
       }
+
+      // If server got blocked (Amazon captcha), try client-side CORS proxy
+      if (data.blocked || (!data.name && !data.price && !data.image && data.hint)) {
+        await scrapeClientSide();
+        return;
+      }
+
       setScraped({
         name: data.name || "",
         price: (data.price ?? "").match(/([\d.,]+)/)?.[1]?.replace(",", ".") ?? "",
         image: data.image ?? "",
+        url: urlInput.trim(),
+      });
+      setPhase("preview");
+    } catch {
+      setScrapeError(t.wishlist.scrapeFailed);
+      setPhase("error");
+    }
+  }
+
+  /** Fallback: fetch the page directly from the browser via a CORS proxy */
+  async function scrapeClientSide() {
+    try {
+      const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(urlInput.trim())}`,
+        `https://corsproxy.io/?${encodeURIComponent(urlInput.trim())}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(urlInput.trim())}`,
+      ];
+      let html = "";
+      let ok = false;
+      for (const proxy of proxies) {
+        try {
+          const r = await fetch(proxy);
+          if (r.ok) { html = await r.text(); ok = true; break; }
+        } catch { /* try next */ }
+      }
+      if (!ok) {
+        setScrapeError(t.wishlist.scrapeBlocked);
+        setPhase("error");
+        return;
+      }
+
+      // Parse HTML in the browser using DOM
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+
+      let name = "";
+      let priceVal = "";
+      let image = "";
+
+      // JSON-LD
+      for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+        try {
+          const json = JSON.parse(script.textContent || "");
+          const items = Array.isArray(json) ? json : [json];
+          for (const item of items) {
+            if (item["@type"] === "Product") {
+              name = item.name || name;
+              if (item.offers) {
+                const offer = Array.isArray(item.offers) ? item.offers[0] : item.offers;
+                if (offer?.price) priceVal = String(offer.price);
+              }
+              if (item.image) {
+                image = typeof item.image === "string" ? item.image : (Array.isArray(item.image) ? (typeof item.image[0] === "string" ? item.image[0] : item.image[0]?.url) : item.image?.url) || image;
+              }
+            }
+          }
+        } catch { /* continue */ }
+      }
+
+      // OG tags
+      if (!name) name = doc.querySelector('meta[property="og:title"]')?.getAttribute("content") || "";
+      if (!priceVal) priceVal = doc.querySelector('meta[property="product:price:amount"]')?.getAttribute("content") || doc.querySelector('meta[property="og:price:amount"]')?.getAttribute("content") || "";
+      if (!image) image = doc.querySelector('meta[property="og:image"]')?.getAttribute("content") || "";
+
+      // Microdata
+      if (!name) name = doc.querySelector('[itemprop="name"]')?.textContent?.trim() || "";
+      if (!priceVal) priceVal = doc.querySelector('[itemprop="price"]')?.getAttribute("content") || doc.querySelector('[itemprop="price"]')?.textContent?.trim() || "";
+      if (!image) image = doc.querySelector('img[itemprop="image"]')?.getAttribute("src") || "";
+
+      // Amazon specific (client-side DOM)
+      if (!name) name = doc.querySelector("#productTitle")?.textContent?.trim() || "";
+      if (!priceVal) {
+        const whole = doc.querySelector(".a-price-whole")?.textContent?.trim() || "";
+        const fraction = doc.querySelector(".a-price-fraction")?.textContent?.trim() || "";
+        if (whole) priceVal = fraction ? `${whole}.${fraction}` : whole;
+      }
+      if (!image) image = (doc.querySelector("#landingImage") as HTMLImageElement)?.src || (doc.querySelector("#imgTagWrapperId img") as HTMLImageElement)?.src || "";
+
+      if (!name && !priceVal) {
+        setScrapeError(t.wishlist.scrapeFailed);
+        setPhase("error");
+        return;
+      }
+
+      setScraped({
+        name,
+        price: (priceVal.match(/([\d.,]+)/)?.[1]?.replace(",", ".") ?? "") || priceVal,
+        image,
         url: urlInput.trim(),
       });
       setPhase("preview");
