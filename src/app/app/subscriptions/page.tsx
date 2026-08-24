@@ -111,7 +111,7 @@ export default function SubscriptionsPage() {
       {/* warnings */}
       {upcoming.length > 0 && (
         <Card className="border-amber-500/20 bg-amber-500/5">
-          <p className="text-xs font-semibold text-amber-300">{t.subs.warnings}</p>
+          <p className="text-xs font-semibold text-amber-600 dark:text-amber-300">{t.subs.warnings}</p>
           <div className="mt-2 space-y-1.5">
             {upcoming.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">

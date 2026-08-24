@@ -70,7 +70,7 @@ export function NotificationsBell() {
               {unread > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 hover:text-indigo-300"
+                  className="flex items-center gap-1 text-[11px] font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"
                 >
                   <CheckCheck className="h-3.5 w-3.5" />
                   {t.notif.markAllRead}

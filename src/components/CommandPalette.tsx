@@ -296,7 +296,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           ))}
           <button
             onClick={() => go("/app/nova")}
-            className="col-span-2 flex items-center gap-2 rounded-xl border border-indigo-500/25 bg-indigo-500/10 px-3 py-2.5 text-left text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20"
+            className="col-span-2 flex items-center gap-2 rounded-xl border border-indigo-500/25 bg-indigo-500/10 px-3 py-2.5 text-left text-xs font-medium text-indigo-600 dark:text-indigo-300 transition hover:bg-indigo-500/20"
           >
             <Sparkles className="h-4 w-4" />
             {t.cmd.askNova}

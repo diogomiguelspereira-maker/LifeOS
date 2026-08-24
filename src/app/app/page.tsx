@@ -438,7 +438,7 @@ export default function DashboardPage() {
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-medium transition",
               mode === m
-                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                 : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
@@ -644,7 +644,7 @@ function BirthdaysWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]
     <Card className="border-pink-500/15 bg-gradient-to-r from-pink-500/8 to-transparent">
       <CardHeader
         title={`🎂 ${t.dashboard.birthdaysToday}`}
-        action={<Link href="/app/people" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/people" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       <div className="space-y-1.5">
         {events.map((ev) => (
@@ -662,7 +662,7 @@ function TasksWidget({ t, tasks, onToggle }: { t: (typeof import("@/lib/i18n"))[
     <Card>
       <CardHeader
         title={t.dashboard.todaysTasks}
-        action={<Link href="/app/tasks" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/tasks" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {tasks.length === 0 ? (
         <p className="py-2 text-sm text-zinc-500">🎉 {t.tasks.noTasks}</p>
@@ -686,7 +686,7 @@ function EventsWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]; e
     <Card>
       <CardHeader
         title={t.dashboard.upcomingEvents}
-        action={<Link href="/app/calendar" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/calendar" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {events.length === 0 ? (
         <p className="py-2 text-sm text-zinc-500">{t.calendar.noEvents}</p>
@@ -716,7 +716,7 @@ function GoalsWidget({ t, currency, goals }: { t: (typeof import("@/lib/i18n"))[
     <Card>
       <CardHeader
         title={t.dashboard.activeGoals}
-        action={<Link href="/app/goals" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/goals" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {active.length === 0 ? (
         <p className="py-2 text-sm text-zinc-500">{t.goals.addGoal} 🎯</p>
@@ -764,7 +764,7 @@ function RoutineWidget({
       <CardHeader
         title={`${routine.icon || "⏰"} ${routine.name}`}
         subtitle={routine.start_time}
-        action={<Link href="/app/routines" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/routines" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {steps.length > 0 && (
         <div className="mb-3 flex items-center gap-3">
@@ -816,7 +816,7 @@ function HabitsWidget({ t, habits, done, total, onToggle }: { t: (typeof import(
     <Card>
       <CardHeader
         title={t.dashboard.habitProgress}
-        action={<Link href="/app/habits" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/habits" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       <div className="mb-3 flex items-center gap-3">
         <Progress value={(done / total) * 100} className="flex-1" />
@@ -851,7 +851,7 @@ function BillsWidget({ t, currency, subs }: { t: (typeof import("@/lib/i18n"))["
     <Card>
       <CardHeader
         title={t.dashboard.upcomingBills}
-        action={<Link href="/app/money" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/money" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {sorted.length === 0 ? (
         <p className="py-2 text-sm text-zinc-500">{t.dashboard.upcomingBills} — 0</p>
@@ -1026,7 +1026,7 @@ function TomorrowWidget({ t, currency, prep }: { t: (typeof import("@/lib/i18n")
     <Card>
       <CardHeader
         title={t.dashboard.tomorrow}
-        action={<Link href="/app/calendar" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
+        action={<Link href="/app/calendar" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
       />
       {total === 0 ? (
         <p className="py-2 text-sm text-zinc-500">{t.dashboard.nothingPlanned} 🎉</p>
@@ -1062,7 +1062,7 @@ function NextWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; item
       <CardHeader
         title={t.next.title}
         action={
-          <Link href="/app/nova" className="flex items-center gap-1 text-xs font-medium text-indigo-400 hover:text-indigo-300">
+          <Link href="/app/nova" className="flex items-center gap-1 text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300">
             <Sparkles className="h-3.5 w-3.5" />
             {t.cmd.askNova}
           </Link>

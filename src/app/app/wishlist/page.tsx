@@ -179,7 +179,7 @@ export default function WishlistPage() {
               onClick={() => setFilter(f)}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                filter === f ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
+                filter === f ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5"
               )}
             >
               {t.wishlist[f]}
@@ -295,7 +295,7 @@ export default function WishlistPage() {
               {item.price && moneyCtx && !item.purchased && (
                 <button
                   onClick={() => checkAfford(item)}
-                  className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-500/25 bg-indigo-500/8 py-2 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/15"
+                  className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-500/25 bg-indigo-500/8 py-2 text-xs font-medium text-indigo-600 dark:text-indigo-300 transition hover:bg-indigo-500/15"
                 >
                   <Lightbulb className="h-3.5 w-3.5" />
                   {t.shopping.canAfford}
@@ -402,7 +402,7 @@ function InlinePrice({
     return (
       <button
         onClick={() => { setVal(value != null ? String(value) : ""); setEditing(true); }}
-        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300", className)}
+        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-600 dark:text-indigo-300", className)}
       >
         {value != null ? formatMoney(value, currency) : "—"}
       </button>
@@ -638,7 +638,7 @@ function AddModal({
                 <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{scraped.name || t.wishlist.untitled}</p>
                 <div className="flex items-center gap-2">
                   {scraped.price ? (
-                    <p className="text-xl font-bold text-emerald-300">
+                    <p className="text-xl font-bold text-emerald-600 dark:text-emerald-300">
                       {formatMoney(parseFloat(scraped.price), currency)}
                     </p>
                   ) : (
@@ -827,7 +827,7 @@ function ShareModal({ open, onClose, items }: { open: boolean; onClose: () => vo
 
         {createdUrl && (
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300">{t.wishlist.shareReady}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">{t.wishlist.shareReady}</p>
             <div className="mt-2 flex items-center gap-2">
               <code className="flex-1 truncate rounded-lg border border-emerald-500/20 bg-black/30 px-3 py-2 text-xs text-zinc-700 dark:text-zinc-200">{createdUrl}</code>
               <Button size="sm" onClick={() => copyLink(createdUrl)}>

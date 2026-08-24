@@ -365,7 +365,7 @@ function TasksPageInner() {
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition",
               micro === b.id
-                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                 : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
@@ -537,7 +537,7 @@ function TasksPageInner() {
                       {plan && (
                         <div className="rounded-xl border border-violet-500/20 bg-violet-500/8 px-3 py-2.5">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs font-semibold text-violet-300">{t.tasks.studyPlan}</p>
+                            <p className="text-xs font-semibold text-violet-600 dark:text-violet-300">{t.tasks.studyPlan}</p>
                             <Button
                               size="sm"
                               variant="secondary"
@@ -580,7 +580,7 @@ function TasksPageInner() {
         <div className="raise-for-keyboard fixed inset-x-0 z-50 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border border-zinc-200 dark:border-white/10 bg-white dark:bg-zinc-900/95 px-4 py-2.5 shadow-2xl backdrop-blur">
             <p className="text-xs text-zinc-600 dark:text-zinc-300">{t.tasks.taskDeleted}</p>
-            <button onClick={restoreTask} className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+            <button onClick={restoreTask} className="text-xs font-semibold text-indigo-400 hover:text-indigo-600 dark:text-indigo-300">
               {t.common.undo}
             </button>
           </div>
@@ -768,7 +768,7 @@ function TaskModal({
               className={cn(
                 "rounded-full border px-3 py-1 text-xs font-medium transition",
                 dueDate === localDateStr(new Date()) && chip.label === t.common.today
-                  ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                  ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                   : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >

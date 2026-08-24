@@ -136,7 +136,7 @@ function OnboardingInner() {
                     onClick={() => setAgeRange(a)}
                     className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${
                       ageRange === a
-                        ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300"
+                        ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                         : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     }`}
                   >
@@ -194,7 +194,7 @@ function OnboardingInner() {
                     onClick={() => setGoalName(g.name)}
                     className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition ${
                       goalName === g.name
-                        ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300"
+                        ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                         : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     }`}
                   >

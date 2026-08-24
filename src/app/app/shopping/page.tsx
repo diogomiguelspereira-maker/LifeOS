@@ -328,7 +328,7 @@ export default function ShoppingPage() {
                 {w.price && moneyCtx && (
                   <button
                     onClick={() => checkAfford(w)}
-                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-500/25 bg-indigo-500/8 py-1.5 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/15"
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-indigo-500/25 bg-indigo-500/8 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-300 transition hover:bg-indigo-500/15"
                   >
                     <Lightbulb className="h-3.5 w-3.5" />
                     {t.shopping.canAfford}
@@ -489,7 +489,7 @@ function InlinePrice({
           setVal(value != null ? String(value) : "");
           setEditing(true);
         }}
-        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300", className)}
+        className={cn("rounded px-1 -mx-1 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-600 dark:text-indigo-300", className)}
       >
         {value != null ? formatMoney(value, currency) : "—"}
       </button>

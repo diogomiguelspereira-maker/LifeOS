@@ -129,7 +129,7 @@ export default function SignupPage() {
 
         <p className="mt-5 text-center text-xs text-zinc-500">
           {t.auth.haveAccount}{" "}
-          <Link href="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
+          <Link href="/login" className="font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300">
             {t.auth.login}
           </Link>
         </p>

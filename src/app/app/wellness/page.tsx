@@ -238,7 +238,7 @@ function SleepModal({ open, onClose, onSaved }: { open: boolean; onClose: () => 
                 onClick={() => setQuality(String(q))}
                 className={cn(
                   "h-10 w-10 rounded-xl border text-sm font-medium transition",
-                  quality === String(q) ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
+                  quality === String(q) ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {q}

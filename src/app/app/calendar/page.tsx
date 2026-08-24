@@ -317,7 +317,7 @@ function CalendarPageInner() {
           <p className="text-sm font-semibold text-emerald-400">🕐 Tempo livre hoje</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {freeTime.map((f, i) => (
-              <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">
+              <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-300">
                 {f.start}–{f.end}
               </span>
             ))}
@@ -327,7 +327,7 @@ function CalendarPageInner() {
 
       <Card className="border-indigo-500/15 bg-indigo-500/5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-indigo-300">
+          <p className="text-xs text-indigo-600 dark:text-indigo-300">
             🔗 {t.calendar.google}:{" "}
             {!google ? (
               "…"
@@ -883,7 +883,7 @@ function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                 href={`https://wa.me/?text=${encodeURIComponent(createdUrl)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-500/20"
               >
                 💬 {t.calendar.shareWhatsApp}
               </a>
@@ -1050,7 +1050,7 @@ function EventModal({
                   className={cn(
                     "rounded-full border px-3 py-1 text-xs font-medium transition",
                     active
-                      ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-300"
+                      ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
                       : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
@@ -1151,7 +1151,7 @@ function EventDetailsModal({
           </p>
         )}
         {ev.source === "google" && (
-          <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2 text-xs text-sky-300">
+          <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2 text-xs text-sky-600 dark:text-sky-300">
             🔗 {t.calendar.google} · {t.settings.googleConnected}
           </div>
         )}

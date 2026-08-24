@@ -177,11 +177,11 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {isUnlimited ? (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-[11px] text-emerald-300">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/8 px-3 py-2 text-[11px] text-emerald-600 dark:text-emerald-300">
                 🔓 {t.calendar.shareUnlimitedNote}
               </div>
             ) : (
-              <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2 text-[11px] text-amber-300">
+              <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2 text-[11px] text-amber-600 dark:text-amber-300">
                 🔒 {t.calendar.shareOneTimeNote}
               </div>
             )}

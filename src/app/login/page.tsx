@@ -114,7 +114,7 @@ function LoginForm() {
 
         <p className="mt-5 text-center text-xs text-zinc-500">
           {t.auth.noAccount}{" "}
-          <Link href="/signup" className="font-medium text-indigo-400 hover:text-indigo-300">
+          <Link href="/signup" className="font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300">
             {t.auth.signup}
           </Link>
         </p>

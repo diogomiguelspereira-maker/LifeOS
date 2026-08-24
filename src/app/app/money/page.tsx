@@ -343,7 +343,7 @@ function MoneyPageInner() {
                       setEditingAccount(a);
                       setAccountOpen(true);
                     }}
-                    className="rounded-lg border border-zinc-200 dark:border-white/10 p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:border-indigo-400/40 hover:text-indigo-300"
+                    className="rounded-lg border border-zinc-200 dark:border-white/10 p-1.5 text-zinc-500 dark:text-zinc-400 transition hover:border-indigo-400/40 hover:text-indigo-600 dark:text-indigo-300"
                     title={t.common.edit}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -425,7 +425,7 @@ function MoneyPageInner() {
                         type="button"
                         onClick={() => startRename(tx)}
                         title={t.common.edit}
-                        className="block w-full truncate text-left text-sm font-medium text-zinc-700 dark:text-zinc-200 transition hover:text-indigo-300"
+                        className="block w-full truncate text-left text-sm font-medium text-zinc-700 dark:text-zinc-200 transition hover:text-indigo-600 dark:text-indigo-300"
                       >
                         {tx.description || cat?.name || t.common.title}
                       </button>
@@ -446,7 +446,7 @@ function MoneyPageInner() {
                   <div className="flex shrink-0 items-center">
                     <button
                       onClick={() => duplicateTx(tx)}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-600 dark:text-indigo-300"
                       title={t.common.duplicate}
                     >
                       <Copy className="h-4 w-4" />
@@ -456,7 +456,7 @@ function MoneyPageInner() {
                         setEditingTx(tx);
                         setTxOpen(true);
                       }}
-                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-300"
+                      className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 dark:bg-white/8 hover:text-indigo-600 dark:text-indigo-300"
                       title={t.common.edit}
                     >
                       <Pencil className="h-4 w-4" />

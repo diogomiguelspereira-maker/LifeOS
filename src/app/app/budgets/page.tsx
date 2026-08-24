@@ -134,7 +134,7 @@ export default function BudgetsPage() {
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-indigo-300">{t.budgets.aiNote}</p>
+            <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">{t.budgets.aiNote}</p>
             <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{novaNote}</p>
           </div>
         </div>

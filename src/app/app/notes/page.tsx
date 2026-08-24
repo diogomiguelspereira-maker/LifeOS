@@ -139,7 +139,7 @@ function NotesPageInner() {
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
                 onlyFavs
-                  ? "border-amber-400/40 bg-amber-500/10 text-amber-300"
+                  ? "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300"
                   : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
               )}
             >
@@ -174,7 +174,7 @@ function NotesPageInner() {
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex flex-wrap gap-1">
                       {note.tags.slice(0, 3).map((tag) => (
-                        <span key={tag} className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-300">
+                        <span key={tag} className="rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] text-violet-600 dark:text-violet-300">
                           #{tag}
                         </span>
                       ))}
@@ -211,7 +211,7 @@ function NotesPageInner() {
                   {entry.tags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {entry.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-300">
+                        <span key={tag} className="rounded-full bg-sky-500/10 px-2 py-0.5 text-[10px] text-sky-600 dark:text-sky-300">
                           #{tag}
                         </span>
                       ))}

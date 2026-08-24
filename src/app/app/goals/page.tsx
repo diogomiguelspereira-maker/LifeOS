@@ -143,12 +143,12 @@ function GoalsPageInner() {
                     {t.goals.completed}
                   </p>
                 ) : neededMonthly !== null && neededMonthly > g.monthly_contribution ? (
-                  <p className="mt-3 flex items-start gap-1.5 rounded-xl bg-amber-500/8 px-3 py-2 text-[11px] leading-snug text-amber-300">
+                  <p className="mt-3 flex items-start gap-1.5 rounded-xl bg-amber-500/8 px-3 py-2 text-[11px] leading-snug text-amber-600 dark:text-amber-300">
                     <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     {t.goals.saveMore} <b>{formatMoney(neededMonthly, currency)}</b> {t.goals.perMonth}
                   </p>
                 ) : g.monthly_contribution > 0 ? (
-                  <p className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-500/8 px-3 py-2 text-[11px] text-emerald-300">
+                  <p className="mt-3 flex items-center gap-1.5 rounded-xl bg-emerald-500/8 px-3 py-2 text-[11px] text-emerald-600 dark:text-emerald-300">
                     <TrendingUp className="h-3.5 w-3.5" />
                     {t.goals.onTrack}
                   </p>
