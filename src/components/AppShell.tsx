@@ -137,11 +137,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 isActive(n.href)
-                  ? "bg-indigo-50 text-indigo-700 dark:bg-gradient-to-r dark:from-indigo-500/15 dark:to-violet-500/10 dark:text-zinc-100"
+                  ? "bg-indigo-600 text-white shadow-sm"
                   : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"
               )}
             >
-              <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) && "text-indigo-400")} />
+              <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) ? "text-white" : "text-zinc-400 dark:text-zinc-500")} />
               {label(n.labelKey)}
             </Link>
           ))}
