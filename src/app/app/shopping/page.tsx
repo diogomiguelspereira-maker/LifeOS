@@ -195,7 +195,7 @@ export default function ShoppingPage() {
                   onClick={() => setActiveList(l.id)}
                   className={cn(
                     "w-full rounded-xl border px-3 py-2.5 text-left transition",
-                    activeList === l.id ? "border-indigo-400/40 bg-indigo-500/10" : "border-zinc-200 dark:border-white/8 hover:bg-zinc-50 dark:bg-white/5"
+                    activeList === l.id ? "border-indigo-600 bg-indigo-600 text-white shadow-sm" : "border-zinc-200 dark:border-white/8 hover:bg-zinc-50 dark:bg-white/5"
                   )}
                 >
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{l.name}</p>

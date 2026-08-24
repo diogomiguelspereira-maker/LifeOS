@@ -176,7 +176,7 @@ export default function TravelPage() {
                       className={cn(
                         "rounded-full border px-2 py-0.5 text-[11px] transition",
                         i.checked
-                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 line-through"
+                          ? "border-emerald-600 bg-emerald-600 text-white shadow-sm line-through"
                           : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
                       )}
                     >

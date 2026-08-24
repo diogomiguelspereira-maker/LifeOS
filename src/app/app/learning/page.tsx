@@ -156,7 +156,7 @@ export default function LearningPage() {
                     }}
                     className={cn(
                       "flex-1 rounded-lg border px-1.5 py-1 text-[10px] font-medium transition",
-                      b.status === s ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
+                      b.status === s ? "border-indigo-600 bg-indigo-600 text-white shadow-sm" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                     )}
                   >
                     {t.learning[s]}

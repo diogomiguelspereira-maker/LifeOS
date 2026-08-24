@@ -300,7 +300,7 @@ function AddHabitModal({
                 className={cn(
                   "h-10 w-10 rounded-xl border text-sm font-medium transition",
                   target === String(n)
-                    ? "border-indigo-400/60 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
+                    ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
                     : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
@@ -317,7 +317,7 @@ function AddHabitModal({
                 onClick={() => setIcon(i)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition",
-                  icon === i ? "border-indigo-400/60 bg-indigo-500/15" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
+                  icon === i ? "border-indigo-600 bg-indigo-600 text-white shadow-sm" : "border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >
                 {i}

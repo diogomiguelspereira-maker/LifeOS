@@ -179,7 +179,7 @@ export default function WishlistPage() {
               onClick={() => setFilter(f)}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                filter === f ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300" : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5"
+                filter === f ? "border-indigo-600 bg-indigo-600 text-white shadow-sm" : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-white/5"
               )}
             >
               {t.wishlist[f]}

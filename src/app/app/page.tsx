@@ -438,7 +438,7 @@ export default function DashboardPage() {
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-medium transition",
               mode === m
-                ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
+                ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
                 : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
@@ -467,7 +467,7 @@ export default function DashboardPage() {
                 className={cn(
                   "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
                   energy === val
-                    ? "border-indigo-400/50 bg-indigo-500/15 text-indigo-200"
+                    ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
                     : "border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:bg-white/5"
                 )}
               >

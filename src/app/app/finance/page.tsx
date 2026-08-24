@@ -521,7 +521,7 @@ export default function FinancePage() {
                           }}
                           className={cn(
                             "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
-                            c.completed ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
+                            c.completed ? "border-emerald-600 bg-emerald-600 text-white shadow-sm" : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
                           )}
                         >
                           {c.completed ? "✓" : t.common.done}

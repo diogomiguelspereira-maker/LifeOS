@@ -651,7 +651,7 @@ function TransactionModal({
             className={cn(
               "rounded-xl border py-2.5 text-sm font-medium transition",
               type === "expense"
-                ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
+                ? "border-rose-600 bg-rose-600 text-white shadow-sm"
                 : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
@@ -665,7 +665,7 @@ function TransactionModal({
             className={cn(
               "rounded-xl border py-2.5 text-sm font-medium transition",
               type === "income"
-                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
                 : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
             )}
           >
