@@ -209,13 +209,15 @@ export default function WishlistPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => (
             <Card key={item.id} className={cn("group flex flex-col transition", item.purchased && "opacity-60")}>
-              {/* Product image — fixed height so cards stay compact on any screen */}
+              {/* Product image — square and edge-to-edge with the card (the card
+                  is p-5 / rounded-xl, so pull by -mx-5 -mt-5 to fill it fully).
+                  object-cover crops instead of stretching, so images never distort. */}
               {item.image ? (
-                <div className="relative -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/50">
+                <div className="relative -mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl bg-zinc-50 dark:bg-zinc-800/50">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-36 w-full object-cover sm:h-40"
+                    className="aspect-square w-full object-cover"
                     loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
@@ -236,8 +238,8 @@ export default function WishlistPage() {
                   )}
                 </div>
               ) : (
-                <div className="-mx-4 -mt-4 mb-3 flex h-24 items-center justify-center rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/30">
-                  <ImageIcon className="h-6 w-6 text-zinc-400 dark:text-zinc-500" />
+                <div className="-mx-5 -mt-5 mb-4 flex aspect-square items-center justify-center rounded-t-xl bg-zinc-50 dark:bg-zinc-800/30">
+                  <ImageIcon className="h-8 w-8 text-zinc-400 dark:text-zinc-500" />
                 </div>
               )}
 
