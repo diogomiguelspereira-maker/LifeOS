@@ -209,57 +209,57 @@ export default function WishlistPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => (
             <Card key={item.id} className={cn("group flex flex-col transition", item.purchased && "opacity-60")}>
-              {/* Product image — square and edge-to-edge on the phone (the card
-                  is p-5 / rounded-xl, so pull by -mx-5 -mt-5 to fill it fully);
-                  on larger screens it becomes a compact strip. object-cover
-                  crops instead of stretching, so images never distort. */}
-              {item.image ? (
-                <div className="relative -mx-5 -mt-5 mb-4 overflow-hidden rounded-t-xl bg-zinc-50 dark:bg-zinc-800/50">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="aspect-square w-full object-cover sm:aspect-auto sm:h-36"
-                    loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                      (e.target as HTMLImageElement).parentElement!.classList.add("hidden");
-                    }}
-                  />
-                  {item.url && (
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur transition hover:bg-black/80 dark:bg-black/60 dark:hover:bg-black/80"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      {t.wishlist.viewOnStore}
-                    </a>
-                  )}
-                </div>
-              ) : (
-                <div className="-mx-5 -mt-5 mb-4 flex aspect-square items-center justify-center rounded-t-xl bg-zinc-50 dark:bg-zinc-800/30 sm:aspect-auto sm:h-24">
-                  <ImageIcon className="h-8 w-8 text-zinc-400 dark:text-zinc-500 sm:h-6 sm:w-6" />
-                </div>
-              )}
-
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    {(() => {
-                      const PIcon = PRIORITY_ICONS[item.priority] ?? Meh;
-                      return <PIcon className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />;
-                    })()}
-                    <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
-                      {item.name}
-                    </p>
+              {/* Product image — small square thumbnail next to the title on every
+                  screen. object-cover crops instead of stretching, so images never
+                  distort. If it fails to load, hide it and keep the layout tidy. */}
+              <div className="flex items-start gap-3">
+                {item.image ? (
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-50 dark:bg-zinc-800/50">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                        (e.target as HTMLImageElement).parentElement!.classList.add("hidden");
+                      }}
+                    />
+                    {item.url && (
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/80"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-2.5 w-2.5" />
+                      </a>
+                    )}
                   </div>
-                  {item.category && (
-                    <p className="mt-0.5 text-[11px] text-zinc-500">{item.category}</p>
-                  )}
+                ) : (
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-zinc-50 dark:bg-zinc-800/30">
+                    <ImageIcon className="h-5 w-5 text-zinc-400 dark:text-zinc-500" />
+                  </div>
+                )}
+
+                <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      {(() => {
+                        const PIcon = PRIORITY_ICONS[item.priority] ?? Meh;
+                        return <PIcon className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />;
+                      })()}
+                      <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
+                        {item.name}
+                      </p>
+                    </div>
+                    {item.category && (
+                      <p className="mt-0.5 text-[11px] text-zinc-500">{item.category}</p>
+                    )}
+                  </div>
+                  <Badge color={PRIORITY_COLORS[item.priority]}>{t.shopping[item.priority]}</Badge>
                 </div>
-                <Badge color={PRIORITY_COLORS[item.priority]}>{t.shopping[item.priority]}</Badge>
               </div>
 
               {/* Price */}
