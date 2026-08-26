@@ -1,15 +1,15 @@
 /* LifeOS service worker — cache de assets estáticos para arranque rápido e
    navegação offline parcial. Nunca interage com POST (API). */
-const VERSION = "lifeos-v1";
+const VERSION = "lifeos-v2";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
+  "/icon.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-maskable-512.png",
-  "/favicon.png",
 ];
 
 self.addEventListener("install", (event) => {

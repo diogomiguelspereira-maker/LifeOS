@@ -257,16 +257,19 @@ body {
   overflow-x: clip;
 }
 
-/* soft app background — a flat sheen at the top plus a whisper of the accent
-   colour near the very top, so the brand tint is felt but never loud. */
+/* soft app background — two ambient colour washes near the top, tinted by the
+   saved theme (primary top-left, secondary top-right) so custom colours are
+   visibly alive, then a flat sheen. Always subtle, never loud. */
 .app-bg {
   background:
-    radial-gradient(1100px 420px at 50% -140px, var(--app-glow-a, rgba(255, 255, 255, 0.03)), transparent 70%),
+    radial-gradient(760px 480px at 10% -90px, var(--app-glow-a, rgba(20, 184, 166, 0.1)), transparent 65%),
+    radial-gradient(760px 480px at 90% -70px, var(--app-glow-b, rgba(233, 187, 107, 0.07)), transparent 65%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 320px);
 }
 .light .app-bg {
   background:
-    radial-gradient(1100px 420px at 50% -140px, var(--app-glow-b, rgba(0, 0, 0, 0.02)), transparent 70%),
+    radial-gradient(760px 480px at 10% -90px, var(--app-glow-b, rgba(13, 148, 136, 0.07)), transparent 65%),
+    radial-gradient(760px 480px at 90% -70px, var(--app-glow-b, rgba(233, 187, 107, 0.06)), transparent 65%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.015), transparent 320px);
 }
 

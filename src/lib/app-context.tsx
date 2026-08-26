@@ -36,6 +36,9 @@ const ACCENT_BY_COLOR: Record<string, string> = {
   "#10b981": "emerald",
   "#0ea5e9": "sky",
   "#06b6d4": "teal",
+  "#14b8a6": "teal",
+  "#0d9488": "teal",
+  "#2dd4bf": "teal",
 };
 
 function hexToRgb(hex: string): [number, number, number] | null {

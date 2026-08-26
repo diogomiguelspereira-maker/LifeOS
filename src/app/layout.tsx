@@ -80,7 +80,10 @@ const THEME_BOOTSTRAP_SCRIPT = `(function () {
       "#84cc16": "emerald",
       "#10b981": "emerald",
       "#0ea5e9": "sky",
-      "#06b6d4": "teal"
+      "#06b6d4": "teal",
+      "#14b8a6": "teal",
+      "#0d9488": "teal",
+      "#2dd4bf": "teal"
     };
     var VALID = ["indigo", "violet", "sky", "emerald", "rose", "amber", "fuchsia", "teal", "graphite"];
 
