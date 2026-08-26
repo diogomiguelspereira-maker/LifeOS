@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpDown, Check, ChevronRight, Eye, EyeOff, Settings2, Sparkles, Zap } from "lucide-react";
+import { ArrowUpDown, Check, ChevronRight, Eye, EyeOff, PartyPopper, PiggyBank, Settings2, Sparkles, Zap } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals, prevMonthTransactions, spendingByCategory } from "@/lib/api";
@@ -369,7 +369,7 @@ export default function DashboardPage() {
     if (ok) {
       setCustomizeOpen(false);
     } else {
-      setLayoutMsg("⚠");
+      setLayoutMsg("Falha ao guardar — tenta de novo.");
     }
   }
 
@@ -399,14 +399,18 @@ export default function DashboardPage() {
             {now.toLocaleDateString(profile?.language === "en" ? "en-GB" : profile?.language === "es" ? "es-ES" : profile?.language === "fr" ? "fr-FR" : "pt-PT", { weekday: "long", day: "numeric", month: "long" })}
           </p>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-3xl">
-            {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]} 👋
+            {greeting(now, profile?.language)} {profile?.name?.split(" ")[0]}
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{contextLine}</p>
         </div>
         <div className="flex items-center gap-2">
-          {saveMode && <Badge color="green">🐷 {t.settings.saveMode}</Badge>}
+          {saveMode && (
+            <Badge color="green">
+              <PiggyBank className="h-3.5 w-3.5" /> {t.settings.saveMode}
+            </Badge>
+          )}
           <div className="mr-1 hidden text-right sm:block">
-            <p className="text-lg font-bold tabular-nums leading-none text-zinc-800 dark:text-zinc-100">
+            <p className="font-display text-lg font-semibold tabular-nums leading-none text-zinc-800 dark:text-zinc-100">
               {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
             </p>
             <p className="text-[10px] text-zinc-500">{t.common.today}</p>
@@ -416,7 +420,8 @@ export default function DashboardPage() {
             <span className="hidden sm:inline">{t.dashboard.quickCapture}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setBoredOpen(true)}>
-            😅 <span className="hidden sm:inline">{t.now.bored}</span>
+            <PartyPopper className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.now.bored}</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => openSuggestions()}>
             <Sparkles className="h-4 w-4" />
@@ -599,7 +604,7 @@ export default function DashboardPage() {
 
 function BriefingWidget({ t, briefing }: { t: (typeof import("@/lib/i18n"))["pt"]; briefing: string[] }) {
   return (
-    <Card className="border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-violet-500/8 to-transparent">
+    <Card>
       <CardHeader title={t.dashboard.briefing} />
       <div className="space-y-1.5">
         {briefing.map((line, i) => (
@@ -621,7 +626,7 @@ function MoneyWidget({ t, currency, totals, prevExpenses }: { t: (typeof import(
     <Card>
       <CardHeader title={t.dashboard.moneyOverview} />
       <div className="mb-3 flex items-end justify-between">
-        <p className="text-3xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{formatMoney(totals.totalBalance, currency)}</p>
+        <p className="text-3xl font-bold tracking-tight tabular-nums text-zinc-800 dark:text-zinc-100">{formatMoney(totals.totalBalance, currency)}</p>
         <Badge color="green">{t.dashboard.available}: {formatMoney(totals.available, currency)}</Badge>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
@@ -641,7 +646,7 @@ function MoneyWidget({ t, currency, totals, prevExpenses }: { t: (typeof import(
 function BirthdaysWidget({ t, events }: { t: (typeof import("@/lib/i18n"))["pt"]; events: CalendarEvent[] }) {
   if (events.length === 0) return null;
   return (
-    <Card className="border-pink-500/15 bg-gradient-to-r from-pink-500/8 to-transparent">
+    <Card>
       <CardHeader
         title={`🎂 ${t.dashboard.birthdaysToday}`}
         action={<Link href="/app/people" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-600 dark:text-indigo-300"><ChevronRight className="h-4 w-4" /></Link>}
@@ -768,7 +773,7 @@ function RoutineWidget({
       />
       {steps.length > 0 && (
         <div className="mb-3 flex items-center gap-3">
-          <Progress value={(done / steps.length) * 100} className="flex-1" color="bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+          <Progress value={(done / steps.length) * 100} className="flex-1" color="bg-indigo-500" />
           <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-300">
             {done}/{steps.length}
           </span>
@@ -986,7 +991,7 @@ function SummaryWidget({ t, currency, stats, tod, tx }: { t: (typeof import("@/l
   const trend = useMemo(() => profitTrend(tx, trendDays), [tx, trendDays]);
   const weeklyProfit = useMemo(() => trend.slice(-7).reduce((s, d) => s + d.profit, 0), [trend]);
   return (
-    <Card className="border-violet-500/20 bg-gradient-to-r from-violet-500/8 to-transparent">
+    <Card>
       <CardHeader title={isNight ? t.dashboard.daySummaryTitle : t.dashboard.daySoFar} />
       <div className="grid grid-cols-4 gap-2 text-center">
         <MiniStat label={t.dashboard.tasks} value={`✅ ${stats.tasksDone}`} tone="text-emerald-400" />
@@ -1058,7 +1063,7 @@ function TomorrowWidget({ t, currency, prep }: { t: (typeof import("@/lib/i18n")
 
 function NextWidget({ t, items }: { t: (typeof import("@/lib/i18n"))["pt"]; items: { text: string; href?: string }[] }) {
   return (
-    <Card className="border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/8 to-transparent">
+    <Card>
       <CardHeader
         title={t.next.title}
         action={

@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarPlus, Check, ChevronLeft, ChevronRight, ClipboardPaste, Copy, Download, Link2, MapPin, Pencil, QrCode, Share2, Trash2, Undo2 } from "lucide-react";
+import { AlertTriangle, CalendarPlus, Check, ChevronLeft, ChevronRight, ClipboardPaste, Clock, Copy, Download, Link2, Luggage, MapPin, MessageCircle, Pencil, QrCode, Share2, Trash2, Undo2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
@@ -301,7 +301,9 @@ function CalendarPageInner() {
 
       {conflicts.length > 0 && (
         <Card className="border-amber-500/30 bg-amber-500/5">
-          <p className="text-sm font-semibold text-amber-400">⚠️ {conflicts.length} conflito(s) no calendário</p>
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-400">
+            <AlertTriangle className="h-4 w-4" /> {conflicts.length} conflito(s) no calendário
+          </p>
           <div className="mt-2 space-y-1">
             {conflicts.slice(0, 3).map((c, i) => (
               <p key={i} className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -314,7 +316,9 @@ function CalendarPageInner() {
 
       {view === "day" && freeTime.length > 0 && (
         <Card className="border-emerald-500/20 bg-emerald-500/5">
-          <p className="text-sm font-semibold text-emerald-400">🕐 Tempo livre hoje</p>
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-400">
+            <Clock className="h-4 w-4" /> Tempo livre hoje
+          </p>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {freeTime.map((f, i) => (
               <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-600 dark:text-emerald-300">
@@ -327,8 +331,8 @@ function CalendarPageInner() {
 
       <Card className="border-indigo-500/15 bg-indigo-500/5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-indigo-600 dark:text-indigo-300">
-            🔗 {t.calendar.google}:{" "}
+          <p className="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-300">
+            <Link2 className="h-3.5 w-3.5 shrink-0" /> {t.calendar.google}:{" "}
             {!google ? (
               "…"
             ) : google.connected ? (
@@ -433,7 +437,7 @@ function MonthGrid({
               <span
                 className={cn(
                   "mx-auto flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
-                  isToday ? "bg-gradient-to-br from-indigo-500 to-violet-500 text-white" : "text-zinc-500 dark:text-zinc-400"
+                  isToday ? "bg-indigo-500 text-white" : "text-zinc-500 dark:text-zinc-400"
                 )}
               >
                 {d.getDate()}
@@ -885,7 +889,7 @@ function ShareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-300 transition hover:bg-emerald-500/20"
               >
-                💬 {t.calendar.shareWhatsApp}
+                <MessageCircle className="h-3.5 w-3.5" /> {t.calendar.shareWhatsApp}
               </a>
             </div>
             {qrOpen && (
@@ -1152,7 +1156,7 @@ function EventDetailsModal({
         )}
         {ev.source === "google" && (
           <div className="flex items-center gap-2 rounded-xl bg-sky-500/10 px-3 py-2 text-xs text-sky-600 dark:text-sky-300">
-            🔗 {t.calendar.google} · {t.settings.googleConnected}
+            <Link2 className="h-3.5 w-3.5" /> {t.calendar.google} · {t.settings.googleConnected}
           </div>
         )}
         {ev.description && !ev.description.startsWith("🎂:") && (
@@ -1164,7 +1168,9 @@ function EventDetailsModal({
           const hints = dontForgetHints(ev.title, ev.location);
           return hints.length ? (
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-3 py-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-400">🧳 Não te esqueças</p>
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-400">
+                <Luggage className="h-3.5 w-3.5" /> Não te esqueças
+              </p>
               <ul className="mt-1.5 space-y-1">
                 {hints.map((h, i) => (
                   <li key={i} className="text-xs text-zinc-600 dark:text-zinc-300">

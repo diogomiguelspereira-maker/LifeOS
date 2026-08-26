@@ -114,7 +114,7 @@ function GoalsPageInner() {
                 </div>
 
                 <div className="mt-3">
-                  <Progress value={pct} color="bg-gradient-to-r from-indigo-500 to-violet-500" />
+                  <Progress value={pct} color="bg-indigo-500" />
                   <div className="mt-1.5 flex items-center justify-between text-xs">
                     <span className="font-semibold text-zinc-700 dark:text-zinc-200">{Math.round(pct)}%</span>
                     <span className="text-zinc-500">{t.goals.progress}</span>

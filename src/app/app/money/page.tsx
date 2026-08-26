@@ -219,16 +219,16 @@ function MoneyPageInner() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <SummaryCard label={t.money.totalBalance} value={formatMoney(totals.totalBalance, currency)} accent="from-indigo-500 to-violet-500" />
-        <SummaryCard label={t.money.netWorth} value={formatMoney(totals.netWorth, currency)} accent="from-violet-500 to-fuchsia-500" />
-        <SummaryCard label={t.money.monthlyIncome} value={formatMoney(totals.monthlyIncome, currency)} accent="from-emerald-500 to-teal-500" delta={incDelta == null ? null : { text: `${incDelta >= 0 ? "▲" : "▼"} ${Math.abs(incDelta)}% ${t.money.vsLastMonth}`, tone: incDelta >= 0 ? "up" : "down" }} />
-        <SummaryCard label={t.money.monthlyExpenses} value={formatMoney(totals.monthlyExpenses, currency)} accent="from-rose-500 to-red-500" delta={expDelta == null ? null : { text: `${expDelta >= 0 ? "▲" : "▼"} ${Math.abs(expDelta)}% ${t.money.vsLastMonth}`, tone: expDelta <= 0 ? "up" : "down" }} />
-        <SummaryCard label={t.money.available} value={formatMoney(totals.available, currency)} accent="from-sky-500 to-cyan-500" />
-        <SummaryCard label={t.money.savingsRate} value={`${totals.savingsRate}%`} accent="from-amber-500 to-orange-500" />
+        <SummaryCard label={t.money.totalBalance} value={formatMoney(totals.totalBalance, currency)} accent="bg-indigo-500" />
+        <SummaryCard label={t.money.netWorth} value={formatMoney(totals.netWorth, currency)} accent="bg-violet-500" />
+        <SummaryCard label={t.money.monthlyIncome} value={formatMoney(totals.monthlyIncome, currency)} accent="bg-emerald-500" delta={incDelta == null ? null : { text: `${incDelta >= 0 ? "▲" : "▼"} ${Math.abs(incDelta)}% ${t.money.vsLastMonth}`, tone: incDelta >= 0 ? "up" : "down" }} />
+        <SummaryCard label={t.money.monthlyExpenses} value={formatMoney(totals.monthlyExpenses, currency)} accent="bg-rose-500" delta={expDelta == null ? null : { text: `${expDelta >= 0 ? "▲" : "▼"} ${Math.abs(expDelta)}% ${t.money.vsLastMonth}`, tone: expDelta <= 0 ? "up" : "down" }} />
+        <SummaryCard label={t.money.available} value={formatMoney(totals.available, currency)} accent="bg-sky-500" />
+        <SummaryCard label={t.money.savingsRate} value={`${totals.savingsRate}%`} accent="bg-amber-500" />
       </div>
 
       {monthlyInsight && (
-        <Card className="border-indigo-500/15 bg-gradient-to-r from-indigo-500/8 to-transparent">
+        <Card>
           <CardHeader title={t.money.monthlyHighlight} />
           <div className="space-y-2">
             {topExpenses.map((c, i) => (
@@ -511,7 +511,7 @@ function SummaryCard({
 }) {
   return (
     <Card className="relative overflow-hidden">
-      <div className={cn("absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r", accent)} />
+      <div className={cn("absolute inset-x-0 top-0 h-0.5", accent)} />
       <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{label}</p>
       <p className="mt-1.5 text-lg font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{value}</p>
       {delta && (

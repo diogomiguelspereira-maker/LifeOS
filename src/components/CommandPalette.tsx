@@ -197,7 +197,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 
   return (
     <Modal open={open} onClose={onClose} maxWidth="max-w-lg" title={showCapture ? t.cmd.capture : t.cmd.quickActions}>
-      <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 shadow-input dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+      <div className="flex items-center gap-2 rounded-lg border border-line bg-raised px-3 shadow-input">
         <Search className="h-4 w-4 shrink-0 text-zinc-500" />
         <input
           ref={inputRef}
@@ -247,7 +247,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           <button
             onClick={saveCapture}
             disabled={saving}
-            className="mt-3 w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-2.5 text-sm font-semibold text-white transition hover:from-indigo-400 hover:to-violet-400 disabled:opacity-60"
+            style={{ background: "var(--app-primary, #0d9488)" }}
+            className="mt-3 w-full rounded-lg py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
           >
             {saved ? "✓ " + t.common.done : t.common.save}
           </button>

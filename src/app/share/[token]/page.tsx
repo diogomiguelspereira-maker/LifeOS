@@ -124,7 +124,7 @@ export default function SharePage({ params }: { params: Promise<{ token: string 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4 py-8 sm:py-12">
       <header className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500 text-white">
           <CalendarDays className="h-5 w-5" />
         </div>
         <div className="min-w-0">

@@ -134,7 +134,7 @@ export default function TravelPage() {
                   </span>
                   <span className="text-zinc-500 dark:text-zinc-400">{Math.round(pct)}%</span>
                 </div>
-                <Progress value={pct} color={pct > 100 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-emerald-500 to-teal-400"} />
+                <Progress value={pct} color={pct > 100 ? "bg-red-500" : "bg-emerald-500"} />
               </div>
             )}
 

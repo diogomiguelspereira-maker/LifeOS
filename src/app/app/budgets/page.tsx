@@ -128,9 +128,9 @@ export default function BudgetsPage() {
       />
 
       {/* Nova's note */}
-      <Card className="border-indigo-500/20 bg-gradient-to-r from-indigo-500/8 to-violet-500/8">
+      <Card>
         <div className="flex items-start gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>

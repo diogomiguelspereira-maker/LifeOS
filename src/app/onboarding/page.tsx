@@ -104,7 +104,7 @@ function OnboardingInner() {
       <div className="mb-6 flex items-center gap-2">
         <Logo />
         <span className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
-          Life<span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">OS</span>
+          Life<span className="text-indigo-500">OS</span>
         </span>
       </div>
 
@@ -114,7 +114,7 @@ function OnboardingInner() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className={`h-1 flex-1 rounded-full transition-all ${i <= step ? "bg-gradient-to-r from-indigo-500 to-violet-500" : "bg-white/10"}`}
+              className={`h-1 flex-1 rounded-full transition-all ${i <= step ? "bg-indigo-500" : "bg-zinc-200 dark:bg-white/10"}`}
             />
           ))}
         </div>

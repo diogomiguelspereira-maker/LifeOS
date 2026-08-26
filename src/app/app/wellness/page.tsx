@@ -110,7 +110,7 @@ export default function WellnessPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {/* sleep */}
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-indigo-500" />
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.sleep}</p>
             <Moon className="h-4 w-4 text-indigo-400" />
@@ -129,7 +129,7 @@ export default function WellnessPage() {
 
         {/* water */}
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-cyan-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-sky-500" />
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.water}</p>
             <Droplets className="h-4 w-4 text-sky-400" />
@@ -144,7 +144,7 @@ export default function WellnessPage() {
 
         {/* exercise */}
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-500" />
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.exercise}</p>
             <Zap className="h-4 w-4 text-emerald-400" />
@@ -159,7 +159,7 @@ export default function WellnessPage() {
 
         {/* mood/energy */}
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-rose-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.wellness.mood} / {t.wellness.energy}</p>
           <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
             {avgMood ? "😀" : "—"} {avgMood.toFixed(1)} · ⚡ {avgEnergy.toFixed(1)}
@@ -182,7 +182,7 @@ export default function WellnessPage() {
             {sleep.slice(0, 14).reverse().map((s) => (
               <div key={s.date} className="flex flex-1 flex-col items-center gap-1">
                 <div
-                  className={cn("w-full rounded-t-lg", s.hours > 0 ? "bg-gradient-to-t from-indigo-500/40 to-indigo-400" : "bg-zinc-50 dark:bg-white/5")}
+                  className={cn("w-full rounded-t-lg", s.hours > 0 ? "bg-indigo-500/40" : "bg-zinc-50 dark:bg-white/5")}
                   style={{ height: `${Math.min(100, (s.hours / 10) * 100)}px` }}
                   title={`${s.date}: ${s.hours}h`}
                 />

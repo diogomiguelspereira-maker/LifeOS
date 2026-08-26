@@ -79,7 +79,7 @@ export default function PeoplePage() {
               c.birthday && daysUntil(c.birthday) >= 0 && daysUntil(c.birthday) <= 14;
             return (
               <Card key={c.id} className="group flex items-start gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-bold text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">
                   {initials(c.name)}
                 </div>
                 <div className="min-w-0 flex-1">

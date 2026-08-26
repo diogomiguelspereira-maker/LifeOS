@@ -406,7 +406,7 @@ function TasksPageInner() {
                       className={cn(
                         "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition",
                         task.status === "done"
-                          ? "border-transparent bg-gradient-to-br from-indigo-500 to-violet-500"
+                          ? "border-transparent bg-indigo-500"
                           : "border-white/20 hover:border-indigo-400"
                       )}
                     >
@@ -511,7 +511,7 @@ function TasksPageInner() {
                                   className={cn(
                                     "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition",
                                     sub.status === "done"
-                                      ? "border-transparent bg-gradient-to-br from-indigo-500 to-violet-500"
+                                      ? "border-transparent bg-indigo-500"
                                       : "border-white/20 hover:border-indigo-400"
                                   )}
                                 >

@@ -50,7 +50,9 @@ const NAV = [
 ] as const;
 
 // Odd count so Nova sits exactly in the center of the 5-slot bar.
-const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/wishlist"];
+// Calendar is a daily-use module, so it takes the bottom slot; Wishlist
+// stays one tap away in "Mais".
+const MOBILE_MAIN = ["/app", "/app/money", "/app/nova", "/app/calendar"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, t, signOut, updateProfile } = useApp();
@@ -125,7 +127,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-bg min-h-dvh">
       <KeyboardManager />
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-zinc-200/70 bg-white/70 p-4 backdrop-blur-xl shadow-sm lg:flex dark:border-white/6 dark:bg-black/30 dark:shadow-none">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface p-4 lg:flex">
         <Link href="/app" className="mb-6 px-2 pt-1">
           <Wordmark />
         </Link>
@@ -137,11 +139,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 isActive(n.href)
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-indigo-500/10 text-indigo-700 dark:bg-white/8 dark:text-indigo-300"
                   : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"
               )}
             >
-              <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) ? "text-white" : "text-zinc-400 dark:text-zinc-500")} />
+              <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-400 dark:text-zinc-500")} />
               {label(n.labelKey)}
             </Link>
           ))}
@@ -155,7 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {t.common.logout}
           </button>
           <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-bold text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
               {initials(profile?.name)}
             </div>
             <div className="min-w-0">
@@ -167,7 +169,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200/70 bg-white/80 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl shadow-sm lg:hidden dark:border-white/6 dark:bg-black/40 dark:shadow-none">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-surface px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:hidden">
         <Link href="/app" onClick={() => router.push("/app")}>
           <Wordmark />
         </Link>
@@ -195,7 +197,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav — raised above the Android keyboard when it opens */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200/70 bg-white/80 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.04)] lg:hidden dark:border-white/8 dark:bg-black/60 dark:shadow-none"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden"
         style={{ bottom: "var(--keyboard-inset, 0px)" }}
       >
         <div className="mx-auto flex max-w-md items-center justify-around px-1.5 py-2 sm:px-2">
@@ -210,14 +212,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 style={
                   isNova
                     ? {
-                        background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
-                        boxShadow: "0 8px 24px -10px var(--app-primary, #6366f1)",
+                        background: "var(--app-primary, #0d9488)",
                       }
                     : undefined
                 }
                 className={cn(
                   "flex flex-col items-center justify-end gap-0.5 rounded-xl px-2.5 py-1.5 transition-all sm:px-3",
-                  isNova && "-mt-7 rounded-full border border-white/20 p-3.5 animate-nova-glow"
+                  isNova && "-mt-7 rounded-full border border-white/15 p-3.5 shadow-lg ring-1 ring-white/10"
                 )}
               >
                 <n.icon
@@ -262,11 +263,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <button
         onClick={() => setCommandOpen(true)}
         aria-label="Captura rápida"
-        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition active:scale-95 lg:hidden"
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition active:scale-95 lg:hidden"
         style={{
           bottom: "calc(6rem + var(--keyboard-inset, 0px))",
-          background: "linear-gradient(135deg, var(--app-primary, #6366f1), var(--app-secondary, #8b5cf6))",
-          boxShadow: "0 12px 32px -12px var(--app-primary, #6366f1)",
+          background: "var(--app-primary, #0d9488)",
         }}
       >
         <Command className="h-6 w-6" />
@@ -278,7 +278,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {showTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          aria-label="Voltar ao topo"            className="raise-for-keyboard fixed left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200/70 bg-white/80 text-zinc-400 shadow-lg backdrop-blur transition hover:text-zinc-700 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:text-white lg:left-auto lg:right-8"
+          aria-label="Voltar ao topo"            className="raise-for-keyboard fixed left-4 z-40 flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-ink-3 shadow-lg transition hover:text-ink lg:left-auto lg:right-8"
         >
           <ArrowUp className="h-5 w-5" />
         </button>

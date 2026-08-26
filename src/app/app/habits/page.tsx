@@ -222,7 +222,7 @@ export default function HabitsPage() {
                     <div className="mt-2">
                       <Progress
                         value={(wc / Math.max(1, h.target_per_week)) * 100}
-                        color="bg-gradient-to-r from-indigo-500 to-violet-500"
+                        color="bg-indigo-500"
                       />
                     </div>
                     <div className="mt-2 flex gap-1">

@@ -91,17 +91,17 @@ export default function SubscriptionsPage() {
       {/* cost analyzer */}
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-indigo-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.perMonth}</p>
           <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(monthly, currency)}</p>
         </Card>
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-rose-500 to-orange-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-rose-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.perYear}</p>
           <p className="mt-1.5 text-2xl font-bold text-rose-400">{formatMoney(monthly * 12, currency)}</p>
         </Card>
         <Card className="relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-yellow-500" />
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500" />
           <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.subs.warnings}</p>
           <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{upcoming.length}</p>
           <p className="mt-1 text-xs text-zinc-500">{t.subs.renewalSoon}</p>

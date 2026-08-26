@@ -181,7 +181,7 @@ export default function ProjectsPage() {
                       </span>
                       <span className={cn(pct > 100 ? "text-red-400" : "text-zinc-500 dark:text-zinc-400")}>{pct}%</span>
                     </div>
-                    <Progress value={pct} color={pct > 100 ? "bg-gradient-to-r from-red-500 to-red-400" : "bg-gradient-to-r from-indigo-500 to-violet-400"} />
+                    <Progress value={pct} color={pct > 100 ? "bg-red-500" : "bg-indigo-500"} />
                   </div>
                 )}
 

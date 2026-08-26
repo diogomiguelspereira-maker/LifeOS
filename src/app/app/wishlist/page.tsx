@@ -5,18 +5,24 @@ import {
   Check,
   Copy,
   ExternalLink,
+  Flame,
   GripHorizontal,
   ImageIcon,
+  Info,
   Lightbulb,
   Link2,
+  Loader2,
+  Meh,
   Pencil,
   Plus,
   Share2,
   ShoppingBag,
   Sparkles,
   Star,
+  Target,
   Trash2,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api, currentMonthTransactions, moneyTotals } from "@/lib/api";
@@ -41,7 +47,7 @@ import { cn } from "@/lib/cn";
 
 const PRIORITIES = ["critical", "high", "medium", "low"] as const;
 const PRIORITY_COLORS: Record<string, "red" | "amber" | "blue" | "zinc"> = { critical: "red", high: "amber", medium: "blue", low: "zinc" };
-const PRIORITY_ICONS: Record<string, string> = { critical: "🔥", high: "⭐", medium: "💡", low: "🤔" };
+const PRIORITY_ICONS: Record<string, LucideIcon> = { critical: Flame, high: Star, medium: Lightbulb, low: Meh };
 
 type Tab = "wishlist" | "shared";
 
@@ -203,13 +209,13 @@ export default function WishlistPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => (
             <Card key={item.id} className={cn("group flex flex-col transition", item.purchased && "opacity-60")}>
-              {/* Product image */}
+              {/* Product image — fixed height so cards stay compact on any screen */}
               {item.image ? (
                 <div className="relative -mx-4 -mt-4 mb-3 overflow-hidden rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/50">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="aspect-video w-full object-contain p-2"
+                    className="h-36 w-full object-cover sm:h-40"
                     loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
@@ -230,15 +236,18 @@ export default function WishlistPage() {
                   )}
                 </div>
               ) : (
-                <div className="-mx-4 -mt-4 mb-3 flex aspect-video items-center justify-center rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/30">
-                  <ImageIcon className="h-8 w-8 text-zinc-600" />
+                <div className="-mx-4 -mt-4 mb-3 flex h-24 items-center justify-center rounded-t-2xl bg-zinc-50 dark:bg-zinc-800/30">
+                  <ImageIcon className="h-6 w-6 text-zinc-400 dark:text-zinc-500" />
                 </div>
               )}
 
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span>{PRIORITY_ICONS[item.priority]}</span>
+                    {(() => {
+                      const PIcon = PRIORITY_ICONS[item.priority] ?? Meh;
+                      return <PIcon className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />;
+                    })()}
                     <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
                       {item.name}
                     </p>
@@ -344,7 +353,11 @@ export default function WishlistPage() {
               affordResult.verdict === "yes" ? "border-emerald-500/30 bg-emerald-500/10" : "border-amber-500/30 bg-amber-500/10"
             )}>
               <p className={cn("text-2xl font-bold", affordResult.verdict === "yes" ? "text-emerald-400" : "text-amber-400")}>
-                {affordResult.verdict === "yes" ? "YES ✓" : t.shopping.notYet}
+                {affordResult.verdict === "yes" ? (
+                  <span className="inline-flex items-center gap-1.5">YES <Check className="h-5 w-5" /></span>
+                ) : (
+                  t.shopping.notYet
+                )}
               </p>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{affordResult.reasoning}</p>
               {affordResult.waitWeeks && (
@@ -369,9 +382,11 @@ export default function WishlistPage() {
             </div>
             <div className="flex gap-2">
               <Button variant="secondary" className="flex-1" onClick={() => setAffordItem(null)}>{t.common.close}</Button>
-              <Button className="flex-1" onClick={() => createGoalFromWish(affordItem)}>🎯 {t.shopping.createGoal}</Button>
+              <Button className="flex-1" onClick={() => createGoalFromWish(affordItem)}><Target className="h-4 w-4" /> {t.shopping.createGoal}</Button>
             </div>
-            <p className="text-center text-[10px] text-zinc-600">ℹ️ {t.shopping.educational}</p>
+            <p className="flex items-center justify-center gap-1 text-center text-[10px] text-zinc-500">
+              <Info className="h-3 w-3 shrink-0" /> {t.shopping.educational}
+            </p>
           </div>
         )}
       </Modal>
@@ -565,7 +580,7 @@ function AddModal({
             <Field label={t.wishlist.priority}>
               <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
                 {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{PRIORITY_ICONS[p]} {t.shopping[p]}</option>
+                  <option key={p} value={p}>{t.shopping[p]}</option>
                 ))}
               </Select>
             </Field>
@@ -612,7 +627,7 @@ function AddModal({
             )}
             <Button className="w-full" onClick={scrape} disabled={phase === "loading" || !urlInput.trim()}>
               {phase === "loading" ? (
-                <span className="flex items-center gap-2">⏳ {t.common.loading}</span>
+                <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t.common.loading}</span>
               ) : (
                 <span className="flex items-center gap-2"><Sparkles className="h-4 w-4" /> {t.wishlist.scrape}</span>
               )}
@@ -705,7 +720,7 @@ function AddModal({
               <Field label={t.wishlist.priority}>
                 <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
                   {PRIORITIES.map((p) => (
-                    <option key={p} value={p}>{PRIORITY_ICONS[p]} {t.shopping[p]}</option>
+                    <option key={p} value={p}>{t.shopping[p]}</option>
                   ))}
                 </Select>
               </Field>
@@ -800,8 +815,8 @@ function ShareModal({ open, onClose, items }: { open: boolean; onClose: () => vo
   return (
     <Modal open={open} onClose={onClose} title={t.wishlist.shareModal} maxWidth="max-w-lg">
       <div className="space-y-5">
-        <p className="rounded-xl border border-indigo-500/20 bg-indigo-500/8 px-3 py-2.5 text-xs leading-relaxed text-indigo-200">
-          🔗 {t.wishlist.shareHint} ({wantedCount} {t.wishlist.items})
+        <p className="flex items-start gap-1.5 rounded-xl border border-indigo-500/20 bg-indigo-500/8 px-3 py-2.5 text-xs leading-relaxed text-indigo-200">
+          <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {t.wishlist.shareHint} ({wantedCount} {t.wishlist.items})
         </p>
 
         <div className="grid grid-cols-2 gap-3">

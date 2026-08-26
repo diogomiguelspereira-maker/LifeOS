@@ -199,7 +199,7 @@ export default function FinancePage() {
           {/* hero cards */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="relative overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-indigo-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.payday}</p>
               <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
                 {payday ? `${payday.days} ${t.finance.daysUntil}` : "—"}
@@ -209,13 +209,13 @@ export default function FinancePage() {
               </p>
             </Card>
             <Card className="relative overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-emerald-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.safeToSpend}</p>
               <p className="mt-1.5 text-2xl font-bold text-emerald-400">{formatMoney(safe.amount, currency)}</p>
               <p className="mt-1 text-xs text-zinc-500">{t.finance.untilPayday}</p>
             </Card>
             <Card className="relative overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-cyan-500" />
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-sky-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.dailyLimit}</p>
               <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">
                 {formatMoney(dailyLimit(safe.amount, payday?.days ?? 1), currency)}
@@ -225,7 +225,7 @@ export default function FinancePage() {
               </p>
             </Card>
             <Card className="relative overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+              <div className="absolute inset-x-0 top-0 h-0.5 bg-amber-500" />
               <p className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">{t.finance.emergencyFund}</p>
               <p className="mt-1.5 text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(eff, currency)}</p>
               <p className="mt-1 text-xs text-zinc-500">
@@ -452,7 +452,7 @@ export default function FinancePage() {
                     <div key={name} className="flex items-center gap-2 text-sm">
                       <span className="w-32 truncate text-zinc-600 dark:text-zinc-300">{name}</span>
                       <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-white/8">
-                        <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${percent(value, merchants[0][1])}%` }} />
+                        <div className="h-full rounded-full bg-indigo-500" style={{ width: `${percent(value, merchants[0][1])}%` }} />
                       </div>
                       <span className="w-20 text-right font-medium text-zinc-700 dark:text-zinc-200">{formatMoney(value, currency)}</span>
                     </div>

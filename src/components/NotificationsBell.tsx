@@ -55,7 +55,7 @@ export function NotificationsBell() {
       >
         <Bell className="h-[18px] w-[18px]" />
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-1 text-[9px] font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[9px] font-bold text-white">
             {unread}
           </span>
         )}
@@ -64,7 +64,7 @@ export function NotificationsBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-zinc-200 bg-white p-3 shadow-modal backdrop-blur-xl animate-slide-up dark:border-white/10 dark:bg-zinc-950/95 dark:shadow-2xl">
+          <div className="absolute right-0 z-50 mt-2 w-80 rounded-xl border border-line bg-surface p-3 shadow-modal animate-slide-up">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{t.notif.title}</p>
               {unread > 0 && (

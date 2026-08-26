@@ -109,8 +109,8 @@ function SettingsPageInner() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [integMsg, setIntegMsg] = useState<string | null>(null);
   const [customTheme, setCustomTheme] = useState<{ primary: string; secondary: string }>({
-    primary: "#6366f1",
-    secondary: "#8b5cf6",
+    primary: "#0d9488",
+    secondary: "#2dd4bf",
   });
 
   async function persist(patch: Partial<Profile>) {
@@ -449,7 +449,7 @@ function SettingsPageInner() {
           <Button
             variant="secondary"
             className="flex-1"
-            onClick={() => setCustomTheme({ primary: "#6366f1", secondary: "#8b5cf6" })}
+            onClick={() => setCustomTheme({ primary: "#0d9488", secondary: "#2dd4bf" })}
           >
             {t.common.reset}
           </Button>

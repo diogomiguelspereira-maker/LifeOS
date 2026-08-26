@@ -620,7 +620,7 @@ export default function MonitorPage() {
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+                      className="h-full rounded-full bg-indigo-500"
                       style={{ width: `${p.pct}%` }}
                     />
                   </div>

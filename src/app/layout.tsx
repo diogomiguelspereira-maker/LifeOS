@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { AmbientBackground } from "@/components/AmbientBackground";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,6 +11,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Display face for headings and key figures — the "instrument panel" voice.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -24,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08080c",
+  themeColor: "#0a0d12",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -40,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="pt"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} dark h-full antialiased`}
     >
       <head>
         <script
@@ -50,7 +56,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full">
-        <AmbientBackground />
         {children}
         <ServiceWorkerRegister />
       </body>
@@ -59,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 // Runs synchronously in <head> before the first paint, so the saved theme,
-// accent and custom colors are applied with no flash of the default blue.
+// accent and custom colors are applied with no flash of the default teal.
 // Reads the same localStorage keys that app-context.tsx writes. Keep the
 // accent map in sync with ACCENT_BY_COLOR in src/lib/app-context.tsx.
 const THEME_BOOTSTRAP_SCRIPT = `(function () {
@@ -93,17 +98,17 @@ const THEME_BOOTSTRAP_SCRIPT = `(function () {
     if (VALID.indexOf(accent) === -1) {
       var custom = readJSON("lifeos:theme-custom");
       var p = custom && custom.primary ? String(custom.primary).toLowerCase() : "";
-      accent = ACCENT[p] || "indigo";
+      accent = ACCENT[p] || "teal";
     }
     root.setAttribute("data-accent", accent);
 
     // 2) Custom theme colors (buttons, logo, background glow).
     var c = readJSON("lifeos:theme-custom");
-    var primary = (c && c.primary) || "#6366f1";
-    var secondary = (c && c.secondary) || "#8b5cf6";
+    var primary = (c && c.primary) || "#0d9488";
+    var secondary = (c && c.secondary) || "#2dd4bf";
     function rgba(hex, a) {
       var h = String(hex).replace("#", "");
-      if (!/^[0-9a-fA-F]{6}$/.test(h)) return "rgba(99,102,241," + a + ")";
+      if (!/^[0-9a-fA-F]{6}$/.test(h)) return "rgba(13,148,136," + a + ")";
       var r = parseInt(h.slice(0, 2), 16);
       var g = parseInt(h.slice(2, 4), 16);
       var b = parseInt(h.slice(4, 6), 16);

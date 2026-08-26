@@ -71,7 +71,7 @@ function hexToAccent(hex: string): string {
 
 function hexToRgba(hex: string, alpha: number): string {
   const rgb = hexToRgb(hex);
-  if (!rgb) return `rgba(99, 102, 241, ${alpha})`;
+  if (!rgb) return `rgba(13, 148, 136, ${alpha})`;
   return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
 }
 
@@ -151,7 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // theme so a slow profile load (or a wiped preferences object) never
     // snaps the accent back to blue while buttons stay the chosen color.
     const src = saved.primary ? saved : (cached ?? {});
-    let accent = "indigo";
+    let accent = "teal";
     if (src.primary) accent = hexToAccent(src.primary);
     else {
       // fallback for accounts that set an accent before themes existed
@@ -183,8 +183,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (raw) cached = JSON.parse(raw);
     } catch {}
     const src = saved.primary ? saved : (cached ?? {});
-    const primary = src.primary ?? "#6366f1";
-    const secondary = src.secondary ?? "#8b5cf6";
+    const primary = src.primary ?? "#0d9488";
+    const secondary = src.secondary ?? "#2dd4bf";
     root.style.setProperty("--app-primary", primary);
     root.style.setProperty("--app-secondary", secondary);
     root.style.setProperty("--app-glow-a", hexToRgba(primary, 0.14));
