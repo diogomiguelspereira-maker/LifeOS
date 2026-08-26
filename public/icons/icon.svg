@@ -1,16 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="50%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#d946ef"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <!-- sparkle: diamond + cross -->
-  <path d="M256 96 L296 216 L416 256 L296 296 L256 416 L216 296 L96 256 L216 216 Z" fill="#ffffff"/>
-  <path d="M256 176 L280 232 L336 256 L280 280 L256 336 L232 280 L176 256 L232 232 Z" fill="#ffffff" opacity="0.85"/>
-  <circle cx="392" cy="136" r="20" fill="#ffffff" opacity="0.9"/>
-  <circle cx="392" cy="392" r="14" fill="#ffffff" opacity="0.7"/>
-  <circle cx="120" cy="392" r="12" fill="#ffffff" opacity="0.6"/>
+  <rect width="512" height="512" rx="118" fill="#0d9488"/>
+  <g stroke="#ffffff" fill="none" stroke-linejoin="round">
+    <path d="M256 42 443 149v214L256 470 69 363V149Z" stroke-width="32"/>
+    <ellipse cx="256" cy="256" rx="134" ry="55" stroke-width="26" transform="rotate(-22 256 256)"/>
+  </g>
+  <circle cx="256" cy="256" r="43" fill="#ffffff"/>
 </svg>

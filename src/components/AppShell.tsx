@@ -131,21 +131,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link href="/app" className="mb-6 px-2 pt-1">
           <Wordmark />
         </Link>
-        <nav className="flex flex-1 flex-col gap-0.5">
-          {desktopNav.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-                isActive(n.href)
-                  ? "bg-indigo-500/10 text-indigo-700 dark:bg-white/8 dark:text-indigo-300"
-                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"
-              )}
-            >
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
+          <p className="mb-1 mt-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-3">
+            {t.nav.home}
+          </p>
+          {desktopNav.slice(0, 7).map((n) => (
+            <SidebarLink key={n.href} href={n.href} active={isActive(n.href)} label={label(n.labelKey)}>
               <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-400 dark:text-zinc-500")} />
-              {label(n.labelKey)}
-            </Link>
+            </SidebarLink>
+          ))}
+          <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-widest text-ink-3">
+            {t.nav.more}
+          </p>
+          {desktopNav.slice(7).map((n) => (
+            <SidebarLink key={n.href} href={n.href} active={isActive(n.href)} label={label(n.labelKey)}>
+              <n.icon className={cn("h-[18px] w-[18px]", isActive(n.href) ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-400 dark:text-zinc-500")} />
+            </SidebarLink>
           ))}
         </nav>
         <div className="mt-4 space-y-1 border-t border-zinc-200 pt-3 dark:border-white/6">
@@ -284,5 +285,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </button>
       )}
     </div>
+  );
+}
+
+function SidebarLink({
+  href,
+  active,
+  label,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+        active
+          ? "bg-indigo-500/10 text-indigo-700 dark:bg-white/8 dark:text-indigo-300"
+          : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-zinc-200"
+      )}
+    >
+      <span
+        className={cn(
+          "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-500 transition-opacity",
+          active ? "opacity-100" : "opacity-0 group-hover:opacity-40"
+        )}
+      />
+      {children}
+      {label}
+    </Link>
   );
 }

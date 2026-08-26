@@ -16,6 +16,23 @@
   --font-display: var(--font-space-grotesk), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Gold — the warm secondary accent (streaks, highlights, the brand mark).
+   Used sparingly next to the teal primary so the identity reads as a
+   deliberate two-tone system, not a single default colour. */
+@theme {
+  --color-gold-50: #fdf9ef;
+  --color-gold-100: #faf0d9;
+  --color-gold-200: #f4e0b3;
+  --color-gold-300: #eece8a;
+  --color-gold-400: #e9bb6b;
+  --color-gold-500: #dda34d;
+  --color-gold-600: #bf8435;
+  --color-gold-700: #97652a;
+  --color-gold-800: #6f4a20;
+  --color-gold-900: #4c3216;
+  --color-gold-950: #33210e;
+}
+
 /* Neutrals — one cohesive blue-slate scale for the whole app. Pages use the
    zinc utilities directly, so remapping the scale restyles every surface,
    border and text colour consistently (no more flat grey-on-grey). */
@@ -251,6 +268,14 @@ body {
   background:
     radial-gradient(1100px 420px at 50% -140px, var(--app-glow-b, rgba(0, 0, 0, 0.02)), transparent 70%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.015), transparent 320px);
+}
+
+/* subtle hover lift for cards that are clickable (used by nav grids etc.) */
+.card-hover {
+  transition: border-color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
 }
 
 /* Display type — Space Grotesk carries the headings; Geist does the body. */

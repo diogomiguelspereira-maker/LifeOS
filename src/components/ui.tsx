@@ -167,7 +167,7 @@ export function Badge({
   className,
 }: {
   children: React.ReactNode;
-  color?: "zinc" | "green" | "red" | "amber" | "blue" | "violet" | "cyan" | "pink";
+  color?: "zinc" | "green" | "red" | "amber" | "gold" | "blue" | "violet" | "cyan" | "pink";
   className?: string;
 }) {
   const colors = {
@@ -175,6 +175,7 @@ export function Badge({
     green: "bg-emerald-50 text-emerald-700 border border-emerald-200/50 dark:bg-emerald-500/12 dark:text-emerald-400 dark:border-transparent",
     red: "bg-red-50 text-red-700 border border-red-200/50 dark:bg-red-500/12 dark:text-red-400 dark:border-transparent",
     amber: "bg-amber-50 text-amber-700 border border-amber-200/50 dark:bg-amber-500/12 dark:text-amber-400 dark:border-transparent",
+    gold: "bg-gold-50 text-gold-700 border border-gold-200/60 dark:bg-gold-500/12 dark:text-gold-300 dark:border-transparent",
     blue: "bg-sky-50 text-sky-700 border border-sky-200/50 dark:bg-sky-500/12 dark:text-sky-400 dark:border-transparent",
     violet: "bg-violet-50 text-violet-700 border border-violet-200/50 dark:bg-violet-500/12 dark:text-violet-400 dark:border-transparent",
     cyan: "bg-cyan-50 text-cyan-700 border border-cyan-200/50 dark:bg-cyan-500/12 dark:text-cyan-400 dark:border-transparent",
@@ -317,7 +318,7 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-ink">{title}</h3>
+          <h3 className="font-display text-base font-semibold text-ink">{title}</h3>
           <button
             onClick={onClose}              className="rounded-lg p-1.5 text-ink-3 transition hover:bg-zinc-100 hover:text-ink-2 dark:hover:bg-white/8"
           >

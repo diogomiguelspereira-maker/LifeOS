@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   description: "O teu centro de comando pessoal — dinheiro, tarefas, hábitos e objetivos num só lugar.",
   applicationName: "LifeOS",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/favicon.png", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: "/icon.svg", apple: "/icons/apple-touch-icon.png" },
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "LifeOS" },
 };
 

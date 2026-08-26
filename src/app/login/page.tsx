@@ -4,8 +4,8 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { Button, Card, Field, Input } from "@/components/ui";
-import { Logo } from "@/components/Logo";
+import { Button, Field, Input } from "@/components/ui";
+import { AuthShell } from "@/components/AuthShell";
 import { useSupabase } from "@/lib/app-context";
 import { pt } from "@/lib/i18n";
 
@@ -50,16 +50,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center p-4">
-      <div className="mb-8 flex flex-col items-center gap-3">
-        <Logo size="lg" />
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">{t.auth.loginTitle}</h1>
-          <p className="mt-1 text-sm text-zinc-500">{t.auth.loginSubtitle}</p>
-        </div>
-      </div>
-
-      <Card className="w-full max-w-sm p-6">
+    <AuthShell title={t.auth.loginTitle} subtitle={t.auth.loginSubtitle}>
         <form onSubmit={handleLogin} className="space-y-4">
           <Field label={t.auth.email}>
             <Input
@@ -118,8 +109,7 @@ function LoginForm() {
             {t.auth.signup}
           </Link>
         </p>
-      </Card>
-    </div>
+    </AuthShell>
   );
 }
 

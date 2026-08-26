@@ -405,15 +405,16 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           {saveMode && (
-            <Badge color="green">
+            <Badge color="gold">
               <PiggyBank className="h-3.5 w-3.5" /> {t.settings.saveMode}
             </Badge>
           )}
-          <div className="mr-1 hidden text-right sm:block">
-            <p className="font-display text-lg font-semibold tabular-nums leading-none text-zinc-800 dark:text-zinc-100">
+          <div className="mr-1 hidden items-center gap-2.5 rounded-xl border border-line bg-surface px-3 py-1.5 sm:flex">
+            <p className="font-display text-base font-semibold tabular-nums leading-none text-zinc-800 dark:text-zinc-100">
               {clock.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
             </p>
-            <p className="text-[10px] text-zinc-500">{t.common.today}</p>
+            <span className="h-4 w-px bg-line" />
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-ink-3">{t.common.today}</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => window.dispatchEvent(new Event("lifeos:open-command"))}>
             <Zap className="h-4 w-4 text-amber-400" />

@@ -1,18 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  CalendarDays,
+  CheckCheck,
+  CheckCircle2,
+  Info,
+  Sparkles,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useApp, useSupabase } from "@/lib/app-context";
 import type { Notification } from "@/lib/types";
 
-const typeIcons: Record<string, string> = {
-  money: "💰",
-  task: "✅",
-  calendar: "📅",
-  success: "✨",
-  warning: "⚠️",
-  info: "💡",
+const typeIcons: Record<string, LucideIcon> = {
+  money: Wallet,
+  task: CheckCircle2,
+  calendar: CalendarDays,
+  success: Sparkles,
+  warning: AlertTriangle,
+  info: Info,
 };
 
 export function NotificationsBell() {
@@ -81,21 +91,24 @@ export function NotificationsBell() {
               {items.length === 0 && (
                 <p className="py-6 text-center text-xs text-zinc-500">{t.notif.empty}</p>
               )}
-              {items.map((n) => (
-                <div
-                  key={n.id}
-                  className={cn(
-                    "flex gap-2.5 rounded-xl px-2.5 py-2 transition",
-                    !n.read && "bg-indigo-50/80 dark:bg-white/5"
-                  )}
-                >
-                  <span className="text-base">{typeIcons[n.type] ?? "💡"}</span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">{n.title}</p>
-                    {n.body && <p className="mt-0.5 text-[11px] leading-snug text-zinc-500">{n.body}</p>}
+              {items.map((n) => {
+                const TIcon = typeIcons[n.type] ?? Info;
+                return (
+                  <div
+                    key={n.id}
+                    className={cn(
+                      "flex gap-2.5 rounded-xl px-2.5 py-2 transition",
+                      !n.read && "bg-indigo-50/80 dark:bg-white/5"
+                    )}
+                  >
+                    <TIcon className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">{n.title}</p>
+                      {n.body && <p className="mt-0.5 text-[11px] leading-snug text-zinc-500">{n.body}</p>}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </>
