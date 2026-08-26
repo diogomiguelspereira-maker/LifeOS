@@ -148,7 +148,7 @@ export default function ShareWishlistPage({ params }: { params: Promise<{ token:
                   </div>
                 )}
 
-                <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{item.name}</h3>
+                <h3 className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{item.name}</h3>
 
                 {item.category && (
                   <p className="mt-0.5 text-[11px] text-zinc-500">{item.category}</p>

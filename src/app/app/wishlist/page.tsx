@@ -250,7 +250,7 @@ export default function WishlistPage() {
                         const PIcon = PRIORITY_ICONS[item.priority] ?? Meh;
                         return <PIcon className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />;
                       })()}
-                      <p className={cn("truncate text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
+                      <p className={cn("line-clamp-2 text-sm font-semibold", item.purchased ? "text-zinc-500 line-through" : "text-zinc-800 dark:text-zinc-100")}>
                         {item.name}
                       </p>
                     </div>
