@@ -1,6 +1,8 @@
 /* LifeOS service worker — cache de assets estáticos para arranque rápido e
-   navegação offline parcial. Nunca interage com POST (API). */
-const VERSION = "lifeos-v2";
+   navegação offline parcial. Nunca interage com POST (API).
+   __BUILD_ID__ é substituído em cada deploy (ver src/app/sw.js/route.ts), o que
+   faz o browser detetar a nova versão e mostrar o aviso "nova versão". */
+const VERSION = "lifeos-__BUILD_ID__";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGE_CACHE = `${VERSION}-pages`;
 
@@ -12,9 +14,15 @@ const STATIC_ASSETS = [
   "/icons/icon-maskable-512.png",
 ];
 
+// Waits for the page to approve the update (the client shows a "new version"
+// banner and posts SKIP_WAITING) instead of force-activating mid-session.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting())
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
   );
 });
 
@@ -22,7 +30,9 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== STATIC_CACHE && k !== PAGE_CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== STATIC_CACHE && k !== PAGE_CACHE).map((k) => caches.delete(k)))
+      )
       .then(() => self.clients.claim())
   );
 });
@@ -44,7 +54,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/_next/static/") ||
     url.pathname === "/manifest.webmanifest" ||
-    url.pathname === "/favicon.png"
+    url.pathname === "/icon.svg"
   ) {
     event.respondWith(
       caches.match(request).then(
