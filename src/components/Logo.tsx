@@ -39,7 +39,8 @@ export function Logo({ size = "md", className }: { size?: "sm" | "md" | "lg"; cl
         className
       )}
       style={{
-        background: "var(--app-primary, #0d9488)",
+        background:
+          "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
       }}
     >
       <LogoMark className={cn("text-white", markSizes[size])} />

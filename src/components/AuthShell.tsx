@@ -40,7 +40,10 @@ export function AuthShell({
         <div className="relative">
           <div
             className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg ring-1 ring-white/15 ring-inset"
-            style={{ background: "var(--app-primary, #0d9488)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
+            }}
           >
             <LogoMark className="h-9 w-9 text-white" />
           </div>
@@ -65,7 +68,10 @@ export function AuthShell({
           <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
             <div
               className="flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-sm ring-1 ring-white/10 ring-inset"
-              style={{ background: "var(--app-primary, #0d9488)" }}
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
+              }}
             >
               <LogoMark className="h-8 w-8 text-white" />
             </div>

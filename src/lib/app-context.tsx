@@ -191,7 +191,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--app-primary", primary);
     root.style.setProperty("--app-secondary", secondary);
     root.style.setProperty("--app-glow-a", hexToRgba(primary, 0.14));
-    root.style.setProperty("--app-glow-b", hexToRgba(secondary, 0.08));
+    root.style.setProperty("--app-glow-b", hexToRgba(secondary, 0.13));
     try {
       if (saved.primary)
         window.localStorage.setItem("lifeos:theme-custom", JSON.stringify({ primary, secondary }));

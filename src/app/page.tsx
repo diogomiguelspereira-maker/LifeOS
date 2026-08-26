@@ -37,7 +37,10 @@ export default async function Home() {
         <div className="flex items-center gap-2.5">
           <div
             className="flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-sm ring-1 ring-white/10 ring-inset"
-            style={{ background: "var(--app-primary, #0d9488)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
+            }}
           >
             <LogoMark className="h-5 w-5 text-white" />
           </div>
@@ -74,7 +77,10 @@ export default async function Home() {
         />
         <div
           className="mb-7 flex h-20 w-20 items-center justify-center rounded-[1.4rem] text-white shadow-lg ring-1 ring-white/15 ring-inset"
-          style={{ background: "var(--app-primary, #0d9488)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
+          }}
         >
           <LogoMark className="h-11 w-11 text-white" />
         </div>
@@ -96,7 +102,10 @@ export default async function Home() {
           <Link
             href="/signup"
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-medium text-white shadow-sm transition hover:opacity-90 active:scale-[0.98]"
-            style={{ background: "var(--app-primary, #0d9488)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
+            }}
           >
             Criar conta grátis
           </Link>

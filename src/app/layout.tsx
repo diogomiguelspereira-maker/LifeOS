@@ -120,7 +120,7 @@ const THEME_BOOTSTRAP_SCRIPT = `(function () {
     root.style.setProperty("--app-primary", primary);
     root.style.setProperty("--app-secondary", secondary);
     root.style.setProperty("--app-glow-a", rgba(primary, 0.14));
-    root.style.setProperty("--app-glow-b", rgba(secondary, 0.08));
+    root.style.setProperty("--app-glow-b", rgba(secondary, 0.13));
 
     // 3) Dark / light / system.
     var theme = localStorage.getItem("lifeos:theme") || "dark";

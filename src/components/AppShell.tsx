@@ -213,7 +213,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 style={
                   isNova
                     ? {
-                        background: "var(--app-primary, #0d9488)",
+                        background:
+                          "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
                       }
                     : undefined
                 }
@@ -267,7 +268,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition active:scale-95 lg:hidden"
         style={{
           bottom: "calc(6rem + var(--keyboard-inset, 0px))",
-          background: "var(--app-primary, #0d9488)",
+          background:
+            "linear-gradient(135deg, var(--app-primary, #0d9488), var(--app-secondary, #2dd4bf))",
         }}
       >
         <Command className="h-6 w-6" />

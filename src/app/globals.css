@@ -263,13 +263,13 @@ body {
 .app-bg {
   background:
     radial-gradient(760px 480px at 10% -90px, var(--app-glow-a, rgba(20, 184, 166, 0.1)), transparent 65%),
-    radial-gradient(760px 480px at 90% -70px, var(--app-glow-b, rgba(233, 187, 107, 0.07)), transparent 65%),
+    radial-gradient(840px 540px at 92% -60px, var(--app-glow-b, rgba(233, 187, 107, 0.13)), transparent 65%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 320px);
 }
 .light .app-bg {
   background:
-    radial-gradient(760px 480px at 10% -90px, var(--app-glow-b, rgba(13, 148, 136, 0.07)), transparent 65%),
-    radial-gradient(760px 480px at 90% -70px, var(--app-glow-b, rgba(233, 187, 107, 0.06)), transparent 65%),
+    radial-gradient(760px 480px at 10% -90px, var(--app-glow-b, rgba(13, 148, 136, 0.08)), transparent 65%),
+    radial-gradient(840px 540px at 92% -60px, var(--app-glow-b, rgba(233, 187, 107, 0.07)), transparent 65%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.015), transparent 320px);
 }
 
