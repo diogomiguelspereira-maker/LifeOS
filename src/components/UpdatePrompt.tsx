@@ -16,6 +16,14 @@ export function UpdatePrompt() {
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
+
+    // The prompt is Android-only: the installed app (TWA/PWA) can't hard-
+    // refresh, so it needs the banner. Desktop browsers just reload normally.
+    const ua = navigator.userAgent;
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ?? "";
+    if (!/android/i.test(ua) && !/android/i.test(platform)) return;
+
     let disposed = false;
 
     // When the user approves, the new SW activates and claims the page — only
