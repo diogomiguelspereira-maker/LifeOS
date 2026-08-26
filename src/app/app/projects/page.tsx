@@ -147,7 +147,7 @@ export default function ProjectsPage() {
                       <FolderKanban className="h-4.5 w-4.5" style={{ color: p.color }} />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{p.name}</p>
+                      <p className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{p.name}</p>
                       {p.description && <p className="text-[11px] text-zinc-500">{p.description}</p>}
                     </div>
                   </div>

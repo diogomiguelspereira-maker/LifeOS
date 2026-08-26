@@ -159,7 +159,7 @@ function NotesPageInner() {
                 >
                   <div onClick={() => { setEditing(note); setNoteOpen(true); }}>
                     <div className="mb-2 flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{note.title}</p>
+                      <p className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{note.title}</p>
                       <button
                         onClick={(e) => { e.stopPropagation(); toggleFav(note); }}
                         className={cn("text-base transition", note.is_favorite ? "opacity-100" : "opacity-30 hover:opacity-100")}
@@ -181,7 +181,7 @@ function NotesPageInner() {
                     </div>
                     <button
                       onClick={() => removeNote(note.id)}
-                      className="rounded-lg p-1 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100"
+                      className="rounded-lg p-1 text-zinc-600 transition hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 dark:text-zinc-400"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

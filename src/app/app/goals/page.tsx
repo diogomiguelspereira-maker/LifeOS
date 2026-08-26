@@ -99,7 +99,7 @@ function GoalsPageInner() {
                       {g.icon}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.name}</p>
+                      <p className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.name}</p>
                       <p className="text-xs text-zinc-500">
                         {formatMoney(g.current_amount, currency)} / {formatMoney(g.target_amount, currency)}
                       </p>

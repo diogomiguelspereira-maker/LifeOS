@@ -143,7 +143,7 @@ export default function CareerPage() {
             <Card key={g.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.title}</p>
+                  <p className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{g.title}</p>
                   <p className="text-[11px] text-zinc-500">{g.timeline ?? ""}</p>
                 </div>
                 <button

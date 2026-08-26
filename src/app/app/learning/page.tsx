@@ -133,10 +133,10 @@ export default function LearningPage() {
             <Card key={b.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{b.title}</p>
+                  <p className="line-clamp-2 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{b.title}</p>
                   <p className="text-[11px] text-zinc-500">{b.author ?? ""}</p>
                 </div>
-                <button onClick={() => removeBook(b.id)} className="rounded-lg p-1 text-zinc-600 opacity-0 transition hover:text-red-400 group-hover:opacity-100">
+                <button onClick={() => removeBook(b.id)} className="rounded-lg p-1 text-zinc-600 transition hover:text-red-400 sm:opacity-0 sm:group-hover:opacity-100 dark:text-zinc-400">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>

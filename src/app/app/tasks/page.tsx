@@ -310,10 +310,10 @@ function TasksPageInner() {
             {breakdown.items.map((it, i) => (
               <li key={i} className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                 <span className="text-emerald-400">▸</span>
-                <span>
+                <span className="min-w-0 truncate">
                   {i + 1}. {it.title}
                 </span>
-                <span className="ml-auto text-zinc-600">{it.estimated_minutes}m</span>
+                <span className="ml-auto shrink-0 text-zinc-600">{it.estimated_minutes}m</span>
               </li>
             ))}
           </ul>
