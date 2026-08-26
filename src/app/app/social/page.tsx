@@ -15,6 +15,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { SharedExpense } from "@/lib/types";
 
 export default function SocialPage() {
@@ -23,6 +25,9 @@ export default function SocialPage() {
   const [expenses, setExpenses] = useState<SharedExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [expFilter, setExpFilter] = useState("all");
+  const [expSort, setExpSort] = useState("date");
+  const [expOrder, setExpOrder] = useState<OrderDir>("desc");
 
   const load = useCallback(async () => {
     setExpenses(await api.sharedExpenses(supabase));
@@ -32,6 +37,13 @@ export default function SocialPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const visibleExpenses = useMemo(() => {
+    let list = expenses;
+    if (expFilter === "settled") list = list.filter((e) => e.settled);
+    else if (expFilter === "open") list = list.filter((e) => !e.settled);
+    return sortBy(list, (e) => (expSort === "amount" ? e.amount : e.date), expOrder);
+  }, [expenses, expFilter, expSort, expOrder]);
 
   const totals = useMemo(() => {
     let iOwe = 0;
@@ -77,13 +89,33 @@ export default function SocialPage() {
         </Card>
       </div>
 
+      <ListToolbar
+        filters={[
+          { value: "all", label: t.common.all },
+          { value: "open", label: t.social.open },
+          { value: "settled", label: t.social.settled },
+        ]}
+        filter={expFilter}
+        onFilter={setExpFilter}
+        sortOptions={[
+          { value: "date", label: t.common.date },
+          { value: "amount", label: t.common.amount },
+        ]}
+        sort={expSort}
+        onSort={setExpSort}
+        order={expOrder}
+        onOrder={setExpOrder}
+        filterLabel={t.common.filter}
+        sortLabel={t.common.sortBy}
+        orderTitle={`${t.common.sortBy}: ${expOrder === "asc" ? t.common.ascending : t.common.descending}`}
+      />
       <Card>
         <p className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">{t.social.shared}</p>
-        {expenses.length === 0 ? (
+        {visibleExpenses.length === 0 ? (
           <EmptyState icon="🤝" title={t.social.noData} />
         ) : (
           <div className="space-y-2">
-            {expenses.map((e) => {
+            {visibleExpenses.map((e) => {
               const share = e.participants.length ? e.amount / (e.participants.length + 1) : e.amount;
               return (
                 <div key={e.id} className="group flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/6 px-3 py-2.5">

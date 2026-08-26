@@ -17,6 +17,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { DigitalAsset, Document } from "@/lib/types";
 
 type Tab = "assets" | "documents";
@@ -39,6 +41,11 @@ export default function DigitalPage() {
   const [loading, setLoading] = useState(true);
   const [assetOpen, setAssetOpen] = useState(false);
   const [docOpen, setDocOpen] = useState(false);
+  const [assetSort, setAssetSort] = useState("name");
+  const [assetOrder, setAssetOrder] = useState<OrderDir>("asc");
+  const [docFilter, setDocFilter] = useState("all");
+  const [docSort, setDocSort] = useState("name");
+  const [docOrder, setDocOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [as, ds] = await Promise.all([api.digitalAssets(supabase), api.documents(supabase)]);
@@ -68,6 +75,12 @@ export default function DigitalPage() {
     [documents]
   );
 
+  const visibleDocs = useMemo(() => {
+    let list = documents;
+    if (docFilter !== "all") list = list.filter((d) => d.category === docFilter);
+    return sortBy(list, (d) => (docSort === "expiry" ? d.expiry_date ?? "9999-12-31" : d.name), docOrder);
+  }, [documents, docFilter, docSort, docOrder]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -78,11 +91,11 @@ export default function DigitalPage() {
   }
 
   const assetGroups: Record<AssetType, DigitalAsset[]> = {
-    device: assets.filter((a) => a.type === "device"),
-    license: assets.filter((a) => a.type === "license"),
-    domain: assets.filter((a) => a.type === "domain"),
-    service: assets.filter((a) => a.type === "service"),
-    cloud: assets.filter((a) => a.type === "cloud"),
+    device: sortBy(assets.filter((a) => a.type === "device"), (a) => (assetSort === "expiry" ? a.expiry_date ?? "9999-12-31" : a.name), assetOrder),
+    license: sortBy(assets.filter((a) => a.type === "license"), (a) => (assetSort === "expiry" ? a.expiry_date ?? "9999-12-31" : a.name), assetOrder),
+    domain: sortBy(assets.filter((a) => a.type === "domain"), (a) => (assetSort === "expiry" ? a.expiry_date ?? "9999-12-31" : a.name), assetOrder),
+    service: sortBy(assets.filter((a) => a.type === "service"), (a) => (assetSort === "expiry" ? a.expiry_date ?? "9999-12-31" : a.name), assetOrder),
+    cloud: sortBy(assets.filter((a) => a.type === "cloud"), (a) => (assetSort === "expiry" ? a.expiry_date ?? "9999-12-31" : a.name), assetOrder),
   };
 
   return (
@@ -134,6 +147,18 @@ export default function DigitalPage() {
 
       {tab === "assets" && (
         <div className="space-y-4">
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "expiry", label: t.digital.expiry },
+            ]}
+            sort={assetSort}
+            onSort={setAssetSort}
+            order={assetOrder}
+            onOrder={setAssetOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${assetOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
           {(["device", "license", "domain", "service", "cloud"] as AssetType[]).map((type) => {
             const list = assetGroups[type];
             return (
@@ -183,12 +208,37 @@ export default function DigitalPage() {
       )}
 
       {tab === "documents" && (
-        <Card>
-          {documents.length === 0 ? (
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "passport", label: t.digital.passport },
+              { value: "id", label: t.digital.id },
+              { value: "license", label: t.digital.license },
+              { value: "insurance", label: t.digital.insurance },
+              { value: "contract", label: t.digital.contract },
+              { value: "other", label: t.digital.other },
+            ]}
+            filter={docFilter}
+            onFilter={setDocFilter}
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "expiry", label: t.digital.expiry },
+            ]}
+            sort={docSort}
+            onSort={setDocSort}
+            order={docOrder}
+            onOrder={setDocOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${docOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <Card>
+          {visibleDocs.length === 0 ? (
             <EmptyState icon="📄" title={t.digital.noData} />
           ) : (
             <div className="space-y-2">
-              {documents.map((d) => {
+              {visibleDocs.map((d) => {
                 const b = expiryBadge(d.expiry_date);
                 return (
                   <div key={d.id} className="group flex items-center gap-3 rounded-xl border border-zinc-200 dark:border-white/6 px-3 py-2.5">
@@ -214,7 +264,8 @@ export default function DigitalPage() {
               })}
             </div>
           )}
-        </Card>
+          </Card>
+        </>
       )}
 
       <AssetModal open={assetOpen} onClose={() => setAssetOpen(false)} onSaved={load} />

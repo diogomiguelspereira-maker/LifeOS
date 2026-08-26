@@ -19,7 +19,9 @@ import {
   Switch,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { daysUntil, formatDate, formatMoney } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Subscription } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -35,6 +37,9 @@ export default function SubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [subFilter, setSubFilter] = useState("all");
+  const [subSort, setSubSort] = useState("name");
+  const [subOrder, setSubOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("subscriptions").select("*").order("created_at");
@@ -56,6 +61,18 @@ export default function SubscriptionsPage() {
   );
   const toCancel = subs.filter((s) => s.to_cancel);
   const unused = subs.filter((s) => s.is_unused);
+
+  const visibleSubs = useMemo(() => {
+    let list = subs;
+    if (subFilter === "active") list = list.filter((s) => s.is_active);
+    else if (subFilter === "to_cancel") list = list.filter((s) => s.to_cancel);
+    else if (subFilter === "unused") list = list.filter((s) => s.is_unused);
+    return sortBy(
+      list,
+      (s) => (subSort === "amount" ? s.amount : subSort === "next" ? s.next_billing_date ?? "9999-12-31" : s.name),
+      subOrder
+    );
+  }, [subs, subFilter, subSort, subOrder]);
 
   async function patch(id: string, data: Partial<Subscription>) {
     await supabase.from("subscriptions").update(data).eq("id", id);
@@ -140,13 +157,35 @@ export default function SubscriptionsPage() {
       )}
 
       {/* list */}
+      <ListToolbar
+        filters={[
+          { value: "all", label: t.common.all },
+          { value: "active", label: t.subs.active },
+          { value: "to_cancel", label: t.subs.toCancel },
+          { value: "unused", label: t.subs.unused },
+        ]}
+        filter={subFilter}
+        onFilter={setSubFilter}
+        sortOptions={[
+          { value: "name", label: t.common.name },
+          { value: "amount", label: t.common.amount },
+          { value: "next", label: t.subs.renews },
+        ]}
+        sort={subSort}
+        onSort={setSubSort}
+        order={subOrder}
+        onOrder={setSubOrder}
+        filterLabel={t.common.filter}
+        sortLabel={t.common.sortBy}
+        orderTitle={`${t.common.sortBy}: ${subOrder === "asc" ? t.common.ascending : t.common.descending}`}
+      />
       <Card>
         <CardHeader title={t.subs.title} />
-        {subs.length === 0 ? (
+        {visibleSubs.length === 0 ? (
           <EmptyState icon="🔁" title={t.subs.noSubs} />
         ) : (
           <div className="divide-y divide-white/5">
-            {subs.map((s) => (
+            {visibleSubs.map((s) => (
               <div key={s.id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className={cn("text-sm font-medium", s.is_active ? "text-zinc-800 dark:text-zinc-100" : "text-zinc-500 line-through")}>

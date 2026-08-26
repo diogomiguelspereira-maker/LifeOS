@@ -43,6 +43,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [results, setResults] = useState<Result[]>([]);
+  const [typeFilter, setTypeFilter] = useState("all");
   const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -51,6 +52,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     if (open) {
       setQuery("");
       setResults([]);
+      setTypeFilter("all");
       setSaved(false);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
@@ -99,14 +101,15 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       for (const x of docs) if (contains(x.name)) out.push({ type: "doc", title: x.name, sub: x.expiry_date ?? "", href: "/app/digital" });
       for (const x of subs) if (contains(x.name)) out.push({ type: "sub", title: x.name, sub: `${x.amount}€/${x.billing_cycle}`, href: "/app/subscriptions" });
 
-      setResults(out.slice(0, 12));
+      const filtered = typeFilter === "all" ? out : out.filter((r) => r.type === typeFilter);
+      setResults(filtered.slice(0, 12));
       setSearching(false);
     }, 250);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, open, supabase, capture]);
+  }, [query, open, supabase, capture, typeFilter]);
 
   const saveCapture = useCallback(async () => {
     if (!capture || saving) return;
@@ -179,6 +182,18 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     trip: Plane,
     doc: FileText,
     sub: Sparkles,
+  };
+
+  const typeLabels: Record<string, string> = {
+    task: t.tasks.title,
+    note: t.notes.title,
+    event: t.calendar.title,
+    tx: t.money.title,
+    goal: t.goals.title,
+    person: t.people.title,
+    trip: t.travel.title,
+    doc: t.digital.title,
+    sub: t.subs.title,
   };
 
   function go(href: string) {
@@ -258,6 +273,21 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       {/* Search results */}
       {!showCapture && query.trim().length >= 2 && (
         <div className="mt-3 max-h-64 space-y-1 overflow-y-auto">
+          <div className="flex items-center gap-1.5 px-0.5 pb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">{t.common.filter}</span>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="h-7 rounded-lg border border-zinc-200 bg-zinc-50 px-1.5 text-[11px] text-zinc-700 outline-none transition focus:border-indigo-500/60 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 [&>option]:bg-white dark:[&>option]:bg-zinc-900"
+            >
+              <option value="all">{t.common.all}</option>
+              {Object.keys(typeLabels).map((k) => (
+                <option key={k} value={k}>
+                  {typeLabels[k]}
+                </option>
+              ))}
+            </select>
+          </div>
           {searching && <p className="px-1 py-2 text-xs text-zinc-500">{t.common.loading}</p>}
           {!searching && results.length === 0 && (
             <p className="px-1 py-2 text-xs text-zinc-500">{t.cmd.searchResults}: 0</p>

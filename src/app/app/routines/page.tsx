@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarPlus, Check, Plus, Pencil, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
@@ -19,7 +19,9 @@ import {
   Switch,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { ROUTINE_PRESETS, routineOnDay, sortSteps } from "@/lib/routines";
+import { sortBy } from "@/lib/sort";
 import type { Routine, RoutineCompletion, RoutineStep } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -54,6 +56,8 @@ export default function RoutinesPage() {
   const [stepRows, setStepRows] = useState<StepRow[]>([]);
   const [genMsg, setGenMsg] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
+  const [routineSort, setRoutineSort] = useState("name");
+  const [routineOrder, setRoutineOrder] = useState<OrderDir>("asc");
 
   const todayKey = localDayKey(new Date());
 
@@ -166,6 +170,11 @@ export default function RoutinesPage() {
     load();
   }
 
+  const visibleRoutines = useMemo(
+    () => sortBy(routines, (r) => (routineSort === "start" ? r.start_time ?? "" : r.name), routineOrder),
+    [routines, routineSort, routineOrder]
+  );
+
   async function toggleStep(step: RoutineStep) {
     const existing = completions.find((c) => c.step_id === step.id);
     if (existing) {
@@ -269,8 +278,21 @@ export default function RoutinesPage() {
           <EmptyState icon="🌅" title={t.routines.empty} />
         </Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {routines.map((r) => {
+        <>
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "start", label: t.routines.start },
+            ]}
+            sort={routineSort}
+            onSort={setRoutineSort}
+            order={routineOrder}
+            onOrder={setRoutineOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${routineOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-4 lg:grid-cols-2">
+          {visibleRoutines.map((r) => {
             const list = sortSteps(steps.filter((s) => s.routine_id === r.id));
             const done = list.filter((s) => completions.some((c) => c.step_id === s.id)).length;
             return (
@@ -334,7 +356,8 @@ export default function RoutinesPage() {
               </Card>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {/* Editor */}

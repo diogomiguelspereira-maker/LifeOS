@@ -18,7 +18,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { packingList } from "@/lib/dontforget";
+import { sortBy } from "@/lib/sort";
 import type { Trip, TripItem } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -33,6 +35,9 @@ export default function TravelPage() {
   const [tripOpen, setTripOpen] = useState(false);
   const [itemOpenFor, setItemOpenFor] = useState<string | null>(null);
   const [view, setView] = useState<TripView>("upcoming");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [tripSort, setTripSort] = useState("date");
+  const [tripOrder, setTripOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const ts = await api.trips(supabase);
@@ -52,9 +57,13 @@ export default function TravelPage() {
   }, [load]);
 
   const today = new Date().toISOString().slice(0, 10);
-  const visible = trips.filter((tr) =>
-    view === "upcoming" ? (tr.end_date ?? tr.start_date ?? "9999") >= today : (tr.end_date ?? tr.start_date ?? "") < today
-  );
+  const visible = useMemo(() => {
+    let list = trips.filter((tr) =>
+      view === "upcoming" ? (tr.end_date ?? tr.start_date ?? "9999") >= today : (tr.end_date ?? tr.start_date ?? "") < today
+    );
+    if (statusFilter !== "all") list = list.filter((tr) => tr.status === statusFilter);
+    return sortBy(list, (tr) => (tripSort === "budget" ? tr.budget ?? 0 : tr.start_date ?? "9999-12-31"), tripOrder);
+  }, [trips, view, today, statusFilter, tripSort, tripOrder]);
 
   const spentFor = (id: string) =>
     (items[id] ?? []).filter((i) => i.type !== "packing" && i.cost).reduce((s, i) => s + (i.cost ?? 0), 0);
@@ -80,14 +89,37 @@ export default function TravelPage() {
         }
       />
 
-      <Segmented<TripView>
-        value={view}
-        onChange={setView}
-        options={[
-          { value: "upcoming", label: "✈️" },
-          { value: "past", label: "🗂️" },
-        ]}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Segmented<TripView>
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "upcoming", label: "✈️" },
+            { value: "past", label: "🗂️" },
+          ]}
+        />
+        <ListToolbar
+          filters={[
+            { value: "all", label: t.common.all },
+            { value: "planned", label: t.travel.planned },
+            { value: "booked", label: t.travel.booked },
+            { value: "completed", label: t.travel.completed },
+          ]}
+          filter={statusFilter}
+          onFilter={setStatusFilter}
+          sortOptions={[
+            { value: "date", label: t.travel.dates },
+            { value: "budget", label: t.travel.budget },
+          ]}
+          sort={tripSort}
+          onSort={setTripSort}
+          order={tripOrder}
+          onOrder={setTripOrder}
+          filterLabel={t.common.filter}
+          sortLabel={t.common.sortBy}
+          orderTitle={`${t.common.sortBy}: ${tripOrder === "asc" ? t.common.ascending : t.common.descending}`}
+        />
+      </div>
 
       {visible.length === 0 && (
         <Card>

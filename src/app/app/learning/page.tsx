@@ -19,6 +19,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { Book, Course, StudySession } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -35,6 +37,13 @@ export default function LearningPage() {
   const [bookOpen, setBookOpen] = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
   const [studyOpen, setStudyOpen] = useState(false);
+  const [bookFilter, setBookFilter] = useState("all");
+  const [bookSort, setBookSort] = useState("title");
+  const [bookOrder, setBookOrder] = useState<OrderDir>("asc");
+  const [courseSort, setCourseSort] = useState("name");
+  const [courseOrder, setCourseOrder] = useState<OrderDir>("asc");
+  const [studySort, setStudySort] = useState("date");
+  const [studyOrder, setStudyOrder] = useState<OrderDir>("desc");
 
   const load = useCallback(async () => {
     const [bs, cs, ss] = await Promise.all([api.books(supabase), api.courses(supabase), api.studySessions(supabase, 90)]);
@@ -60,6 +69,22 @@ export default function LearningPage() {
     await supabase.from("books").delete().eq("id", id);
     load();
   }
+
+  const visibleBooks = useMemo(() => {
+    let list = books;
+    if (bookFilter !== "all") list = list.filter((b) => b.status === bookFilter);
+    return sortBy(list, (b) => (bookSort === "rating" ? b.rating ?? 0 : b.title), bookOrder);
+  }, [books, bookFilter, bookSort, bookOrder]);
+
+  const visibleCourses = useMemo(
+    () => sortBy(courses, (c) => (courseSort === "progress" ? c.progress : c.name), courseOrder),
+    [courses, courseSort, courseOrder]
+  );
+
+  const visibleStudy = useMemo(
+    () => sortBy(study, (s) => (studySort === "minutes" ? s.minutes : s.date), studyOrder).slice(0, 30),
+    [study, studySort, studyOrder]
+  );
 
   if (loading) {
     return (
@@ -123,13 +148,35 @@ export default function LearningPage() {
       />
 
       {tab === "books" && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {books.length === 0 && (
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "want", label: t.learning.want },
+              { value: "reading", label: t.learning.reading },
+              { value: "finished", label: t.learning.finished },
+            ]}
+            filter={bookFilter}
+            onFilter={setBookFilter}
+            sortOptions={[
+              { value: "title", label: t.common.title },
+              { value: "rating", label: t.learning.rating },
+            ]}
+            sort={bookSort}
+            onSort={setBookSort}
+            order={bookOrder}
+            onOrder={setBookOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${bookOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleBooks.length === 0 && (
             <Card className="sm:col-span-2 lg:col-span-3">
               <EmptyState icon="📚" title={t.learning.addBook} />
             </Card>
           )}
-          {books.map((b) => (
+          {visibleBooks.map((b) => (
             <Card key={b.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -165,16 +212,30 @@ export default function LearningPage() {
               </div>
             </Card>
           ))}
-        </div>
+          </div>
+        </>
       )}
 
       {tab === "courses" && (
-        <Card>
-          {courses.length === 0 ? (
+        <>
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "progress", label: t.learning.progress },
+            ]}
+            sort={courseSort}
+            onSort={setCourseSort}
+            order={courseOrder}
+            onOrder={setCourseOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${courseOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <Card>
+          {visibleCourses.length === 0 ? (
             <EmptyState icon="🎓" title={t.learning.addCourse} />
           ) : (
             <div className="space-y-3">
-              {courses.map((c) => (
+              {visibleCourses.map((c) => (
                 <div key={c.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="font-medium text-zinc-700 dark:text-zinc-200">{c.name}</span>
@@ -185,17 +246,31 @@ export default function LearningPage() {
               ))}
             </div>
           )}
-        </Card>
+          </Card>
+        </>
       )}
 
       {tab === "study" && (
-        <Card>
+        <>
+          <ListToolbar
+            sortOptions={[
+              { value: "date", label: t.common.date },
+              { value: "minutes", label: t.focus.minutes },
+            ]}
+            sort={studySort}
+            onSort={setStudySort}
+            order={studyOrder}
+            onOrder={setStudyOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${studyOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <Card>
           <CardHeader title={t.learning.study} />
-          {study.length === 0 ? (
+          {visibleStudy.length === 0 ? (
             <EmptyState icon="⏱️" title={t.learning.addStudy} />
           ) : (
             <div className="space-y-1.5">
-              {study.slice(0, 30).map((s) => (
+              {visibleStudy.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 py-1.5 text-sm">
                   <span className="text-zinc-500 dark:text-zinc-400">{s.date}</span>
                   <span className="text-zinc-700 dark:text-zinc-200">{s.subject ?? t.learning.study}</span>
@@ -206,7 +281,8 @@ export default function LearningPage() {
               ))}
             </div>
           )}
-        </Card>
+          </Card>
+        </>
       )}
 
       <BookModal open={bookOpen} onClose={() => setBookOpen(false)} onSaved={load} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus, Sparkles, Trash2, TrendingUp } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
@@ -17,7 +17,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { formatMoney } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { SavingsGoal } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -31,6 +33,9 @@ function GoalsPageInner() {
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [goalFilter, setGoalFilter] = useState("all");
+  const [goalSort, setGoalSort] = useState("deadline");
+  const [goalOrder, setGoalOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     setGoals(await api.goals(supabase));
@@ -47,6 +52,22 @@ function GoalsPageInner() {
     await supabase.from("savings_goals").delete().eq("id", id);
     load();
   }
+
+  const visibleGoals = useMemo(() => {
+    let list = goals;
+    if (goalFilter === "active") list = list.filter((g) => g.current_amount < g.target_amount);
+    else if (goalFilter === "completed") list = list.filter((g) => g.current_amount >= g.target_amount);
+    return sortBy(
+      list,
+      (g) =>
+        goalSort === "name"
+          ? g.name
+          : goalSort === "target"
+            ? g.target_amount
+            : g.deadline ?? "9999-12-31",
+      goalOrder
+    );
+  }, [goals, goalFilter, goalSort, goalOrder]);
 
   if (loading) {
     return (
@@ -77,8 +98,30 @@ function GoalsPageInner() {
           <EmptyState icon="🎯" title={t.goals.addGoal} subtitle={t.dashboard.activeGoals} />
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {goals.map((g) => {
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "active", label: t.dashboard.activeGoals },
+              { value: "completed", label: t.goals.completed.replace(/! 🎉$/, "") },
+            ]}
+            filter={goalFilter}
+            onFilter={setGoalFilter}
+            sortOptions={[
+              { value: "deadline", label: t.goals.deadline },
+              { value: "name", label: t.common.name },
+              { value: "target", label: t.goals.target },
+            ]}
+            sort={goalSort}
+            onSort={setGoalSort}
+            order={goalOrder}
+            onOrder={setGoalOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${goalOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+          {visibleGoals.map((g) => {
             const pct = g.target_amount > 0 ? Math.min(100, (g.current_amount / g.target_amount) * 100) : 0;
             const monthsLeft = g.deadline
               ? Math.max(1, Math.round((new Date(g.deadline).getTime() - Date.now()) / (30 * 86400000)))
@@ -156,7 +199,8 @@ function GoalsPageInner() {
               </Card>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       <AddGoalModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} currency={currency} />

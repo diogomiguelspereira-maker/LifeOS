@@ -41,7 +41,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { formatMoney } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { WishlistItem, WishlistShare } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -69,6 +71,8 @@ export default function WishlistPage() {
   const [affordResult, setAffordResult] = useState<AffordResult | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "wanted" | "purchased">("all");
+  const [wishSort, setWishSort] = useState("name");
+  const [wishOrder, setWishOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const ws = await api.wishlist(supabase);
@@ -139,10 +143,11 @@ export default function WishlistPage() {
   }
 
   const filtered = useMemo(() => {
-    if (filter === "purchased") return items.filter((i) => i.purchased);
-    if (filter === "wanted") return items.filter((i) => !i.purchased);
-    return items;
-  }, [items, filter]);
+    let list = items;
+    if (filter === "purchased") list = list.filter((i) => i.purchased);
+    if (filter === "wanted") list = list.filter((i) => !i.purchased);
+    return sortBy(list, (i) => (wishSort === "price" ? i.price ?? 0 : i.name), wishOrder);
+  }, [items, filter, wishSort, wishOrder]);
 
   const wantedTotal = items.filter((i) => !i.purchased).reduce((s, i) => s + (i.price ?? 0), 0);
 
@@ -192,11 +197,25 @@ export default function WishlistPage() {
             </button>
           ))}
         </div>
-        {wantedTotal > 0 && filter !== "purchased" && (
-          <Badge color="violet">
-            {t.wishlist.total}: {formatMoney(wantedTotal, currency)}
-          </Badge>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "price", label: t.common.amount },
+            ]}
+            sort={wishSort}
+            onSort={setWishSort}
+            order={wishOrder}
+            onOrder={setWishOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${wishOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          {wantedTotal > 0 && filter !== "purchased" && (
+            <Badge color="violet">
+              {t.wishlist.total}: {formatMoney(wantedTotal, currency)}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {filtered.length === 0 ? (

@@ -30,7 +30,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { daysUntil, formatDate, formatMoney, monthKey, percent } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Account, Category, FinancialChallenge, IncomeSchedule, Subscription, Transaction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -60,6 +62,9 @@ export default function FinancePage() {
   const [incomeOpen, setIncomeOpen] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
   const [bonus, setBonus] = useState("");
+  const [challFilter, setChallFilter] = useState("all");
+  const [challSort, setChallSort] = useState("start");
+  const [challOrder, setChallOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [tx_, acc, cats, subs_, inc, snap, chall, goals_] = await Promise.all([
@@ -141,6 +146,13 @@ export default function FinancePage() {
   const maxHeat = Math.max(1, ...heatmap.flatMap((w) => w.days));
 
   const monthlySubs = subs.reduce((s, x) => s + monthlyCost(x), 0);
+
+  const visibleChallenges = useMemo(() => {
+    let list = challenges;
+    if (challFilter === "active") list = list.filter((c) => !c.completed);
+    else if (challFilter === "completed") list = list.filter((c) => c.completed);
+    return sortBy(list, (c) => (challSort === "name" ? c.name : c.start_date), challOrder);
+  }, [challenges, challFilter, challSort, challOrder]);
 
   async function recordSnapshot() {
     await supabase.from("net_worth_snapshots").upsert({ date: new Date().toISOString().slice(0, 10), net_worth: nw });
@@ -498,8 +510,29 @@ export default function FinancePage() {
               <EmptyState icon="🎯" title={t.finance.addChallenge} />
             </Card>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {challenges.map((c) => {
+            <>
+              <ListToolbar
+                filters={[
+                  { value: "all", label: t.common.all },
+                  { value: "active", label: t.routines.active },
+                  { value: "completed", label: t.goals.completed.replace(/! 🎉$/, "") },
+                ]}
+                filter={challFilter}
+                onFilter={setChallFilter}
+                sortOptions={[
+                  { value: "start", label: t.common.date },
+                  { value: "name", label: t.common.name },
+                ]}
+                sort={challSort}
+                onSort={setChallSort}
+                order={challOrder}
+                onOrder={setChallOrder}
+                filterLabel={t.common.filter}
+                sortLabel={t.common.sortBy}
+                orderTitle={`${t.common.sortBy}: ${challOrder === "asc" ? t.common.ascending : t.common.descending}`}
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+              {visibleChallenges.map((c) => {
                 const total = Math.max(1, Math.round((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / 86400000));
                 const elapsed = Math.min(total, Math.max(0, Math.round((Date.now() - new Date(c.start_date).getTime()) / 86400000)) + 1);
                 const pct = c.completed ? 100 : percent(elapsed, total);
@@ -544,7 +577,8 @@ export default function FinancePage() {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}

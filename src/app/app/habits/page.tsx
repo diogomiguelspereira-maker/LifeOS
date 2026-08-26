@@ -16,6 +16,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { Habit, HabitCompletion } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +31,8 @@ export default function HabitsPage() {
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [habitSort, setHabitSort] = useState("name");
+  const [habitOrder, setHabitOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [hs, cs] = await Promise.all([
@@ -45,6 +49,18 @@ export default function HabitsPage() {
   }, [load]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
+
+  const visibleHabits = useMemo(
+    () =>
+      sortBy(
+        habits,
+        (h) => (habitSort === "streak" ? streak(h.id) : habitSort === "consistency" ? consistency(h.id) : h.name),
+        habitOrder
+      ),
+    // streak/consistency read completions, which only change together with habits
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [habits, habitSort, habitOrder, completions]
+  );
 
   async function toggle(habit: Habit) {
     const existing = completions.find((c) => c.habit_id === habit.id && c.date === todayKey);
@@ -174,8 +190,22 @@ export default function HabitsPage() {
           <EmptyState icon="🌱" title={t.habits.noHabits} />
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {habits.map((h) => {
+        <>
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "streak", label: t.habits.streak },
+              { value: "consistency", label: t.habits.consistency },
+            ]}
+            sort={habitSort}
+            onSort={setHabitSort}
+            order={habitOrder}
+            onOrder={setHabitOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${habitOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+          {visibleHabits.map((h) => {
             const done = completions.some((c) => c.habit_id === h.id && c.date === todayKey);
             const wc = weekCount(h.id);
             return (
@@ -240,7 +270,8 @@ export default function HabitsPage() {
               </Card>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       <AddHabitModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} />

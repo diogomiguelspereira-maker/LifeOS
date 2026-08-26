@@ -19,7 +19,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { formatMoney } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { ShoppingItem, ShoppingList, WishlistItem } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -50,6 +52,12 @@ export default function ShoppingPage() {
   const [activeList, setActiveList] = useState<string>("");
   const [affordItem, setAffordItem] = useState<WishlistItem | null>(null);
   const [affordResult, setAffordResult] = useState<AffordResult | null>(null);
+  const [itemFilter, setItemFilter] = useState("all");
+  const [itemSort, setItemSort] = useState("name");
+  const [itemOrder, setItemOrder] = useState<OrderDir>("asc");
+  const [wishFilter, setWishFilter] = useState("all");
+  const [wishSort, setWishSort] = useState("name");
+  const [wishOrder, setWishOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [ls, it, ws] = await Promise.all([api.shoppingLists(supabase), api.shoppingItems(supabase), api.wishlist(supabase)]);
@@ -122,6 +130,20 @@ export default function ShoppingPage() {
   const currentItems = items.filter((i) => i.list_id === activeList);
   const checkedCount = currentItems.filter((i) => i.checked).length;
   const wishTotal = wishlist.filter((w) => !w.purchased).reduce((s, w) => s + (w.price ?? 0), 0);
+
+  const visibleItems = useMemo(() => {
+    let list = items.filter((i) => i.list_id === activeList);
+    if (itemFilter !== "all") list = list.filter((i) => i.priority === itemFilter);
+    return sortBy(list, (i) => (itemSort === "price" ? i.price ?? 0 : i.name), itemOrder);
+  }, [items, activeList, itemFilter, itemSort, itemOrder]);
+
+  const visibleWishlist = useMemo(() => {
+    let list = wishlist;
+    if (wishFilter === "purchased") list = list.filter((w) => w.purchased);
+    else if (wishFilter === "wanted") list = list.filter((w) => !w.purchased);
+    else if (wishFilter !== "all") list = list.filter((w) => w.priority === wishFilter);
+    return sortBy(list, (w) => (wishSort === "price" ? w.price ?? 0 : w.name), wishOrder);
+  }, [wishlist, wishFilter, wishSort, wishOrder]);
 
   async function toggleItem(item: ShoppingItem) {
     await supabase.from("shopping_items").update({ checked: !item.checked }).eq("id", item.id);
@@ -221,11 +243,31 @@ export default function ShoppingPage() {
                     </Badge>
                   }
                 />
-                {currentItems.length === 0 ? (
+                <ListToolbar
+                  filters={[
+                    { value: "all", label: t.common.all },
+                    ...PRIORITIES.map((p) => ({ value: p, label: t.shopping[p] })),
+                  ]}
+                  filter={itemFilter}
+                  onFilter={setItemFilter}
+                  sortOptions={[
+                    { value: "name", label: t.common.name },
+                    { value: "price", label: t.common.amount },
+                  ]}
+                  sort={itemSort}
+                  onSort={setItemSort}
+                  order={itemOrder}
+                  onOrder={setItemOrder}
+                  className="mb-3"
+                  filterLabel={t.common.filter}
+                  sortLabel={t.common.sortBy}
+                  orderTitle={`${t.common.sortBy}: ${itemOrder === "asc" ? t.common.ascending : t.common.descending}`}
+                />
+                {visibleItems.length === 0 ? (
                   <p className="py-4 text-center text-sm text-zinc-500">{t.shopping.empty}</p>
                 ) : (
                   <div className="space-y-1">
-                    {currentItems.map((item) => (
+                    {visibleItems.map((item) => (
                       <div key={item.id} className="group flex items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-white/4">
                         <button
                           onClick={() => toggleItem(item)}
@@ -274,13 +316,34 @@ export default function ShoppingPage() {
             <p className="text-sm text-zinc-600 dark:text-zinc-300">{t.shopping.totalWishlist}</p>
             <p className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">{formatMoney(wishTotal, currency)}</p>
           </Card>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "wanted", label: t.wishlist.wanted },
+              { value: "purchased", label: t.wishlist.purchased },
+              ...PRIORITIES.map((p) => ({ value: p, label: t.shopping[p] })),
+            ]}
+            filter={wishFilter}
+            onFilter={setWishFilter}
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "price", label: t.common.amount },
+            ]}
+            sort={wishSort}
+            onSort={setWishSort}
+            order={wishOrder}
+            onOrder={setWishOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${wishOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
           <div className="grid gap-3 sm:grid-cols-2">
             {wishlist.length === 0 && (
               <Card className="sm:col-span-2">
                 <EmptyState icon="⭐" title={t.shopping.addWish} />
               </Card>
             )}
-            {wishlist.map((w) => (
+            {visibleWishlist.map((w) => (
               <Card key={w.id} className="group">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

@@ -17,6 +17,8 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { JournalEntry, Note } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -33,7 +35,9 @@ function NotesPageInner() {
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [onlyFavs, setOnlyFavs] = useState(false);
+  const [noteFilter, setNoteFilter] = useState("all");
+  const [noteSort, setNoteSort] = useState("title");
+  const [noteOrder, setNoteOrder] = useState<OrderDir>("asc");
   const [noteOpen, setNoteOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
   const [editing, setEditing] = useState<Note | null>(null);
@@ -51,9 +55,19 @@ function NotesPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const noteFilters = useMemo(() => {
+    const tags = Array.from(new Set(notes.flatMap((n) => n.tags))).slice(0, 10);
+    return [
+      { value: "all", label: t.common.all },
+      { value: "favorites", label: `⭐ ${t.notes.favorites}` },
+      ...tags.map((tag) => ({ value: `tag:${tag}`, label: `#${tag}` })),
+    ];
+  }, [notes, t]);
+
   const filtered = useMemo(() => {
     let list = notes;
-    if (onlyFavs) list = list.filter((n) => n.is_favorite);
+    if (noteFilter === "favorites") list = list.filter((n) => n.is_favorite);
+    else if (noteFilter.startsWith("tag:")) list = list.filter((n) => n.tags.includes(noteFilter.slice(4)));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -63,8 +77,9 @@ function NotesPageInner() {
           n.tags.some((tag) => tag.toLowerCase().includes(q))
       );
     }
-    return list;
-  }, [notes, search, onlyFavs]);
+    return sortBy(list, (n) => n.title, noteOrder);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes, search, noteFilter, noteOrder]);
 
   async function toggleFav(note: Note) {
     await supabase.from("notes").update({ is_favorite: !note.is_favorite }).eq("id", note.id);
@@ -119,33 +134,35 @@ function NotesPageInner() {
           ]}
         />
         {tab === "notes" && (
-          <div className="flex flex-1 items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3 sm:max-w-xs">
-            <Search className="h-4 w-4 shrink-0 text-zinc-500" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t.notes.search}
-              className="h-10 w-full bg-transparent text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none"
+          <>
+            <ListToolbar
+              filters={noteFilters}
+              filter={noteFilter}
+              onFilter={setNoteFilter}
+              sortOptions={[{ value: "title", label: t.common.title }]}
+              sort={noteSort}
+              onSort={setNoteSort}
+              order={noteOrder}
+              onOrder={setNoteOrder}
+              filterLabel={t.common.filter}
+              sortLabel={t.common.sortBy}
+              orderTitle={`${t.common.sortBy}: ${noteOrder === "asc" ? t.common.ascending : t.common.descending}`}
             />
-          </div>
+            <div className="flex flex-1 items-center gap-2 rounded-xl border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3 sm:max-w-xs">
+              <Search className="h-4 w-4 shrink-0 text-zinc-500" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t.notes.search}
+                className="h-10 w-full bg-transparent text-sm text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none"
+              />
+            </div>
+          </>
         )}
       </div>
 
       {tab === "notes" ? (
         <>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setOnlyFavs((v) => !v)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                onlyFavs
-                  ? "border-amber-400/40 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-                  : "border-zinc-200 dark:border-white/10 text-zinc-500 hover:bg-zinc-50 dark:bg-white/5"
-              )}
-            >
-              ⭐ {t.notes.favorites}
-            </button>
-          </div>
           {filtered.length === 0 ? (
             <Card>
               <EmptyState icon="🗒️" title={t.notes.noNotes} />

@@ -19,6 +19,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { CareerGoal, JobApplication, Skill } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -35,6 +37,14 @@ export default function CareerPage() {
   const [goalOpen, setGoalOpen] = useState(false);
   const [skillOpen, setSkillOpen] = useState(false);
   const [appOpen, setAppOpen] = useState(false);
+  const [goalFilter, setGoalFilter] = useState("all");
+  const [goalSort, setGoalSort] = useState("title");
+  const [goalOrder, setGoalOrder] = useState<OrderDir>("asc");
+  const [skillSort, setSkillSort] = useState("name");
+  const [skillOrder, setSkillOrder] = useState<OrderDir>("asc");
+  const [appFilter, setAppFilter] = useState("all");
+  const [appSort, setAppSort] = useState("company");
+  const [appOrder, setAppOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [g, s, a] = await Promise.all([
@@ -58,6 +68,23 @@ export default function CareerPage() {
   );
   const activeApps = apps.filter((a) => a.status === "applied" || a.status === "interview").length;
   const offers = apps.filter((a) => a.status === "offer").length;
+
+  const visibleGoals = useMemo(() => {
+    let list = goals;
+    if (goalFilter !== "all") list = list.filter((g) => g.status === goalFilter);
+    return sortBy(list, (g) => (goalSort === "timeline" ? g.timeline ?? "" : g.title), goalOrder);
+  }, [goals, goalFilter, goalSort, goalOrder]);
+
+  const visibleSkills = useMemo(
+    () => sortBy(skills, (s) => (skillSort === "level" ? s.level : s.name), skillOrder),
+    [skills, skillSort, skillOrder]
+  );
+
+  const visibleApps = useMemo(() => {
+    let list = apps;
+    if (appFilter !== "all") list = list.filter((a) => a.status === appFilter);
+    return sortBy(list, (a) => (appSort === "date" ? a.applied_date : a.company), appOrder);
+  }, [apps, appFilter, appSort, appOrder]);
 
   if (loading) {
     return (
@@ -133,13 +160,34 @@ export default function CareerPage() {
       />
 
       {tab === "roadmap" && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {goals.length === 0 && (
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "active", label: t.routines.active },
+              { value: "achieved", label: t.goals.completed.replace(/! 🎉$/, "") },
+            ]}
+            filter={goalFilter}
+            onFilter={setGoalFilter}
+            sortOptions={[
+              { value: "title", label: t.common.title },
+              { value: "timeline", label: t.career.roadmap },
+            ]}
+            sort={goalSort}
+            onSort={setGoalSort}
+            order={goalOrder}
+            onOrder={setGoalOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${goalOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+          {visibleGoals.length === 0 && (
             <Card className="sm:col-span-2">
               <EmptyState icon="🧭" title={t.career.addGoal} />
             </Card>
           )}
-          {goals.map((g) => (
+          {visibleGoals.map((g) => (
             <Card key={g.id} className="group">
               <div className="flex items-start justify-between gap-2">
                 <div>
@@ -161,20 +209,33 @@ export default function CareerPage() {
                 <Badge color={g.status === "achieved" ? "green" : g.status === "active" ? "blue" : "zinc"}>
                   {g.status}
                 </Badge>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </div>              </Card>
+            ))}
+          </div>
+        </>
       )}
 
       {tab === "skills" && (
-        <Card>
+        <>
+          <ListToolbar
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "level", label: t.career.level },
+            ]}
+            sort={skillSort}
+            onSort={setSkillSort}
+            order={skillOrder}
+            onOrder={setSkillOrder}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${skillOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <Card>
           <CardHeader title={t.career.skills} />
-          {skills.length === 0 ? (
+          {visibleSkills.length === 0 ? (
             <EmptyState icon="💪" title={t.career.addSkill} />
           ) : (
             <div className="space-y-4">
-              {skills.map((s) => (
+              {visibleSkills.map((s) => (
                 <div key={s.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="font-medium text-zinc-700 dark:text-zinc-200">{s.name}</span>
@@ -187,17 +248,42 @@ export default function CareerPage() {
               ))}
             </div>
           )}
-        </Card>
+          </Card>
+        </>
       )}
 
       {tab === "applications" && (
-        <div className="space-y-3">
-          {apps.length === 0 && (
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "applied", label: t.career.applied },
+              { value: "interview", label: t.career.interview },
+              { value: "offer", label: t.career.offer },
+              { value: "rejected", label: t.career.rejected },
+              { value: "withdrawn", label: t.career.withdrawn },
+            ]}
+            filter={appFilter}
+            onFilter={setAppFilter}
+            sortOptions={[
+              { value: "company", label: t.career.company },
+              { value: "date", label: t.common.date },
+            ]}
+            sort={appSort}
+            onSort={setAppSort}
+            order={appOrder}
+            onOrder={setAppOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${appOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="space-y-3">
+          {visibleApps.length === 0 && (
             <Card>
               <EmptyState icon="💼" title={t.career.addApp} />
             </Card>
           )}
-          {apps.map((a) => (
+          {visibleApps.map((a) => (
             <Card key={a.id} className="group">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -243,7 +329,8 @@ export default function CareerPage() {
               </div>
             </Card>
           ))}
-        </div>
+          </div>
+        </>
       )}
 
       <CareerGoalModal open={goalOpen} onClose={() => setGoalOpen(false)} onSaved={load} />

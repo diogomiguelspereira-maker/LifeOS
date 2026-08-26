@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
@@ -18,6 +18,8 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
+import { sortBy } from "@/lib/sort";
 import type { AIMemory, Profile } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -29,6 +31,8 @@ export default function AiMemoryPage() {
   const [memory, setMemory] = useState<AIMemory[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [memFilter, setMemFilter] = useState("all");
+  const [memOrder, setMemOrder] = useState<OrderDir>("asc");
 
   const memoryEnabled = (profile?.preferences as Record<string, unknown>)?.ai_memory !== false;
 
@@ -48,6 +52,11 @@ export default function AiMemoryPage() {
   }
 
   const personality = ((profile?.preferences as Record<string, unknown>)?.nova_personality as string) ?? "friendly";
+
+  const visibleCats = useMemo(
+    () => (memFilter === "all" ? CATEGORIES : CATEGORIES.filter((c) => c === memFilter)),
+    [memFilter]
+  );
 
   async function setPersonality(p: string) {
     const prefs = { ...((profile?.preferences as Record<string, unknown>) ?? {}), nova_personality: p };
@@ -120,9 +129,27 @@ export default function AiMemoryPage() {
         ) : memory.length === 0 ? (
           <EmptyState icon="🧠" title={t.aimemory.empty} />
         ) : (
-          <div className="space-y-3">
-            {CATEGORIES.map((cat) => {
-              const list = memory.filter((m) => m.category === cat);
+          <>
+            <ListToolbar
+              filters={[
+                { value: "all", label: t.common.all },
+                ...CATEGORIES.map((c) => ({ value: c, label: t.aimemory[c] })),
+              ]}
+              filter={memFilter}
+              onFilter={setMemFilter}
+              sortOptions={[{ value: "key", label: t.aimemory.key }]}
+              sort="key"
+              onSort={() => {}}
+              order={memOrder}
+              onOrder={setMemOrder}
+              className="mb-3"
+              filterLabel={t.common.filter}
+              sortLabel={t.common.sortBy}
+              orderTitle={`${t.common.sortBy}: ${memOrder === "asc" ? t.common.ascending : t.common.descending}`}
+            />
+            <div className="space-y-3">
+            {visibleCats.map((cat) => {
+              const list = sortBy(memory.filter((m) => m.category === cat), (m) => m.key, memOrder);
               if (list.length === 0) return null;
               return (
                 <div key={cat}>
@@ -149,7 +176,8 @@ export default function AiMemoryPage() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </>
         )}
       </Card>
 

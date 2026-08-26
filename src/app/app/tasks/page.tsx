@@ -28,7 +28,9 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { daysUntil, formatDate, formatTime } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Project, Task } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -51,6 +53,9 @@ function TasksPageInner() {
   const [addOpen, setAddOpen] = useState(false);
   const [quick, setQuick] = useState("");
   const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [taskSort, setTaskSort] = useState("due");
+  const [taskOrder, setTaskOrder] = useState<OrderDir>("asc");
   const [micro, setMicro] = useState<MicroBucket>("all");
   const [subMap, setSubMap] = useState<Record<string, Task[]>>({});
   const [breakdown, setBreakdown] = useState<{ taskId: string; taskTitle: string; items: BreakdownSuggestion[] } | null>(null);
@@ -101,26 +106,38 @@ function TasksPageInner() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const todayEnd = new Date(now.getTime() + 86400000);
-    // hide subtasks from the main list (they live under their parent) + apply micro filter
-    const list = tasks.filter(
+    // hide subtasks from the main list (they live under their parent) + apply filters
+    let list = tasks.filter(
       (task) =>
         !task.parent_task_id &&
         (projectFilter === "all" ? true : task.project_id === projectFilter) &&
+        (priorityFilter === "all" ? true : task.priority === priorityFilter) &&
         microMatches(task, micro)
     );
     switch (view) {
       case "today":
-        return list.filter(
+        list = list.filter(
           (task) => task.status !== "done" && task.due_date && new Date(task.due_date) >= now && new Date(task.due_date) < todayEnd
         );
+        break;
       case "upcoming":
-        return list.filter((task) => task.status !== "done" && (!task.due_date || new Date(task.due_date) >= todayEnd));
+        list = list.filter((task) => task.status !== "done" && (!task.due_date || new Date(task.due_date) >= todayEnd));
+        break;
       case "inbox":
-        return list.filter((task) => task.status !== "done" && !task.due_date);
+        list = list.filter((task) => task.status !== "done" && !task.due_date);
+        break;
       case "completed":
-        return list.filter((task) => task.status === "done");
+        list = list.filter((task) => task.status === "done");
+        break;
     }
-  }, [tasks, view, projectFilter, micro]);
+    const rank = (p: string) => (p === "high" ? 2 : p === "medium" ? 1 : 0);
+    return sortBy(
+      list,
+      (task) =>
+        taskSort === "title" ? task.title : taskSort === "priority" ? rank(task.priority) : task.due_date ?? "9999-12-31",
+      taskOrder
+    );
+  }, [tasks, view, projectFilter, priorityFilter, micro, taskSort, taskOrder]);
 
   async function toggleDone(task: Task) {
     const done = task.status === "done";
@@ -373,6 +390,27 @@ function TasksPageInner() {
           </button>
         ))}
       </div>
+
+      <ListToolbar
+        filters={[
+          { value: "all", label: t.common.all },
+          ...PRIORITIES.map((p) => ({ value: p.value, label: p.label })),
+        ]}
+        filter={priorityFilter}
+        onFilter={setPriorityFilter}
+        sortOptions={[
+          { value: "due", label: t.tasks.due },
+          { value: "title", label: t.common.title },
+          { value: "priority", label: t.tasks.priority },
+        ]}
+        sort={taskSort}
+        onSort={setTaskSort}
+        order={taskOrder}
+        onOrder={setTaskOrder}
+        filterLabel={t.common.filter}
+        sortLabel={t.common.sortBy}
+        orderTitle={`${t.common.sortBy}: ${taskOrder === "asc" ? t.common.ascending : t.common.descending}`}
+      />
 
       <Card>
         {tasks.length > 0 && (

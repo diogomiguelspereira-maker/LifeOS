@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, FolderKanban, Link2, Plus, Trash2, Wallet } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { api } from "@/lib/api";
@@ -19,7 +19,9 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { formatMoney, percent } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Account, Project, SavingsGoal, Task, Transaction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -40,6 +42,9 @@ export default function ProjectsPage() {
   const [expAmount, setExpAmount] = useState("");
   const [expDesc, setExpDesc] = useState("");
   const [goalLinkFor, setGoalLinkFor] = useState<Project | null>(null);
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [projectSort, setProjectSort] = useState("name");
+  const [projectOrder, setProjectOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     const [ps, tx_, ts, gs, acc] = await Promise.all([
@@ -80,6 +85,13 @@ export default function ProjectsPage() {
     setEditing(null);
     load();
   }
+
+  const visibleProjects = useMemo(() => {
+    let list = projects;
+    if (projectFilter === "active") list = list.filter((p) => p.status === "active");
+    else if (projectFilter === "archived") list = list.filter((p) => p.status === "archived");
+    return sortBy(list, (p) => (projectSort === "budget" ? p.budget ?? 0 : p.name), projectOrder);
+  }, [projects, projectFilter, projectSort, projectOrder]);
 
   async function addExpense() {
     if (!expenseFor || !expAmount) return;
@@ -132,8 +144,30 @@ export default function ProjectsPage() {
           <EmptyState icon="🗂️" title={t.projects.noProjects} />
         </Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {projects.map((p) => {
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "active", label: t.routines.active },
+              { value: "completed", label: t.goals.completed.replace(/! 🎉$/, "") },
+              { value: "archived", label: t.projects.archived },
+            ]}
+            filter={projectFilter}
+            onFilter={setProjectFilter}
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "budget", label: t.projects.budget },
+            ]}
+            sort={projectSort}
+            onSort={setProjectSort}
+            order={projectOrder}
+            onOrder={setProjectOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${projectOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-4 lg:grid-cols-2">
+          {visibleProjects.map((p) => {
             const spent = tx.filter((x) => x.project_id === p.id && x.amount < 0).reduce((s, x) => s + Math.abs(x.amount), 0);
             const pct = p.budget && p.budget > 0 ? percent(spent, p.budget) : 0;
             const ptasks = tasks.filter((x) => x.project_id === p.id && x.status !== "done");
@@ -225,7 +259,8 @@ export default function ProjectsPage() {
               </Card>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {/* create/edit */}

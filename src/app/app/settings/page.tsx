@@ -17,6 +17,7 @@ import { currencies } from "@/lib/i18n";import {
   Switch,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { OrderToggle } from "@/components/ListToolbar";
 import { cn } from "@/lib/cn";
 import type { Account, BankLink, Currency, IntegrationToken, Lang, Profile } from "@/lib/types";
 
@@ -102,6 +103,7 @@ function SettingsPageInner() {
   const [bankOpen, setBankOpen] = useState(false);
   const [bankCountry, setBankCountry] = useState("pt");
   const [bankQuery, setBankQuery] = useState("");
+  const [bankOrder, setBankOrder] = useState<"asc" | "desc">("asc");
   const [institutions, setInstitutions] = useState<{ id: string; name: string; logo: string | null }[] | null>(null);
   const [bankSyncing, setBankSyncing] = useState(false);
   const [bankMsg, setBankMsg] = useState<string | null>(null);
@@ -781,7 +783,14 @@ function SettingsPageInner() {
               <option value="gb">Reino Unido 🇬🇧</option>
             </Select>
           </Field>
-          <Input value={bankQuery} onChange={(e) => setBankQuery(e.target.value)} placeholder={t.settings.bankSearch} />
+          <div className="flex items-center gap-2">
+            <Input value={bankQuery} onChange={(e) => setBankQuery(e.target.value)} placeholder={t.settings.bankSearch} />
+            <OrderToggle
+              order={bankOrder}
+              onChange={setBankOrder}
+              title={`${t.common.sortBy}: ${bankOrder === "asc" ? t.common.ascending : t.common.descending}`}
+            />
+          </div>
           <div className="max-h-72 space-y-1 overflow-y-auto">
             {!institutions ? (
               <p className="py-6 text-center text-xs text-zinc-500">{t.common.loading}</p>
@@ -790,6 +799,7 @@ function SettingsPageInner() {
             ) : (
               institutions
                 .filter((i) => i.name.toLowerCase().includes(bankQuery.trim().toLowerCase()))
+                .sort((a, b) => (bankOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)))
                 .slice(0, 40)
                 .map((i) => (
                   <button

@@ -21,7 +21,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { formatMoney, monthKey } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Account, Category, Transaction } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -86,18 +88,26 @@ function MoneyPageInner() {
     return { top, perDay };
   }, [monthTx, byCategory, totals]);
   const [search, setSearch] = useState("");
+  const [txFilter, setTxFilter] = useState("all");
+  const [txSort, setTxSort] = useState("date");
+  const [txOrder, setTxOrder] = useState<OrderDir>("desc");
   const filteredTx = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return transactions;
-    return transactions.filter((tx) => {
-      const cat = categories.find((c) => c.id === tx.category_id);
-      return (
-        (tx.description ?? "").toLowerCase().includes(q) ||
-        (cat?.name ?? "").toLowerCase().includes(q) ||
-        tx.date.includes(q)
-      );
-    });
-  }, [transactions, search, categories]);
+    let list = transactions;
+    if (txFilter === "income") list = list.filter((tx) => tx.amount > 0);
+    else if (txFilter === "expense") list = list.filter((tx) => tx.amount < 0);
+    if (q) {
+      list = list.filter((tx) => {
+        const cat = categories.find((c) => c.id === tx.category_id);
+        return (
+          (tx.description ?? "").toLowerCase().includes(q) ||
+          (cat?.name ?? "").toLowerCase().includes(q) ||
+          tx.date.includes(q)
+        );
+      });
+    }
+    return sortBy(list, (tx) => (txSort === "amount" ? Math.abs(tx.amount) : tx.date), txOrder);
+  }, [transactions, search, categories, txFilter, txSort, txOrder]);
 
   const expenseCats = categories.filter((c) => c.type === "expense");
   const incomeCats = categories.filter((c) => c.type === "income");
@@ -370,14 +380,36 @@ function MoneyPageInner() {
         <CardHeader
           title={t.money.transactions}
           action={
-            <div className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-2">
-              <Search className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t.common.search}
-                className="h-8 w-28 bg-transparent text-xs text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none sm:w-40"
+            <div className="flex flex-wrap items-center gap-2">
+              <ListToolbar
+                filters={[
+                  { value: "all", label: t.common.all },
+                  { value: "income", label: t.money.income },
+                  { value: "expense", label: t.money.expense },
+                ]}
+                filter={txFilter}
+                onFilter={setTxFilter}
+                sortOptions={[
+                  { value: "date", label: t.common.date },
+                  { value: "amount", label: t.common.amount },
+                ]}
+                sort={txSort}
+                onSort={setTxSort}
+                order={txOrder}
+                onOrder={setTxOrder}
+                filterLabel={t.common.filter}
+                sortLabel={t.common.sortBy}
+                orderTitle={`${t.common.sortBy}: ${txOrder === "asc" ? t.common.ascending : t.common.descending}`}
               />
+              <div className="flex items-center gap-1.5 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-2">
+                <Search className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t.common.search}
+                  className="h-8 w-28 bg-transparent text-xs text-zinc-800 dark:text-zinc-100 placeholder:text-zinc-500 outline-none sm:w-40"
+                />
+              </div>
             </div>
           }
         />

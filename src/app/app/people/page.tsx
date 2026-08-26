@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { addBirthdayEvents, api } from "@/lib/api";
@@ -16,7 +16,9 @@ import {
   Textarea,
 } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { ListToolbar, type OrderDir } from "@/components/ListToolbar";
 import { daysUntil, initials } from "@/lib/format";
+import { sortBy } from "@/lib/sort";
 import type { Contact } from "@/lib/types";
 
 export default function PeoplePage() {
@@ -26,6 +28,9 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | null>(null);
+  const [personFilter, setPersonFilter] = useState("all");
+  const [personSort, setPersonSort] = useState("name");
+  const [personOrder, setPersonOrder] = useState<OrderDir>("asc");
 
   const load = useCallback(async () => {
     setContacts(await api.contacts(supabase));
@@ -42,6 +47,14 @@ export default function PeoplePage() {
     await supabase.from("calendar_events").delete().eq("description", `🎂:${id}`);
     load();
   }
+
+  const visibleContacts = useMemo(() => {
+    let list = contacts;
+    if (personFilter === "birthday") {
+      list = list.filter((c) => c.birthday && daysUntil(c.birthday) >= 0 && daysUntil(c.birthday) <= 14);
+    }
+    return sortBy(list, (c) => (personSort === "last" ? c.last_contacted ?? "" : c.name), personOrder);
+  }, [contacts, personFilter, personSort, personOrder]);
 
   if (loading) {
     return (
@@ -72,8 +85,28 @@ export default function PeoplePage() {
           <EmptyState icon="👥" title={t.people.noContacts} />
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {contacts.map((c) => {
+        <>
+          <ListToolbar
+            filters={[
+              { value: "all", label: t.common.all },
+              { value: "birthday", label: `🎂 ${t.people.birthday}` },
+            ]}
+            filter={personFilter}
+            onFilter={setPersonFilter}
+            sortOptions={[
+              { value: "name", label: t.common.name },
+              { value: "last", label: t.people.lastContacted },
+            ]}
+            sort={personSort}
+            onSort={setPersonSort}
+            order={personOrder}
+            onOrder={setPersonOrder}
+            filterLabel={t.common.filter}
+            sortLabel={t.common.sortBy}
+            orderTitle={`${t.common.sortBy}: ${personOrder === "asc" ? t.common.ascending : t.common.descending}`}
+          />
+          <div className="grid gap-3 sm:grid-cols-2">
+          {visibleContacts.map((c) => {
             const last = c.last_contacted ? daysUntil(c.last_contacted) * -1 : null;
             const birthdaySoon =
               c.birthday && daysUntil(c.birthday) >= 0 && daysUntil(c.birthday) <= 14;
@@ -121,7 +154,8 @@ export default function PeoplePage() {
               </Card>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       <ContactModal
