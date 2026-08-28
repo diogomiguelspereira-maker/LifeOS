@@ -86,17 +86,38 @@ export default function LocationPage() {
   useEffect(() => () => stopSharing(), [stopSharing]);
 
   // Android Chrome fails silently (no permission prompt) when the OS location
-  // toggle is off or the site permission was blocked before — surface that
-  // up front instead of waiting for a failed fix.
+  // toggle is off or the site permission was blocked before. Probe on open so
+  // the page says exactly what's wrong before the user presses start.
   useEffect(() => {
     let cancelled = false;
+    if (!("geolocation" in navigator)) {
+      setError(t.location.unsupported);
+      return () => { cancelled = true; };
+    }
+    const check = (state: string) => {
+      if (cancelled) return;
+      if (state === "denied") {
+        setError(t.location.denied);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        () => {}, // probe only — real tracking starts on demand
+        (geoError) => {
+          if (cancelled) return;
+          if (geoError.code === geoError.PERMISSION_DENIED) setError(t.location.denied);
+          else if (geoError.code === geoError.TIMEOUT) setError(t.location.timeout);
+          else setError(t.location.signal);
+        },
+        { enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 }
+      );
+    };
     if (navigator.permissions?.query) {
       void navigator.permissions
         .query({ name: "geolocation" })
-        .then((status) => {
-          if (!cancelled && status.state === "denied") setError(t.location.denied);
-        })
-        .catch(() => {});
+        .then((status) => check(status.state))
+        .catch(() => check("prompt"));
+    } else {
+      check("prompt");
     }
     return () => { cancelled = true; };
   }, [t.location]);
