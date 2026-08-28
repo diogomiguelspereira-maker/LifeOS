@@ -42,6 +42,12 @@ yarn-error.log*
 /android/.gradle/
 *.idsig
 
+# android auto test app
+/android-auto/**/build/
+/android-auto/.gradle/
+/android-auto/local.properties
+/android-auto/.kotlin/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

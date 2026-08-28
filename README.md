@@ -21,6 +21,7 @@ Built with **Next.js 16 · TypeScript · Tailwind CSS · Supabase** (Postgres + 
 - **Aprendizagem** — livros, cursos, sessões de estudo e horas estudadas
 - **Carreira** — roadmap, matriz de competências, candidaturas a emprego e salários
 - **Viagens** — orçamento, itinerário, packing e gastos por viagem
+- **Conduzir (Waze)** — radares, polícia e perigos na estrada em tempo real, com radar visual, modo rota (destino → alertas ao longo do percurso), aviso sonoro e abertura direta no Waze
 - **Social** — despesas partilhadas com split bills ("quem deve a quem")
 - **Digital & Docs** — dispositivos, garantias, licenças, domínios e documentos com alertas de expiração (passaporte, carta…)
 - **Notas + Diário** — segundo cérebro com favoritos, etiquetas e humor
@@ -150,6 +151,26 @@ Liga a LifeOS a qualquer serviço (Notion, Todoist, Telegram, Gmail…) via webh
 4. Exemplo: um bot de Telegram → quando recebe uma mensagem, chama o webhook e cria uma tarefa.
 
 > As chaves dão acesso total aos dados da tua conta (são per-utilizador). Revoga-as em Definições se deixarem de ser precisas.
+
+## 🚗 8. Conduzir (Waze) — alertas na estrada
+
+Em **Mais → Conduzir** encontras alertas em tempo real (polícia, radares fixos, radares de semáforo, acidentes, perigos, trânsito) à tua volta ou ao longo de uma rota:
+
+- **À minha volta** — raio de 1/2/5 km com atualização automática (30 s) e aviso sonoro quando entras no raio de um alerta.
+- **Na minha rota** — escreve um destino (nome ou coordenadas `lat,lon`); a rota é calculada (OSRM) e só aparecem alertas a menos de ~1,5 km do percurso, com indicação de "à frente/atrás".
+- Cada alerta tem um link **Abrir no Waze** que inicia a navegação até ao ponto.
+
+Os dados vêm do **feed público do Waze** (o mesmo que alimenta o live map — não oficial, sem chaves). Como o Waze bloqueia pedidos automatizados em algumas redes, a fonte é escolhida assim:
+
+1. **Apify** (se `APIFY_TOKEN` estiver definida) — dados em tempo real fiáveis (polícia, perigos, acidentes) via o actor `burbn/waze-traffic-scraper`. Funciona no plano grátis da Apify ($5 de créditos/mês) — ver [apify.com](https://apify.com). Custa por resultado; se usares muito, reduz o raio ou o intervalo de atualização.
+   ```env
+   APIFY_TOKEN=apify_api_...     # opcional — ativa a fonte Apify (mais fiável)
+   APIFY_ACTOR_ID=burbn/waze-traffic-scraper   # opcional — para trocar de actor
+   ```
+2. **Feed direto do Waze** — quando não há `APIFY_TOKEN` e o Waze não bloqueia o pedido.
+3. **OpenStreetMap** (Overpass API, gratuito) — fallback automático: **radares fixos** sempre que as fontes anteriores falham. Polícia e perigos em tempo real só aparecem com as fontes 1 ou 2.
+
+Pode mudar ou ficar indisponível a qualquer momento. **Nota legal:** apps de aviso de radar são proibidas em alguns países (ex.: França, Suíça) — confirma a legislação local.
 
 ## 🔒 Segurança
 
