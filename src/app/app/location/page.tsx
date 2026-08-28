@@ -57,17 +57,49 @@ export default function LocationPage() {
         updatedAt: new Date().toISOString(),
       } satisfies Point;
       setPoint(next);
+      setError(null);
       void supabase.rpc("update_location_share", { p_token: shareToken, p_lat: next.lat, p_lon: next.lon, p_accuracy: next.accuracy });
       void channel.send({ type: "broadcast", event: "location", payload: next });
     };
-    watchRef.current = navigator.geolocation.watchPosition(send, (geoError) => {
-      setError(geoError.code === geoError.PERMISSION_DENIED ? t.location.denied : t.location.failed);
-      stopSharing();
-    }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+    // Transient GPS failures (no signal / slow fix) must not kill the share:
+    // keep the link live, tell the user what's happening, and retry once with
+    // lower accuracy (fixes are often available without high-accuracy mode).
+    let downgraded = false;
+    const onError = (geoError: GeolocationPositionError) => {
+      if (geoError.code === geoError.PERMISSION_DENIED) {
+        setError(t.location.denied);
+        stopSharing();
+        return;
+      }
+      setError(geoError.code === geoError.TIMEOUT ? t.location.timeout : t.location.signal);
+      if (!downgraded && watchRef.current !== null) {
+        downgraded = true;
+        navigator.geolocation.clearWatch(watchRef.current);
+        watchRef.current = navigator.geolocation.watchPosition(send, onError, { enableHighAccuracy: false, maximumAge: 30000, timeout: 30000 });
+      }
+    };
+    watchRef.current = navigator.geolocation.watchPosition(send, onError, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+    if (watchRef.current === null) setError(t.location.failed);
     expiresRef.current = window.setTimeout(stopSharing, minutes * 60_000);
   }, [minutes, profile?.id, stopSharing, supabase, t.location]);
 
   useEffect(() => () => stopSharing(), [stopSharing]);
+
+  // Android Chrome fails silently (no permission prompt) when the OS location
+  // toggle is off or the site permission was blocked before — surface that
+  // up front instead of waiting for a failed fix.
+  useEffect(() => {
+    let cancelled = false;
+    if (navigator.permissions?.query) {
+      void navigator.permissions
+        .query({ name: "geolocation" })
+        .then((status) => {
+          if (!cancelled && status.state === "denied") setError(t.location.denied);
+        })
+        .catch(() => {});
+    }
+    return () => { cancelled = true; };
+  }, [t.location]);
 
   return (
     <div className="space-y-5">
