@@ -24,8 +24,7 @@ declare v_token text;
 begin
   if auth.uid() is null or p_minutes not between 5 and 240 then raise exception 'invalid_request'; end if;
   update public.location_shares set stopped_at = now() where user_id = auth.uid() and stopped_at is null;
-  v_token := encode(gen_random_bytes(24), 'base64');
-  v_token := replace(replace(replace(v_token, '/', '_'), '+', '-'), '=', '');
+  v_token := replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '');
   insert into public.location_shares(user_id, token, expires_at) values (auth.uid(), v_token, now() + make_interval(mins => p_minutes));
   return v_token;
 end $$;
