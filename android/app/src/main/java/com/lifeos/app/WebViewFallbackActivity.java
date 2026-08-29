@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -71,6 +72,7 @@ public class WebViewFallbackActivity extends Activity {
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
 
+        mWebView.addJavascriptInterface(new LifeOSBridge(), "LifeOSBridge");
         mWebView.setWebViewClient(new WebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -104,6 +106,33 @@ public class WebViewFallbackActivity extends Activity {
         mWebView.loadUrl(url);
 
         applySystemBarColors();
+    }
+
+    /**
+     * Bridge the web page can call to hand an active share to the native
+     * background location service (only available inside this WebView shell).
+     */
+    private class LifeOSBridge {
+        @JavascriptInterface
+        public void startShare(String token, String supabaseUrl, String anonKey) {
+            Intent intent = new Intent(WebViewFallbackActivity.this, LocationShareService.class);
+            intent.setAction(LocationShareService.ACTION_START);
+            intent.putExtra("token", token);
+            intent.putExtra("url", supabaseUrl);
+            intent.putExtra("anon", anonKey);
+            if (Build.VERSION.SDK_INT >= 26) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+        }
+
+        @JavascriptInterface
+        public void stopShare() {
+            Intent intent = new Intent(WebViewFallbackActivity.this, LocationShareService.class);
+            intent.setAction(LocationShareService.ACTION_STOP);
+            startService(intent);
+        }
     }
 
     private void applySystemBarColors() {

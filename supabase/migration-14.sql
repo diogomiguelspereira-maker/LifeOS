@@ -40,3 +40,6 @@ begin
   return true;
 end $$;
 grant execute on function public.update_location_share(text, double precision, double precision, double precision) to authenticated;
+-- Allow the Android background service (which only holds the share token + anon
+-- key, no user session) to post location updates for an active share.
+grant execute on function public.update_location_share(text, double precision, double precision, double precision) to anon;

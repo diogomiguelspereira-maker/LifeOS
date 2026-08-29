@@ -83,6 +83,11 @@ export default function LocationPage() {
     expiresRef.current = null;
     setExpiresAt(null);
     setNow(Date.now());
+    try {
+      ((window as unknown as Record<string, unknown>).LifeOSBridge as
+        | { stopShare?: () => void }
+        | undefined)?.stopShare?.();
+    } catch { /* web-only build */ }
     setSharing(false);
   }, [supabase]);
 
@@ -106,6 +111,19 @@ export default function LocationPage() {
     setSharing(true);
     setExpiresAt(new Date(Date.now() + minutes * 60_000));
     setNow(Date.now());
+    // Native Android: hand the active share to the installed app's background
+    // location service so it keeps reporting even when the page is closed. This
+    // bridge only exists when running inside the Android WebView shell.
+    try {
+      const bridge = (window as unknown as Record<string, unknown>).LifeOSBridge as
+        | { startShare?: (t: string, u: string, k: string) => void }
+        | undefined;
+      bridge?.startShare?.(
+        shareToken,
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
+      );
+    } catch { /* web-only build */ }
     // The share page polls get_shared_location every 5s, so live delivery does
     // NOT depend on this Realtime channel. Subscribe best-effort instead of
     // letting a subscribe timeout/error stop the share from starting at all.
