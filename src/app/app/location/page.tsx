@@ -61,7 +61,13 @@ export default function LocationPage() {
     }
     setError(null);
     const { data: created, error: createError } = await supabase.rpc("create_location_share", { p_minutes: minutes });
-    if (createError || !created) { setError(t.location.failed); return; }
+    if (createError || !created) {
+      // Surface the real backend message when starting fails so the cause
+      // (missing function, wrong Supabase project, RLS/grants…) is visible.
+      const detail = createError && "message" in createError ? String((createError as { message?: unknown }).message ?? "") : "";
+      setError(detail ? `${t.location.failed} (${detail})` : t.location.failed);
+      return;
+    }
     const shareToken = String(created);
     tokenRef.current = shareToken;
     setShareUrl(`${window.location.origin}/share/location/${shareToken}`);
