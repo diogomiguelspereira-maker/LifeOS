@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MapPin, Radio, Square } from "lucide-react";
+import { Clock, MapPin, QrCode, Radio, Square, Users } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useApp, useSupabase } from "@/lib/app-context";
 import { Button, Card, Select } from "@/components/ui";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,27 +11,46 @@ const DURATIONS = [15, 30, 60, 180];
 
 type Point = { lat: number; lon: number; accuracy: number; updatedAt: string };
 
+function fmtCountdown(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const two = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
+}
+
 export default function LocationPage() {
   const { t, profile } = useApp();
   const supabase = useSupabase();
   const [sharing, setSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
   const [minutes, setMinutes] = useState(60);
   const [point, setPoint] = useState<Point | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewerCount, setViewerCount] = useState<number | null>(null);
+  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Mirrors `token` synchronously so stopSharing (captured by the owned
+  // timeout/cleanup and the Stop button) always sees the live token — the
+  // React state alone is stale inside those stabilized callbacks.
+  const tokenRef = useRef<string | null>(null);
   const watchRef = useRef<number | null>(null);
   const expiresRef = useRef<number | null>(null);
 
   const stopSharing = useCallback(() => {
     if (watchRef.current !== null && "geolocation" in navigator) navigator.geolocation.clearWatch(watchRef.current);
     watchRef.current = null;
-    if (token) void supabase.rpc("stop_location_share", { p_token: token });
+    const tok = tokenRef.current;
+    if (tok) void supabase.rpc("stop_location_share", { p_token: tok });
     if (channelRef.current) void supabase.removeChannel(channelRef.current);
     channelRef.current = null;
     if (expiresRef.current !== null) window.clearTimeout(expiresRef.current);
     expiresRef.current = null;
+    setExpiresAt(null);
+    setNow(Date.now());
     setSharing(false);
   }, [supabase]);
 
@@ -43,12 +63,21 @@ export default function LocationPage() {
     const { data: created, error: createError } = await supabase.rpc("create_location_share", { p_minutes: minutes });
     if (createError || !created) { setError(t.location.failed); return; }
     const shareToken = String(created);
-    setToken(shareToken);
+    tokenRef.current = shareToken;
     setShareUrl(`${window.location.origin}/share/location/${shareToken}`);
+    setSharing(true);
+    setExpiresAt(new Date(Date.now() + minutes * 60_000));
+    setNow(Date.now());
+    // The share page polls get_shared_location every 5s, so live delivery does
+    // NOT depend on this Realtime channel. Subscribe best-effort instead of
+    // letting a subscribe timeout/error stop the share from starting at all.
     const channel = supabase.channel(`lifeos-location:${profile?.id ?? "anonymous"}`);
     channelRef.current = channel;
-    await channel.subscribe();
-    setSharing(true);
+    try {
+      await channel.subscribe();
+    } catch {
+      // realtime is optional — geolocation + polling keep sharing working
+    }
     const send = (position: GeolocationPosition) => {
       const next = {
         lat: position.coords.latitude,
@@ -84,6 +113,33 @@ export default function LocationPage() {
   }, [minutes, profile?.id, stopSharing, supabase, t.location]);
 
   useEffect(() => () => stopSharing(), [stopSharing]);
+
+  // Live viewer count: poll how many people currently have the share link open.
+  useEffect(() => {
+    if (!sharing || !tokenRef.current) {
+      setViewerCount(null);
+      return;
+    }
+    let cancelled = false;
+    const token = tokenRef.current;
+    const poll = async () => {
+      const { data } = await supabase.rpc("get_share_viewer_count", { p_token: token });
+      if (!cancelled && typeof data === "number") setViewerCount(data);
+    };
+    void poll();
+    const id = window.setInterval(() => void poll(), 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [sharing, supabase]);
+
+  // Live 1s ticker so the "expires in" countdown keeps moving while sharing.
+  useEffect(() => {
+    if (!sharing) return undefined;
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [sharing]);
 
   // Android Chrome fails silently (no permission prompt) when the OS location
   // toggle is off or the site permission was blocked before. Probe on open so
@@ -147,7 +203,8 @@ export default function LocationPage() {
           )}
         </div>
         {point && <p className="text-xs text-ink-3">{t.location.lastUpdate}: {new Date(point.updatedAt).toLocaleTimeString()} · ±{Math.round(point.accuracy)} m</p>}
-        {shareUrl && sharing && <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3"><p className="mb-2 text-xs font-semibold text-ink">{t.location.copyLink}</p><div className="flex gap-2"><input readOnly value={shareUrl} className="min-w-0 flex-1 rounded-lg border border-line bg-raised px-2 text-xs text-ink" /><Button size="sm" variant="secondary" onClick={() => void navigator.clipboard?.writeText(shareUrl)}>{t.location.copy}</Button></div></div>}
+        {sharing && expiresAt && <p className="flex items-center gap-1.5 text-xs text-ink-3"><Clock className="h-3.5 w-3.5" />{t.location.expiresIn} {fmtCountdown(expiresAt.getTime() - now)} · {t.location.expiresAt} {expiresAt.toLocaleTimeString()}</p>}
+        {shareUrl && sharing && <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3"><p className="mb-2 text-xs font-semibold text-ink">{t.location.copyLink}</p><div className="flex flex-wrap gap-2"><input readOnly value={shareUrl} className="min-w-0 flex-1 rounded-lg border border-line bg-raised px-2 text-xs text-ink" /><Button size="sm" variant="secondary" onClick={() => void navigator.clipboard?.writeText(shareUrl)}>{t.location.copy}</Button><Button size="sm" variant="outline" onClick={() => setShowQr((v) => !v)}><QrCode className="h-4 w-4" />{t.location.qr}</Button></div>{showQr && <div className="mt-3 flex justify-center rounded-xl bg-white p-3"><QRCodeSVG value={shareUrl} size={150} /></div>}{viewerCount !== null && <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-3"><Users className="h-3.5 w-3.5" />{t.location.liveViewers.replace("{n}", String(viewerCount))}</p>}</div>}
         {error && <p className="text-sm text-red-500">{error}</p>}
         <p className="text-xs leading-relaxed text-ink-3">{t.location.privacy}</p>
       </Card>

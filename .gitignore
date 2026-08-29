@@ -51,3 +51,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# testing artifacts
+/test-results
+/playwright-report
+
+# android (native TWA) local SDK path
+/android/local.properties
