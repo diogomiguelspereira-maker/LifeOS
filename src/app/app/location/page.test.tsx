@@ -5,8 +5,17 @@ import { act } from "react";
 
 const { rpcMock, clientObj } = vi.hoisted(() => {
   const rpc = vi.fn(); // loose mock — configured per test
+  // PostgREST-style chain used by the history queries (from().select().order()…).
+  const query: any = {
+    data: [],
+    select() { return query; },
+    eq() { return query; },
+    order() { return query; },
+    then(resolve: (v: { data: unknown[]; error: null }) => void) { resolve({ data: [], error: null }); },
+  };
   const client = {
     rpc,
+    from: vi.fn(() => query),
     channel: vi.fn(() => ({
       subscribe: vi.fn(() => Promise.resolve(undefined)),
       send: vi.fn(),
